@@ -815,6 +815,8 @@ namespace Assay\Permission\Privilege {
 
         public function UserAuthorization(string $process, string $object):bool
         {
+            $result = false;
+            return $result;
         }
     }
 
