@@ -1,10 +1,24 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: User
- * Date: 05.01.2017
- * Time: 17:14
- */
+
+function autoload($className)
+{
+    $path = __DIR__ . "\\lib\\vendor\\";
+    $className = ltrim($className, '\\');
+    $fileName = '';
+    $namespace = '';
+    if ($lastNsPos = strrpos($className, '\\')) {
+        $namespace = substr($className, 0, $lastNsPos);
+        $className = substr($className, $lastNsPos + 1);
+        $fileName = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
+    }
+    $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
+
+    require $path . $fileName;
+}
+
+spl_autoload_register('autoload');
+
+include('index.php');
 
 include('index.php');
 use Assay\Permission\Privilege;
@@ -28,7 +42,7 @@ function getRequestSession():Privilege\Session
     if ($session->key == $emptyData) {
         $sessionValues = Privilege\Session::open($session->userId);
         $session->setByNamedValue($sessionValues);
-    }    
+    }
 
     return $session;
 }
@@ -124,11 +138,11 @@ function passwordRecoveryProcess(string $email):bool
 
     $user = new Privilege\User();
     $isSuccess = $user->loadByEmail($email);
-    
+
     if($isSuccess){
         $result = $user->sendRecovery();
     }
-    
+
     return $result;
 }
 
