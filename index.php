@@ -505,6 +505,7 @@ namespace Assay\InformationsCatalog\DataInformation {
     }
 }
 */
+/*
 
 namespace Assay\InformationsCatalog\Permission {
 
@@ -576,6 +577,7 @@ namespace Assay\InformationsCatalog\Permission {
         }
     }
 }
+*/
 
 namespace Assay\Permission\Privilege {
 
