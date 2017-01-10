@@ -8,28 +8,28 @@
 namespace Assay\Core {
     class MutableEntity extends Entity implements IMutableEntity, IReadableEntity
     {
-        public function MutateEntity():bool
+        public function mutateEntity():bool
         {
 
         }
 
-        public function ReadEntity(string $id):array
-        {
-            $result = array();
-            return $result;
-        }
-
-        public function GetStored():array
+        public function readEntity(string $id):array
         {
             $result = array();
             return $result;
         }
 
-        public function SetByNamedValue(array $namedValue)
+        public function getStored():array
+        {
+            $result = array();
+            return $result;
+        }
+
+        public function setByNamedValue(array $namedValue)
         {
         }
 
-        public function ToEntity():array
+        public function toEntity():array
         {
             $result = array();
             return $result;

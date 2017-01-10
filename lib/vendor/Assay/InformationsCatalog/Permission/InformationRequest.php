@@ -13,7 +13,7 @@ namespace Assay\InformationsCatalog\Permission {
         public $object;
         public $content;
 
-        public function TestPrivilege():bool
+        public function testPrivilege():bool
         {
 
         }

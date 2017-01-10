@@ -8,8 +8,8 @@
 namespace Assay\InformationsCatalog\DataInformation {
     interface ICompanySpecific
     {
-        public function GetMap():array;
+        public function getMap():array;
 
-        public function GetAddress():array;
+        public function getAddress():array;
     }
 }

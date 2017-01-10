@@ -8,11 +8,11 @@
 namespace Assay\InformationsCatalog\DataInformation {
     interface IInstanceUserInformation
     {
-        public function GetShippingPricing():array;
+        public function getShippingPricing():array;
 
-        public function GetGoodsPricing():array;
+        public function getGoodsPricing():array;
 
-        public function GetCompanyRubrics():array;
+        public function getCompanyRubrics():array;
 
     }
 }

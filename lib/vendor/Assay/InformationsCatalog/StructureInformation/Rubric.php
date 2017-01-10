@@ -11,15 +11,15 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
     class Rubric extends Common implements IRubric
     {
-        public function GetMap():array
+        public function getMap():array
         {
         }
 
-        public function GetSearchParameters():array
+        public function getSearchParameters():array
         {
         }
 
-        public function GetProperties():array
+        public function getProperties():array
         {
         }
     }

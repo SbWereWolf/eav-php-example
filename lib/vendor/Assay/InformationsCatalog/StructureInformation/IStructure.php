@@ -12,20 +12,20 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
         const PARENT = 'parent';
 
-        public function AddChild():int;
+        public function addChild():int;
 
-        public function GetChildrenNames():array;
+        public function getChildrenNames():array;
 
-        public function GetParent():int;
+        public function getParent():int;
 
-        public function IsPartition():bool;
+        public function isPartition():bool;
 
-        public function IsRubric():bool;
+        public function isRubric():bool;
 
-        public function GetPath():array;
+        public function getPath():array;
 
-        public function GetMap():array;
+        public function getMap():array;
 
-        public function Search(string $searchString, string $structureCode):array;
+        public function search(string $searchString, string $structureCode):array;
     }
 }

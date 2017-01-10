@@ -13,7 +13,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         const TYPE_EDIT = 'type_edit';
         const SEARCH_TYPE = 'search_type';
 
-        public function GetSearchParameters():array;
+        public function getSearchParameters():array;
 
     }
 }

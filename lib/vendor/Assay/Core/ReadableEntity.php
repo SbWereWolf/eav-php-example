@@ -6,20 +6,23 @@
  * Time: 18:01
  */
 namespace Assay\Core {
+    /**
+     * Реализация интерфейс чтения сущности из БД
+     */
     class ReadableEntity extends Entity implements IReadableEntity
     {
 
-        public function ReadEntity(string $id):array
+        public function readEntity(string $id):array
         {
         }
 
-        public function GetStored():array
+        public function getStored():array
         {
             $result = array();
             return $result;
         }
 
-        public function SetByNamedValue(array $namedValue)
+        public function setByNamedValue(array $namedValue)
         {
         }
     }

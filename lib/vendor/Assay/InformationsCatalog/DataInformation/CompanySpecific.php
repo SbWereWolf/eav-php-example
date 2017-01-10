@@ -9,12 +9,12 @@ namespace Assay\InformationsCatalog\DataInformation {
     class CompanySpecific implements ICompanySpecific
     {
 
-        public function GetMap():array
+        public function getMap():array
         {
 
         }
 
-        public function GetAddress():array
+        public function getAddress():array
         {
 
         }

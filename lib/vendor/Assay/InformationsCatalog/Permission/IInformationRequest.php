@@ -8,6 +8,6 @@
 namespace Assay\InformationsCatalog\Permission {
     interface IInformationRequest
     {
-        public function TestPrivilege():bool;
+        public function testPrivilege():bool;
     }
 }
