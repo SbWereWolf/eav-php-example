@@ -8,8 +8,11 @@
 namespace Assay\Core {
     class NamedEntity extends MutableEntity implements INamedEntity
     {
+        /** @var string код */
         public $code;
+        /** @var string имя */
         public $name;
+        /** @var string описание */
         public $description;
 
         public function loadByCode(string $code):array
