@@ -3,30 +3,9 @@ namespace Assay\Core {
 
     interface ICommon
     {
-        public static function IsSetEx($valueIfIsset, $valueIfNotIsset);
-        public static function SetIfExists($key, &$array, $valueIfNotIsset);
-    }
+        public static function isSetEx($valueIfIsset, $valueIfNotIsset);
 
-    class Common implements ICommon
-    {
-        const EMPTY_VALUE = '';
-        const EMPTY_OBJECT = null;
-
-        public static function IsSetEx($valueIfIsset, $valueIfNotIsset)
-        {
-            $value = isset($valueIfIsset) ? $valueIfIsset : $valueIfNotIsset;
-            return $value;
-        }
-
-        public static function SetIfExists($key, &$array, $valueIfNotIsset)
-        {
-            $value = $valueIfNotIsset;
-            $maySet = array_key_exists($key, $array);
-            if ($maySet) {
-                $value = self::IsSetEx($array[$key], $valueIfNotIsset);
-            }
-            return $value;
-        }
+        public static function setIfExists($key, &$array, $valueIfNotIsset);
     }
 
     interface IEntity
@@ -38,9 +17,66 @@ namespace Assay\Core {
 
         const DEFAULT_IS_HIDDEN = false;
 
-        public function AddEntity():int;
+        public function addEntity():int;
 
-        public function HideEntity():bool;
+        public function hideEntity():bool;
+    }
+
+    interface IReadableEntity
+    {
+        // прочитать данные по айдишнику
+        public function readEntity(string $id):array;
+
+        // прочитать данные экземпляра из БД
+        /**
+         * @return array
+         */
+        public function getStored():array;
+
+        // задать свойства экземпляра по именованным значениям
+        public function setByNamedValue(array $namedValue);
+    }
+
+    interface IMutableEntity
+    {
+        public function mutateEntity():bool;
+
+        public function toEntity():array;
+
+    }
+
+    interface INamedEntity
+    {
+        const CODE = 'code';
+        const NAME = 'name';
+        const DESCRIPTION = 'description';
+
+        public function loadByCode(string $code):array;
+
+        public function getElementDescription():array;
+
+    }
+
+    class Common implements ICommon
+    {
+        const EMPTY_VALUE = '';
+        const EMPTY_OBJECT = null;
+
+        public static function setIfExists($key, &$array, $valueIfNotIsset)
+        {
+            $value = $valueIfNotIsset;
+            $maySet = array_key_exists($key, $array);
+            if ($maySet) {
+                $value = self::isSetEx($array[$key], $valueIfNotIsset);
+            }
+            return $value;
+        }
+
+        public static function isSetEx($valueIfIsset, $valueIfNotIsset)
+        {
+            $value = isset($valueIfIsset) ? $valueIfIsset : $valueIfNotIsset;
+            return $value;
+        }
     }
 
     class Entity implements IEntity
@@ -52,93 +88,63 @@ namespace Assay\Core {
         public $isHidden;
         public $insertDate;
 
-        public function AddEntity():int
+        public function addEntity():int
         {
             $result = 0;
             return $result;
         }
 
-        public function HideEntity():bool
+        public function hideEntity():bool
         {
         }
-    }
-
-    interface IReadableEntity
-    {
-
-        public function ReadEntity(string $id):array;
-
-        public function GetStored():array;
-
-        public function SetByNamedValue(array $namedValue);
     }
 
     class ReadableEntity extends Entity implements IReadableEntity
     {
 
-        public function ReadEntity(string $id):array
+        public function readEntity(string $id):array
         {
         }
 
-        public function GetStored():array
+        public function getStored():array
         {
             $result = array();
             return $result;
         }
 
-        public function SetByNamedValue(array $namedValue)
+        public function setByNamedValue(array $namedValue)
         {
         }
-    }
-
-    interface IMutableEntity
-    {
-        public function MutateEntity():bool;
-
-        public function ToEntity():array;
-
     }
 
     class MutableEntity extends Entity implements IMutableEntity, IReadableEntity
     {
-        public function MutateEntity():bool
+        public function mutateEntity():bool
         {
 
         }
 
-        public function ReadEntity(string $id):array
-        {
-            $result = array();
-            return $result;
-        }
-
-        public function GetStored():array
+        public function readEntity(string $id):array
         {
             $result = array();
             return $result;
         }
 
-        public function SetByNamedValue(array $namedValue)
-        {
-        }
-
-        public function ToEntity():array
+        public function getStored():array
         {
             $result = array();
             return $result;
         }
 
-    }
+        public function setByNamedValue(array $namedValue)
+        {
+        }
 
-    interface INamedEntity
-    {
-        const CODE = 'code';
-        const NAME = 'name';
-        const DESCRIPTION = 'description';
-
-        public function LoadByCode(string $code):array;
-
-        public function GetElementDescription():array;
+        public function toEntity():array
+        {
+            $result = array();
+            return $result;
+        }
 
     }
 
@@ -148,11 +154,11 @@ namespace Assay\Core {
         public $name;
         public $description;
 
-        public function LoadByCode(string $code):array
+        public function loadByCode(string $code):array
         {
         }
 
-        public function GetElementDescription():array
+        public function getElementDescription():array
         {
         }
     }
@@ -171,21 +177,43 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
         const PARENT = 'parent';
 
-        public function AddChild():int;
+        public function addChild():int;
 
-        public function GetChildrenNames():array;
+        public function getChildrenNames():array;
 
-        public function GetParent():int;
+        public function getParent():int;
 
-        public function IsPartition():bool;
+        public function isPartition():bool;
 
-        public function IsRubric():bool;
+        public function isRubric():bool;
 
-        public function GetPath():array;
+        public function getPath():array;
 
-        public function GetMap():array;
+        public function getMap():array;
 
-        public function Search(string $searchString, string $structureCode):array;
+        public function search(string $searchString, string $structureCode):array;
+    }
+
+    interface IRubric
+    {
+        const EXTERNAL_ID = 'rubric_id';
+
+        public function getMap():array;
+
+        public function getSearchParameters():array;
+
+        public function getProperties():array;
+    }
+
+    interface IInformationDomain
+    {
+        const EXTERNAL_ID = 'information_property_id';
+
+        const TYPE_EDIT = 'type_edit';
+        const SEARCH_TYPE = 'search_type';
+
+        public function getSearchParameters():array;
+
     }
 
     class Structure extends Assay\Core\NamedEntity implements IStructure
@@ -193,72 +221,71 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public $parent;
 
 
-        public function AddEntity():int
+        public function addEntity():int
         {
 
         }
 
-        public function HideEntity():bool
+        public function hideEntity():bool
         {
 
         }
 
-        public function MutateEntity():bool
+        public function mutateEntity():bool
         {
 
         }
 
-        public function GetEntity(int $id):array
+        public function getEntity(int $id):array
         {
 
         }
 
-        public function GetElementDescription():array
+        public function getElementDescription():array
         {
 
         }
 
 
-        public function AddChild():int
+        public function addChild():int
         {
 
         }
 
-        public function GetChildrenNames():array
+        public function getChildrenNames():array
         {
 
         }
 
-        public function GetParent():int
+        public function getParent():int
         {
 
         }
 
-        public function IsPartition():bool
+        public function isPartition():bool
         {
 
         }
 
-        public function IsRubric():bool
+        public function isRubric():bool
         {
 
         }
 
-        public function GetPath():array
+        public function getPath():array
         {
 
         }
 
-        public function GetMap():array
+        public function getMap():array
         {
 
         }
 
-        public function Search(string $searchString, string $structureCode):array
+        public function search(string $searchString, string $structureCode):array
         {
         }
     }
-
 
     class SearchType extends Assay\Core\NamedEntity
     {
@@ -272,28 +299,17 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public $value = self::Undefined;
     }
 
-    interface IRubric
-    {
-        const EXTERNAL_ID = 'rubric_id';
-
-        public function GetMap():array;
-
-        public function GetSearchParameters():array;
-
-        public function GetProperties():array;
-    }
-
     class Rubric extends Assay\Core\NamedEntity implements IRubric
     {
-        public function GetMap():array
+        public function getMap():array
         {
         }
 
-        public function GetSearchParameters():array
+        public function getSearchParameters():array
         {
         }
 
-        public function GetProperties():array
+        public function getProperties():array
         {
         }
     }
@@ -318,23 +334,12 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public $value = self::Undefined;
     }
 
-    interface IInformationDomain
-    {
-        const EXTERNAL_ID = 'information_property_id';
-
-        const TYPE_EDIT = 'type_edit';
-        const SEARCH_TYPE = 'search_type';
-
-        public function GetSearchParameters():array;
-
-    }
-
     class InformationDomain extends Assay\Core\NamedEntity implements IInformationDomain
     {
         public $typeEdit;
         public $searchType = SearchType::Undefined;
 
-        public function GetSearchParameters():array
+        public function getSearchParameters():array
         {
 
         }
@@ -359,11 +364,11 @@ namespace Assay\InformationsCatalog\DataInformation {
 
     interface IInstanceUserInformation
     {
-        public function GetShippingPricing():array;
+        public function getShippingPricing():array;
 
-        public function GetGoodsPricing():array;
+        public function getGoodsPricing():array;
 
-        public function GetCompanyRubrics():array;
+        public function getCompanyRubrics():array;
 
     }
 
@@ -373,32 +378,53 @@ namespace Assay\InformationsCatalog\DataInformation {
 
         const RUBRIC = 'rubric_id';
 
-        public function GetPositionByPrivileges($type = Assay\InformationsCatalog\StructureInformation\TypeEdit::Undefined):array;
+        public function getPositionByPrivileges($type = Assay\InformationsCatalog\StructureInformation\TypeEdit::Undefined):array;
 
-        public function Search(array $filterProperties, int $start, int $paging):array;
+        public function search(array $filterProperties, int $start, int $paging):array;
+    }
+
+    interface IDocumentForm
+    {
+        public function getFormPlaceholderValue():array;
+
+        public function getDocumentForm(string $code):array;
+    }
+
+    interface ICalculateFormula
+    {
+        public function getFormulaArgumentValue():array;
+
+        public function getFormulaResult(array $arguments):array;
+    }
+
+    interface ICompanySpecific
+    {
+        public function getMap():array;
+
+        public function getAddress():array;
     }
 
     class InformationInstance extends Assay\Core\NamedEntity implements IInformationInstance, IInstanceUserInformation
     {
         public $rubricId;
 
-        public function GetShippingPricing():array
+        public function getShippingPricing():array
         {
         }
 
-        public function GetGoodsPricing():array
+        public function getGoodsPricing():array
         {
         }
 
-        public function GetCompanyRubrics():array
+        public function getCompanyRubrics():array
         {
         }
 
-        public function GetPositionByPrivileges($type = Assay\InformationsCatalog\StructureInformation\TypeEdit::Undefined):array
+        public function getPositionByPrivileges($type = Assay\InformationsCatalog\StructureInformation\TypeEdit::Undefined):array
         {
         }
 
-        public function Search(array $filterProperties, int $start, int $paging):array
+        public function search(array $filterProperties, int $start, int $paging):array
         {
         }
 
@@ -418,41 +444,27 @@ namespace Assay\InformationsCatalog\DataInformation {
 
     }
 
-    interface IDocumentForm
-    {
-        public function GetFormPlaceholderValue():array;
-
-        public function GetDocumentForm(string $code):array;
-    }
-
     class DocumentForm implements IDocumentForm
     {
 
-        public function GetFormPlaceholderValue():array
+        public function getFormPlaceholderValue():array
         {
         }
 
-        public function GetDocumentForm(string $code):array
+        public function getDocumentForm(string $code):array
         {
 
         }
-    }
-
-    interface ICalculateFormula
-    {
-        public function GetFormulaArgumentValue():array;
-
-        public function GetFormulaResult(array $arguments):array;
     }
 
     class CalculateFormula implements ICalculateFormula
     {
 
-        public function GetFormulaArgumentValue():array
+        public function getFormulaArgumentValue():array
         {
         }
 
-        public function GetFormulaResult(array $arguments):array
+        public function getFormulaResult(array $arguments):array
         {
 
         }
@@ -471,22 +483,15 @@ namespace Assay\InformationsCatalog\DataInformation {
         public $value = self::Undefined;
     }
 
-    interface ICompanySpecific
-    {
-        public function GetMap():array;
-
-        public function GetAddress():array;
-    }
-
     class CompanySpecific implements ICompanySpecific
     {
 
-        public function GetMap():array
+        public function getMap():array
         {
 
         }
 
-        public function GetAddress():array
+        public function getAddress():array
         {
 
         }
@@ -509,6 +514,11 @@ namespace Assay\InformationsCatalog\Permission {
     use Assay\Permission\Privilege;
     use Assay\InformationsCatalog\DataInformation;
     use Assay\InformationsCatalog\StructureInformation;
+
+    interface IInformationRequest
+    {
+        public function testPrivilege():bool;
+    }
 
     class InformationUser extends Assay\Core\Entity
     {
@@ -552,11 +562,6 @@ namespace Assay\InformationsCatalog\Permission {
         const USER = InformationUser::EXTERNAL_ID;
     }
 
-    interface IInformationRequest
-    {
-        public function TestPrivilege():bool;
-    }
-
     class InformationRequest implements IInformationRequest
     {
         public $session;
@@ -564,7 +569,7 @@ namespace Assay\InformationsCatalog\Permission {
         public $object;
         public $content;
 
-        public function TestPrivilege():bool
+        public function testPrivilege():bool
         {
 
         }
@@ -587,195 +592,29 @@ namespace Assay\Permission\Privilege {
 
         const EMPTY_VALUE = Core\Common::EMPTY_VALUE;
         const DEFAULT_ALGORITHM = PASSWORD_BCRYPT ;
-        
-        public function Registration(string $login, string $password, string $passwordConfirmation, string $email):bool;
 
-        public function ChangePassword(string $newPassword):bool;
+        public function registration(string $login, string $password, string $passwordConfirmation, string $email):bool;
 
-        public function RecoveryPassword():bool;
+        public function changePassword(string $newPassword):bool;
 
-        public function UpdateActivityDate():bool;
+        public function recoveryPassword():bool;
 
-        public function GetStored():array;
+        public function updateActivityDate():bool;
 
-        public function SetByDefault():bool;
+        public function getStored():array;
 
-        public function LoadByEmail(string $email):bool;
+        public function setByDefault():bool;
 
-        public function SendRecovery():bool;
+        public function loadByEmail(string $email):bool;
+
+        public function sendRecovery():bool;
     }
 
     interface IAuthenticateUser
     {
-        public function Authentication(string $password):bool;
+        public static function calculateHash(string $password):string;
 
-        public static function CalculateHash(string $password):string;
-    }
-
-    class User extends Assay\Core\MutableEntity implements IUser, IAuthenticateUser
-    {
-        const TABLE_NAME = 'authentic_user';
-
-        public $login;
-        public $passwordHash;
-        public $activityDate;
-        public $email;
-
-        public function Registration(string $login, string $password, string $passwordConfirmation, string $email):bool
-        {
-            $result = false;
-            
-            $isCorrectPassword = $password == $passwordConfirmation;
-            if ($isCorrectPassword) {
-                $this->activityDate = time();
-                $this->email = $email;
-                $this->isHidden = Core\IEntity::DEFAULT_IS_HIDDEN;
-                $this->login = $login;
-                $this->passwordHash = self::CalculateHash($password);
-
-                $this->id = $this->AddEntity();
-                $result = $this->MutateEntity();
-            }
-
-            return $result;
-        }
-
-        public function ChangePassword(string $newPassword):bool
-        {
-            $this->passwordHash=self::CalculateHash($newPassword);
-            $result = $this->MutateEntity();
-            return $result;
-        }
-
-        public function RecoveryPassword():bool
-        {
-            $result = true;
-            // SEND EMAIL WITH RECOVERY LINK;
-            return $result;
-        }
-
-        public function UpdateActivityDate():bool
-        {
-            $this->activityDate = time();
-            $result = $this->MutateEntity();
-
-            return $result;
-        }
-
-        public function Authentication(string $password):bool
-        {
-            $result =  password_verify($password,$this->passwordHash);
-
-            return $result;
-        }
-
-        public static function CalculateHash(string $password, int $algorithm=self::DEFAULT_ALGORITHM):string
-        {
-            $result = password_hash($password,$algorithm);
-            return $result;
-        }
-
-        public function SetByDefault():bool
-        {
-            // SET TO GUEST USER ;
-        }
-
-        public function SetByNamedValue(array $namedValue)
-        {
-            $this->id = Core\Common::SetIfExists(self::ID, $namedValue, self::EMPTY_VALUE);
-            $this->insertDate = Core\Common::SetIfExists(self::INSERT_DATE, $namedValue, self::EMPTY_VALUE);
-            $this->isHidden = Core\Common::SetIfExists(self::IS_HIDDEN, $namedValue, self::EMPTY_VALUE);
-            $this->login = Core\Common::SetIfExists(self::LOGIN, $namedValue, self::EMPTY_VALUE);
-            $this->passwordHash = Core\Common::SetIfExists(self::PASSWORD_HASH, $namedValue, self::EMPTY_VALUE);
-            $this->activityDate = Core\Common::SetIfExists(self::ACTIVITY_DATE, $namedValue, self::EMPTY_VALUE);
-            $this->email = Core\Common::SetIfExists(self::EMAIL, $namedValue, self::EMPTY_VALUE);
-        }
-
-        public function MutateEntity():bool
-        {
-            $storedData = $this->GetStored();
-            $entity = $this->ToEntity();
-
-            $needUpdate = false;
-            foreach ($entity as $key => $column) {
-                $isExist = array_key_exists($key, $storedData);
-                $equal = true;
-                if ($isExist) {
-                    $equal = $column == $storedData[$key];
-                }
-                if (!$equal) {
-                    $needUpdate = true;
-                }
-            }
-            if ($needUpdate) {
-                // UPDATE DB RECORD;
-            }
-
-            $result = true;
-            return $result;
-
-        }
-
-        public function ToEntity():array
-        {
-            $entity = [];
-            $entity[self::ID] = $this->id;
-            $entity[self::IS_HIDDEN] = $this->isHidden;
-            $entity[self::LOGIN] = $this->login;
-            $entity[self::PASSWORD_HASH] = $this->passwordHash;
-            $entity[self::ACTIVITY_DATE] = $this->activityDate;
-            $entity[self::EMAIL] = $this->email;
-            return $entity;
-        }
-
-        public function LoadByEmail(string $email):bool
-        {
-            $result = true;
-            return $result;
-        }
-
-        public function SendRecovery():bool
-        {
-            $result = true;
-            return $result;
-        }
-    }
-
-    class BusinessObject extends Assay\Core\NamedEntity
-    {
-        const EXTERNAL_ID = 'user_object_id';
-    }
-
-    class BusinessProcess extends Assay\Core\NamedEntity
-    {
-        const EXTERNAL_ID = 'user_process_id';
-    }
-
-    class ObjectPrivilege extends Assay\Core\Entity
-    {
-        const EXTERNAL_ID = 'object_privilege_id';
-
-        const BUSINESS_OBJECT = BusinessObject::EXTERNAL_ID;
-        const BUSINESS_PROCESS = BusinessProcess::EXTERNAL_ID;
-
-        public $businessProcess;
-        public $businessObject;
-    }
-
-    class BusinessRole extends Assay\Core\NamedEntity
-    {
-        const EXTERNAL_ID = 'business_role_id';
-    }
-
-    class RoleDetail extends Assay\Core\NamedEntity
-    {
-        const EXTERNAL_ID = 'role_detail_id';
-
-        const PRIVILEGE = ObjectPrivilege::EXTERNAL_ID;
-        const ROLE = BusinessRole::EXTERNAL_ID;
-
-        public $privilege;
-        public $role;
+        public function authentication(string $password):bool;
     }
 
     interface IUserRole
@@ -785,39 +624,15 @@ namespace Assay\Permission\Privilege {
         const USER = IUser::EXTERNAL_ID;
         const ROLE = BusinessRole::EXTERNAL_ID;
 
-        public function GrantRole(string $role):bool;
+        public function grantRole(string $role):bool;
 
-        public function RevokeRole(string $role):bool;
+        public function revokeRole(string $role):bool;
 
     }
 
     interface IAuthorizeProcess
     {
-        public function UserAuthorization(string $process, string $object):bool;
-    }
-
-    class UserRole extends Assay\Core\Entity implements IUserRole, IAuthorizeProcess
-    {
-        public $userId;
-
-        public function __construct(string $userId)
-        {
-            $this->userId = $userId;
-        }
-
-        public function GrantRole(string $role):bool
-        {
-        }
-
-        public function RevokeRole(string $role):bool
-        {
-        }
-
-        public function UserAuthorization(string $process, string $object):bool
-        {
-            $result = false;
-            return $result;
-        }
+        public function userAuthorization(string $process, string $object):bool;
     }
 
     interface IProcessRequest
@@ -864,20 +679,7 @@ namespace Assay\Permission\Privilege {
         const ADD_LIKE = 'add_like'; // добавить лайк
         const ADD_AD = 'add_ad'; // добавить объявление
 
-        public function TestPrivilege():bool;
-    }
-
-    class ProcessRequest implements IProcessRequest
-    {
-        public $session;
-        public $process;
-        public $object;
-        public $content;
-
-        public function TestPrivilege():bool
-        {
-
-        }
+        public function testPrivilege():bool;
     }
 
     interface ICookies
@@ -890,94 +692,26 @@ namespace Assay\Permission\Privilege {
 
         const EMPTY_VALUE = Assay\Core\Common::EMPTY_VALUE;
 
-        public function SetKey():bool;
+        public static function getKey():string;
 
-        public static function GetKey():string;
+        public static function getCompanyFilter():string;
 
-        public function SetCompanyFilter():bool;
+        public static function getMode():string;
 
-        public static function GetCompanyFilter():string;
+        public static function getPaging():string;
 
-        public function SetMode():bool;
+        public static function getUserName():string;
 
-        public static function GetMode():string;
+        public function setKey():bool;
 
-        public function SetPaging():bool;
+        public function setCompanyFilter():bool;
 
-        public static function GetPaging():string;
+        public function setMode():bool;
 
-        public function SetUserName():bool;
+        public function setPaging():bool;
 
-        public static function GetUserName():string;
+        public function setUserName():bool;
 
-    }
-
-    class Cookie implements ICookies
-    {
-        public $key;
-        public $companyFilter;
-        public $mode;
-        public $paging;
-        public $userName;
-
-        public function __construct()
-        {
-            $this->key = self::GetKey();
-            $this->companyFilter = self::GetCompanyFilter();
-            $this->mode = self::GetMode();
-            $this->paging = self::GetPaging();
-            $this->userName = self::GetUserName();
-        }
-
-        public function SetKey():bool
-        {
-        }
-
-        public static function GetKey():string
-        {
-            $result = ICookies::EMPTY_VALUE;
-            return $result;
-        }
-
-        public function SetCompanyFilter():bool
-        {
-        }
-
-        public static function GetCompanyFilter():string
-        {
-            $result = ICookies::EMPTY_VALUE;
-            return $result;
-        }
-
-        public function SetMode():bool
-        {
-        }
-
-        public static function GetMode():string
-        {
-            $result = ICookies::EMPTY_VALUE;
-            return $result;
-        }
-
-        public function SetPaging():bool
-        {
-        }
-
-        public static function GetPaging():string
-        {
-            $result = ICookies::EMPTY_VALUE;
-            return $result;
-        }
-
-        public function SetUserName():bool
-        {
-        }
-
-        public static function GetUserName():string
-        {
-            $result = ICookies::EMPTY_VALUE;
-            return $result;
-        }
     }
 
     interface ISession
@@ -996,9 +730,280 @@ namespace Assay\Permission\Privilege {
         const OPEN_PROCESS = 'open_session';
         const SESSION_OBJECT = 'session';
 
-        public static function Open(string $userId):array;
+        public static function open(string $userId):array;
 
-        public function Close():bool;
+        public function close():bool;
+    }
+
+    class User extends Assay\Core\MutableEntity implements IUser, IAuthenticateUser
+    {
+        const TABLE_NAME = 'authentic_user';
+
+        public $login;
+        public $passwordHash;
+        public $activityDate;
+        public $email;
+
+        public function registration(string $login, string $password, string $passwordConfirmation, string $email):bool
+        {
+            $result = false;
+            
+            $isCorrectPassword = $password == $passwordConfirmation;
+            if ($isCorrectPassword) {
+                $this->activityDate = time();
+                $this->email = $email;
+                $this->isHidden = Core\IEntity::DEFAULT_IS_HIDDEN;
+                $this->login = $login;
+                $this->passwordHash = self::calculateHash($password);
+
+                $this->id = $this->addEntity();
+                $result = $this->mutateEntity();
+            }
+
+            return $result;
+        }
+
+        public static function calculateHash(string $password, int $algorithm = self::DEFAULT_ALGORITHM):string
+        {
+            $result = password_hash($password,$algorithm);
+            return $result;
+        }
+
+        public function mutateEntity():bool
+        {
+            $storedData = $this->getStored();
+            $entity = $this->toEntity();
+
+            $needUpdate = false;
+            foreach ($entity as $key => $column) {
+                $isExist = array_key_exists($key, $storedData);
+                $equal = true;
+                if ($isExist) {
+                    $equal = $column == $storedData[$key];
+                }
+                if (!$equal) {
+                    $needUpdate = true;
+                }
+            }
+            if ($needUpdate) {
+                // UPDATE DB RECORD;
+            }
+
+            $result = true;
+            return $result;
+
+        }
+
+        public function toEntity():array
+        {
+            $entity = [];
+            $entity[self::ID] = $this->id;
+            $entity[self::IS_HIDDEN] = $this->isHidden;
+            $entity[self::LOGIN] = $this->login;
+            $entity[self::PASSWORD_HASH] = $this->passwordHash;
+            $entity[self::ACTIVITY_DATE] = $this->activityDate;
+            $entity[self::EMAIL] = $this->email;
+            return $entity;
+        }
+
+        public function changePassword(string $newPassword):bool
+        {
+            $this->passwordHash = self::calculateHash($newPassword);
+            $result = $this->mutateEntity();
+            return $result;
+        }
+
+        public function recoveryPassword():bool
+        {
+            $result = true;
+            // SEND EMAIL WITH RECOVERY LINK;
+            return $result;
+        }
+
+        public function updateActivityDate():bool
+        {
+            $this->activityDate = time();
+            $result = $this->mutateEntity();
+
+            return $result;
+        }
+
+        public function authentication(string $password):bool
+        {
+            $result = password_verify($password, $this->passwordHash);
+
+            return $result;
+        }
+
+        public function setByDefault():bool
+        {
+            // SET TO GUEST USER ;
+        }
+
+        public function setByNamedValue(array $namedValue)
+        {
+            $this->id = Core\Common::setIfExists(self::ID, $namedValue, self::EMPTY_VALUE);
+            $this->insertDate = Core\Common::setIfExists(self::INSERT_DATE, $namedValue, self::EMPTY_VALUE);
+            $this->isHidden = Core\Common::setIfExists(self::IS_HIDDEN, $namedValue, self::EMPTY_VALUE);
+            $this->login = Core\Common::setIfExists(self::LOGIN, $namedValue, self::EMPTY_VALUE);
+            $this->passwordHash = Core\Common::setIfExists(self::PASSWORD_HASH, $namedValue, self::EMPTY_VALUE);
+            $this->activityDate = Core\Common::setIfExists(self::ACTIVITY_DATE, $namedValue, self::EMPTY_VALUE);
+            $this->email = Core\Common::setIfExists(self::EMAIL, $namedValue, self::EMPTY_VALUE);
+        }
+
+        public function loadByEmail(string $email):bool
+        {
+            $result = true;
+            return $result;
+        }
+
+        public function sendRecovery():bool
+        {
+            $result = true;
+            return $result;
+        }
+    }
+
+    class BusinessObject extends Assay\Core\NamedEntity
+    {
+        const EXTERNAL_ID = 'user_object_id';
+    }
+
+    class BusinessProcess extends Assay\Core\NamedEntity
+    {
+        const EXTERNAL_ID = 'user_process_id';
+    }
+
+    class ObjectPrivilege extends Assay\Core\Entity
+    {
+        const EXTERNAL_ID = 'object_privilege_id';
+
+        const BUSINESS_OBJECT = BusinessObject::EXTERNAL_ID;
+        const BUSINESS_PROCESS = BusinessProcess::EXTERNAL_ID;
+
+        public $businessProcess;
+        public $businessObject;
+    }
+
+    class BusinessRole extends Assay\Core\NamedEntity
+    {
+        const EXTERNAL_ID = 'business_role_id';
+    }
+
+    class RoleDetail extends Assay\Core\NamedEntity
+    {
+        const EXTERNAL_ID = 'role_detail_id';
+
+        const PRIVILEGE = ObjectPrivilege::EXTERNAL_ID;
+        const ROLE = BusinessRole::EXTERNAL_ID;
+
+        public $privilege;
+        public $role;
+    }
+
+    class UserRole extends Assay\Core\Entity implements IUserRole, IAuthorizeProcess
+    {
+        public $userId;
+
+        public function __construct(string $userId)
+        {
+            $this->userId = $userId;
+        }
+
+        public function grantRole(string $role):bool
+        {
+        }
+
+        public function revokeRole(string $role):bool
+        {
+        }
+
+        public function userAuthorization(string $process, string $object):bool
+        {
+            $result = false;
+            return $result;
+        }
+    }
+
+    class ProcessRequest implements IProcessRequest
+    {
+        public $session;
+        public $process;
+        public $object;
+        public $content;
+
+        public function testPrivilege():bool
+        {
+
+        }
+    }
+
+    class Cookie implements ICookies
+    {
+        public $key;
+        public $companyFilter;
+        public $mode;
+        public $paging;
+        public $userName;
+
+        public function __construct()
+        {
+            $this->key = self::getKey();
+            $this->companyFilter = self::getCompanyFilter();
+            $this->mode = self::getMode();
+            $this->paging = self::getPaging();
+            $this->userName = self::getUserName();
+        }
+
+        public static function getKey():string
+        {
+            $result = ICookies::EMPTY_VALUE;
+            return $result;
+        }
+
+        public static function getCompanyFilter():string
+        {
+            $result = ICookies::EMPTY_VALUE;
+            return $result;
+        }
+
+        public static function getMode():string
+        {
+            $result = ICookies::EMPTY_VALUE;
+            return $result;
+        }
+
+        public static function getPaging():string
+        {
+            $result = ICookies::EMPTY_VALUE;
+            return $result;
+        }
+
+        public static function getUserName():string
+        {
+            $result = ICookies::EMPTY_VALUE;
+            return $result;
+        }
+
+        public function setKey():bool
+        {
+        }
+
+        public function setCompanyFilter():bool
+        {
+        }
+
+        public function setMode():bool
+        {
+        }
+
+        public function setPaging():bool
+        {
+        }
+
+        public function setUserName():bool
+        {
+        }
     }
 
     class Session extends Assay\Core\MutableEntity implements ISession
@@ -1027,49 +1032,55 @@ namespace Assay\Permission\Privilege {
             $this->userId = ISession::EMPTY_VALUE;
         }
 
-        public function SetByCookie(Cookie $cookies)
+        public static function open(string $userId):array
         {
-            $this->cookies = $cookies;
+            $process = self::OPEN_PROCESS;
+            $object = self::SESSION_OBJECT;
+            $result = array();
 
-            $this->key = $this->cookies->key;
-            $this->companyFilter = $this->cookies->companyFilter;
-            $this->mode = $this->cookies->mode;
-            $this->paging = $this->cookies->paging;
-            $this->userName = $this->cookies->userName;
+            $userRole = new UserRole($userId);
+            $isAllow = $userRole->userAuthorization($process, $object);
+            if ($isAllow) {
+                $result[self::USER_ID] = $userId;
+                $key = uniqid('', true);
+                $result[self::KEY] = $key;
+
+                $session = new Session();
+                $id = $session->addEntity();
+                $result[self::ID] = $id;
+
+                $session->setByNamedValue($result);
+                $session->mutateEntity();
+            }
+            return $result;
         }
 
-        public function SetByNamedValue(array $namedValues)
+        public function setByNamedValue(array $namedValues)
         {
-            $this->key = Assay\Core\Common::SetIfExists(
+            $this->key = Assay\Core\Common::setIfExists(
                 self::KEY, $namedValues, ISession::EMPTY_VALUE
             );
-            $this->companyFilter = Assay\Core\Common::SetIfExists(
+            $this->companyFilter = Assay\Core\Common::setIfExists(
                 self::COMPANY_FILTER, $namedValues, ISession::EMPTY_VALUE
             );
-            $this->mode = Assay\Core\Common::SetIfExists(
+            $this->mode = Assay\Core\Common::setIfExists(
                 self::MODE, $namedValues, ISession::EMPTY_VALUE
             );
-            $this->paging = Assay\Core\Common::SetIfExists(
+            $this->paging = Assay\Core\Common::setIfExists(
                 self::PAGING, $namedValues, ISession::EMPTY_VALUE
             );
-            $this->userName = Assay\Core\Common::SetIfExists(
+            $this->userName = Assay\Core\Common::setIfExists(
                 self::USER_NAME, $namedValues, ISession::EMPTY_VALUE
             );
-            $this->userId = Assay\Core\Common::SetIfExists(
+            $this->userId = Assay\Core\Common::setIfExists(
                 self::USER_ID, $namedValues, ISession::EMPTY_VALUE
             );
         }
 
-        public function GetStored():array
+        public function mutateEntity():bool
         {
-            $result = array();
-            return $result;
-        }
-
-        public function MutateEntity():bool
-        {
-            $storedData = $this->GetStored();
-            $entity = $this->ToEntity();
+            $storedData = $this->getStored();
+            $entity = $this->toEntity();
 
             $needUpdate = false;
             foreach ($entity as $key => $column) {
@@ -1091,7 +1102,13 @@ namespace Assay\Permission\Privilege {
 
         }
 
-        public function ToEntity():array
+        public function getStored():array
+        {
+            $result = array();
+            return $result;
+        }
+
+        public function toEntity():array
         {
             $entity = [];
             $entity[self::ID] = $this->id;
@@ -1106,32 +1123,20 @@ namespace Assay\Permission\Privilege {
             return $entity;
         }
 
-        public static function Open(string $userId):array
+        public function setByCookie(Cookie $cookies)
         {
-            $process = self::OPEN_PROCESS;
-            $object = self::SESSION_OBJECT;
-            $result = array();
+            $this->cookies = $cookies;
 
-            $userRole = new UserRole($userId);
-            $isAllow = $userRole->UserAuthorization($process, $object);
-            if($isAllow){
-                $result[self::USER_ID]=$userId;
-                $key = uniqid('',true);
-                $result[self::KEY]=$key;
-
-                $session = new Session();
-                $id = $session->AddEntity();
-                $result[self::ID] = $id;
-
-                $session->SetByNamedValue($result);
-                $session->MutateEntity();
-            }
-            return $result;
+            $this->key = $this->cookies->key;
+            $this->companyFilter = $this->cookies->companyFilter;
+            $this->mode = $this->cookies->mode;
+            $this->paging = $this->cookies->paging;
+            $this->userName = $this->cookies->userName;
         }
 
-        public function Close():bool
+        public function close():bool
         {
-            $result = $this->HideEntity();
+            $result = $this->hideEntity();
             return $result;
         }
     }
@@ -1143,51 +1148,21 @@ namespace Assay\Communication\Profile {
     use Assay\Core;
     use Assay\Communication;
 
-    class SocialObject extends Assay\Core\Entity
-    {
-        const EXTERNAL_ID = 'social_object_id';
-
-        public $object;
-    }
-
     interface IPersonProfile
     {
         const EXTERNAL_ID = 'person_profile_id';
 
         const OBJECT = SocialObject::EXTERNAL_ID;
 
-        public function GetForGreetings():string;
+        public function getForGreetings():string;
 
-        public function EnableCommenting():bool;
+        public function enableCommenting():bool;
 
-        public function TestPrivilege():bool;
+        public function testPrivilege():bool;
 
-        public function PurgeGroup():bool;
+        public function purgeGroup():bool;
 
-        public function SetGroup():bool;
-    }
-
-    class PersonProfile extends Assay\Core\NamedEntity implements IPersonProfile
-    {
-        public function GetForGreetings():string
-        {
-        }
-
-        public function EnableCommenting():bool
-        {
-        }
-
-        public function TestPrivilege():bool
-        {
-        }
-
-        public function PurgeGroup():bool
-        {
-        }
-
-        public function SetGroup():bool
-        {
-        }
+        public function setGroup():bool;
     }
 
     interface ISocialGroup
@@ -1196,12 +1171,106 @@ namespace Assay\Communication\Profile {
 
         const OBJECT = SocialObject::EXTERNAL_ID;
 
-        public function IsMember():bool;
+        public function isMember():bool;
+    }
+
+    interface ISocialElement
+    {
+        const SOCIAL_OBJECT = SocialObject::EXTERNAL_ID;
+
+        public function count():int;
+
+        public function isOwn():bool;
+    }
+
+    interface IComment
+    {
+        const EXTERNAL_ID = 'comment_id';
+
+        const CONTENT = 'content';
+
+        public function getByObject():array;
+    }
+
+    interface IMessage
+    {
+        const EXTERNAL_ID = 'message_id';
+
+        const CONTENT = 'content';
+
+        public function getCorrespondent():array;
+
+        public function getByCorrespondent():array;
+
+        public function saveGoodsOrder():bool;
+
+        public function saveShippingOrder():bool;
+    }
+
+    interface IAd
+    {
+
+        const EXTERNAL_ID = 'ad_id';
+
+        const SOCIAL_OBJECT = SocialObject::EXTERNAL_ID;
+
+        const CONTENT = 'content';
+        const UPDATE_DATE = 'update_date';
+
+        public function purge():bool;
+    }
+
+    interface ISocialBlock
+    {
+        public function getCounter():array;
+
+        public function getComment():array;
+    }
+
+    interface ISocialAction
+    {
+        public function socialAction():bool;
+    }
+
+    interface IProfile
+    {
+
+        public function getCommentEnableArea():bool;
+    }
+
+    class SocialObject extends Assay\Core\Entity
+    {
+        const EXTERNAL_ID = 'social_object_id';
+
+        public $object;
+    }
+
+    class PersonProfile extends Assay\Core\NamedEntity implements IPersonProfile
+    {
+        public function getForGreetings():string
+        {
+        }
+
+        public function enableCommenting():bool
+        {
+        }
+
+        public function testPrivilege():bool
+        {
+        }
+
+        public function purgeGroup():bool
+        {
+        }
+
+        public function setGroup():bool
+        {
+        }
     }
 
     class SocialGroup extends Assay\Core\NamedEntity implements ISocialGroup
     {
-        public function IsMember():bool
+        public function isMember():bool
         {
         }
     }
@@ -1221,24 +1290,15 @@ namespace Assay\Communication\Profile {
         public $profile;
     }
 
-    interface ISocialElement
-    {
-        const SOCIAL_OBJECT = SocialObject::EXTERNAL_ID;
-
-        public function Count():int;
-
-        public function IsOwn():bool;
-    }
-
     class SocialElement extends ProfileFeature implements ISocialElement
     {
         public $object;
 
-        public function Count():int
+        public function count():int
         {
         }
 
-        public function IsOwn():bool
+        public function isOwn():bool
         {
         }
     }
@@ -1253,35 +1313,11 @@ namespace Assay\Communication\Profile {
         const EXTERNAL_ID = 'favorite_id';
     }
 
-    interface IComment
-    {
-        const EXTERNAL_ID = 'comment_id';
-
-        const CONTENT = 'content';
-
-        public function GetByObject():array;
-    }
-
     class Comment extends SocialElement implements IComment
     {
-        public function GetByObject():array
+        public function getByObject():array
         {
         }
-    }
-
-    interface IMessage
-    {
-        const EXTERNAL_ID = 'message_id';
-
-        const CONTENT = 'content';
-
-        public function GetCorrespondent():array;
-
-        public function GetByCorrespondent():array;
-
-        public function SaveGoodsOrder():bool;
-
-        public function SaveShippingOrder():bool;
     }
 
     class Message extends SocialElement implements IMessage
@@ -1291,19 +1327,19 @@ namespace Assay\Communication\Profile {
 
         public $correspondent;
 
-        public function GetCorrespondent():array
+        public function getCorrespondent():array
         {
         }
 
-        public function GetByCorrespondent():array
+        public function getByCorrespondent():array
         {
         }
 
-        public function SaveGoodsOrder():bool
+        public function saveGoodsOrder():bool
         {
         }
 
-        public function SaveShippingOrder():bool
+        public function saveShippingOrder():bool
         {
         }
     }
@@ -1315,65 +1351,34 @@ namespace Assay\Communication\Profile {
         public $profile;
     }
 
-    interface IAd
-    {
-
-        const EXTERNAL_ID = 'ad_id';
-
-        const SOCIAL_OBJECT = SocialObject::EXTERNAL_ID;
-
-        const CONTENT = 'content';
-        const UPDATE_DATE = 'update_date';
-
-        public function Purge():bool;
-    }
-
     class Ad extends ProfileFeature implements IAd
     {
 
         public $content;
         public $social_object;
 
-        public function Purge():bool
+        public function purge():bool
         {
         }
-    }
-
-    interface ISocialBlock
-    {
-        public function GetCounter():array;
-
-        public function GetComment():array;
     }
 
     class SocialBlock implements ISocialBlock
     {
 
-        public function GetCounter():array
+        public function getCounter():array
         {
         }
 
-        public function GetComment():array
+        public function getComment():array
         {
         }
-    }
-
-    interface ISocialAction
-    {
-        public function SocialAction():bool;
     }
 
     class SocialAction implements ISocialAction
     {
-        public function SocialAction():bool
+        public function socialAction():bool
         {
         }
-    }
-
-    interface IProfile
-    {
-
-        public function GetCommentEnableArea():bool;
     }
 
     class Profile implements IProfile
@@ -1381,7 +1386,7 @@ namespace Assay\Communication\Profile {
 
         public $profile;
 
-        public function GetCommentEnableArea():bool
+        public function getCommentEnableArea():bool
         {
         }
     }
@@ -1394,6 +1399,11 @@ namespace Assay\Communication\Permission {
     use Assay\Permission\Privilege;
     use Assay\Communication;
     use Assay\Communication\Profile;
+
+    interface ICommunicationRequest
+    {
+        public function testPrivilege():bool;
+    }
 
     class CommunicationUser extends Assay\Core\Entity
     {
@@ -1430,11 +1440,6 @@ namespace Assay\Communication\Permission {
         const COMMUNICATION_PRIVILEGE = CommunicationPrivilege::EXTERNAL_ID;
     }
 
-    interface ICommunicationRequest
-    {
-        public function TestPrivilege():bool;
-    }
-
     class CommunicationRequest implements ICommunicationRequest
     {
         public $session;
@@ -1442,7 +1447,7 @@ namespace Assay\Communication\Permission {
         public $object;
         public $content;
 
-        public function TestPrivilege():bool
+        public function testPrivilege():bool
         {
 
         }

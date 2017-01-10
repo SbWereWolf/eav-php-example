@@ -16,18 +16,18 @@ function GetRequestSession():Privilege\Session
 
     $session = new Privilege\Session();
     $cookie = new Privilege\Cookie();
-    $session->SetByCookie($cookie);
+    $session->setByCookie($cookie);
 
     if ($session->key != $emptyData) {
-        $storedSession = $session->GetStored();
+        $storedSession = $session->getStored();
 
-        $session->key = Core\Common::SetIfExists(Privilege\Session::KEY, $storedSession, $emptyData);
-        $session->userId = Core\Common::SetIfExists(Privilege\Session::USER_ID, $storedSession, $emptyData);
+        $session->key = Core\Common::setIfExists(Privilege\Session::KEY, $storedSession, $emptyData);
+        $session->userId = Core\Common::setIfExists(Privilege\Session::USER_ID, $storedSession, $emptyData);
     }
 
     if ($session->key == $emptyData) {
-        $sessionValues = Privilege\Session::Open($session->userId);
-        $session->SetByNamedValue($sessionValues);
+        $sessionValues = Privilege\Session::open($session->userId);
+        $session->setByNamedValue($sessionValues);
     }    
 
     return $session;
@@ -35,10 +35,10 @@ function GetRequestSession():Privilege\Session
 
 function LogOff(Privilege\Session $session):Privilege\Session
 {
-    $session->Close();
+    $session->close();
     $defaultSession = new Privilege\Session();
-    $sessionValues = Privilege\Session::Open(Privilege\User::EMPTY_VALUE);
-    $defaultSession->SetByNamedValue($sessionValues);
+    $sessionValues = Privilege\Session::open(Privilege\User::EMPTY_VALUE);
+    $defaultSession->setByNamedValue($sessionValues);
 
     return $defaultSession;
 }
@@ -47,21 +47,21 @@ function LogOn(string $login, string $password):array
 {
     $user = new Privilege\User();
     $user->login = $login;
-    $storedUser = $user->GetStored();
-    
-    
-    $user->SetByNamedValue($storedUser);
-    $authenticationSuccess = $user->Authentication($password);
-    $user->UpdateActivityDate();
+    $storedUser = $user->getStored();
+
+
+    $user->setByNamedValue($storedUser);
+    $authenticationSuccess = $user->authentication($password);
+    $user->updateActivityDate();
 
     $session = new Privilege\Session();
     if ($authenticationSuccess) {
 
         $currentSession = GetRequestSession();
-        $currentSession-> Close();
+        $currentSession->close();
 
-        $sessionValues = Privilege\Session::Open($user->id);
-        $session->SetByNamedValue($sessionValues);
+        $sessionValues = Privilege\Session::open($user->id);
+        $session->setByNamedValue($sessionValues);
     }
     $result = array($authenticationSuccess, $session);
     return $result;
@@ -77,12 +77,12 @@ function RegistrationProcess(string $login,string $password,string $passwordConf
     $registrationResult = false;
     if($isAllow){
         $user = new Privilege\User();
-        $registrationResult = $user->Registration($login,$password,$passwordConfirmation,$email);
+        $registrationResult = $user->registration($login, $password, $passwordConfirmation, $email);
     }
 
     if($registrationResult){
         $logonResult = LogOn($login,$password);
-        $result = Core\Common::SetIfExists(0, $logonResult, false);
+        $result = Core\Common::setIfExists(0, $logonResult, false);
     }
     return $result;
 }
@@ -103,13 +103,13 @@ function PasswordChangeProcess(string $password, string $newPassword, string $pa
     $authenticationSuccess = false;
     if($isCorrectPassword){
         $user->id = $session->userId;
-        $entityUser = $user->ReadEntity($user->id);
-        $user->SetByNamedValue($entityUser );
-        $authenticationSuccess = $user->Authentication($password);
+        $entityUser = $user->readEntity($user->id);
+        $user->setByNamedValue($entityUser);
+        $authenticationSuccess = $user->authentication($password);
     }
 
     if($authenticationSuccess){
-        $user->ChangePassword($newPassword);
+        $user->changePassword($newPassword);
     }
 
     return $result;
@@ -120,10 +120,10 @@ function PasswordRecoveryProcess(string $email):bool{
     $result = false;
 
     $user = new Privilege\User();
-    $isSuccess = $user->LoadByEmail($email);
+    $isSuccess = $user->loadByEmail($email);
     
     if($isSuccess){
-        $result = $user->SendRecovery();
+        $result = $user->sendRecovery();
     }
     
     return $result;
@@ -133,17 +133,17 @@ function AuthorizationProcess(Privilege\Session $session, string $process, strin
 
     $userId = $session->userId;
     $userRole = new Privilege\UserRole($userId);
-    $result = $userRole->UserAuthorization($process, $object);
+    $result = $userRole->userAuthorization($process, $object);
     return $result;
 }
 
 $session = GetRequestSession();
 
 $logonResult = LogOn('', '');
-$authenticationSuccess = Core\Common::SetIfExists(0, $logonResult, false);
+$authenticationSuccess = Core\Common::setIfExists(0, $logonResult, false);
 if ($authenticationSuccess) {
     $emptySession = new Privilege\Session();
-    $session = Core\Common::SetIfExists(1, $logonResult, $emptySession);
+    $session = Core\Common::setIfExists(1, $logonResult, $emptySession);
     LogOff($session);
 }
 
