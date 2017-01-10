@@ -1,62 +1,126 @@
 <?php
+/**
+ * все классы
+ */
+
 namespace Assay\Core {
 
+    /**
+     * Интерфейс для методов общего назначения
+     */
     interface ICommon
     {
+        /**
+         * Используется для инициализации переданным значение, если переданное значение не задано, то выдаётся значение по умолчанию
+         * @param mixed $valueIfIsset переданное значение
+         * @param mixed $valueIfNotIsset значение по умолчанию
+         * @return mixed
+         */
         public static function isSetEx($valueIfIsset, $valueIfNotIsset);
 
+        /**
+         * Используется для инициализации элементом массива, если элемент не задан, то выдаётся значение по умолчанию
+         * @param $key string|int индекс элемента
+         * @param $array array массив
+         * @param $valueIfNotIsset mixed значение по умолчанию
+         * @return mixed
+         */
         public static function setIfExists($key, &$array, $valueIfNotIsset);
     }
 
+    /**
+     * Базовый интерфейс сущности
+     */
     interface IEntity
     {
-
+        /** @var string колонка для айди */
         const ID = 'id';
+        /** @var string колонка признака "является скрытым" */
         const IS_HIDDEN = 'is_hidden';
+        /** @var string колонка дата добавления */
         const INSERT_DATE = 'insert_date';
-
+        /** @var string значение по умолчанию для признака "является скрытым" */
         const DEFAULT_IS_HIDDEN = false;
 
-        public function addEntity():int;
+        /** Добавить запись сущности в БД
+         * @return string идентификатор добавленой записи
+         */
+        public function addEntity():string;
 
+        /** Скрыть сущность
+         * @return bool успех операции
+         */
         public function hideEntity():bool;
     }
 
+    /**
+     * Интерфейс чтения сущности из БД
+     */
     interface IReadableEntity
     {
-        // прочитать данные по айдишнику
+        /** Прочитать запись из БД
+         * @param string $id идентификатор записи
+         * @return array значения колонок
+         */
         public function readEntity(string $id):array;
 
-        // прочитать данные экземпляра из БД
-        /**
-         * @return array
+
+        /** Прочитать данные экземпляра из БД
+         * @return array колонки
          */
         public function getStored():array;
 
-        // задать свойства экземпляра по именованным значениям
+
+        /** Установить свойства объекта в соответствии с массивом
+         * @param array $namedValue массив значений
+         */
         public function setByNamedValue(array $namedValue);
     }
 
+    /**
+     * Интерфейс обновления записи в БД
+     */
     interface IMutableEntity
     {
+        /** Обновляет (изменяет) запись в БД
+         * @return bool успешность изменения
+         */
         public function mutateEntity():bool;
 
+        /** Формирует массив из свойств экземпляра
+         * @return array массив свойств экземпляра
+         */
         public function toEntity():array;
-
     }
 
+    /**
+     * Интерфейс для работы с именнуемыми сущностями
+     */
     interface INamedEntity
     {
+        /** @var string колонка КОД */
         const CODE = 'code';
+        /** @var string колонка НАИМЕНОВАНИЕ */
         const NAME = 'name';
+        /** @var string колонка ОПИСАЕИЕ */
         const DESCRIPTION = 'description';
 
+        /** Чтение записи из БД по коду
+         * @param string $code код записи
+         * @return array значения записи
+         */
         public function loadByCode(string $code):array;
 
+        /** Получить имя и описание записи
+         * @return array массив с именем и описанием
+         */
         public function getElementDescription():array;
 
     }
 
+    /**
+     * Реализация интерфейса для методов общего назначения
+     */
     class Common implements ICommon
     {
         const EMPTY_VALUE = '';
@@ -79,16 +143,21 @@ namespace Assay\Core {
         }
     }
 
+    /**
+     * реализация интерфейса для работы с именнуемыми сущностями
+     */
     class Entity implements IEntity
     {
-
+        /** @var string имя таблицы БД для хранения сущности */
         const TABLE_NAME = 'entity_table';
-
+        /** @var string идентификатор записи таблицы */
         public $id;
+        /** @var string признак "является скрытым" */
         public $isHidden;
+        /** @var string дата добавления записи */
         public $insertDate;
 
-        public function addEntity():int
+        public function addEntity():string
         {
             $result = 0;
             return $result;
@@ -99,6 +168,9 @@ namespace Assay\Core {
         }
     }
 
+    /**
+     * Реализация интерфейс чтения сущности из БД
+     */
     class ReadableEntity extends Entity implements IReadableEntity
     {
 
@@ -591,7 +663,7 @@ namespace Assay\Permission\Privilege {
         const EMAIL = 'email';
 
         const EMPTY_VALUE = Core\Common::EMPTY_VALUE;
-        const DEFAULT_ALGORITHM = PASSWORD_BCRYPT ;
+        const DEFAULT_ALGORITHM = PASSWORD_BCRYPT;
 
         public function registration(string $login, string $password, string $passwordConfirmation, string $email):bool;
 
@@ -747,7 +819,7 @@ namespace Assay\Permission\Privilege {
         public function registration(string $login, string $password, string $passwordConfirmation, string $email):bool
         {
             $result = false;
-            
+
             $isCorrectPassword = $password == $passwordConfirmation;
             if ($isCorrectPassword) {
                 $this->activityDate = time();
@@ -765,7 +837,7 @@ namespace Assay\Permission\Privilege {
 
         public static function calculateHash(string $password, int $algorithm = self::DEFAULT_ALGORITHM):string
         {
-            $result = password_hash($password,$algorithm);
+            $result = password_hash($password, $algorithm);
             return $result;
         }
 
