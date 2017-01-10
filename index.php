@@ -354,6 +354,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
 }
 */
 
+/*
 namespace Assay\InformationsCatalog\DataInformation {
 
     use Assay;
@@ -503,6 +504,7 @@ namespace Assay\InformationsCatalog\DataInformation {
 
     }
 }
+*/
 
 namespace Assay\InformationsCatalog\Permission {
 
