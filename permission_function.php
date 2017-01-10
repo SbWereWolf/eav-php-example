@@ -10,7 +10,7 @@ include('index.php');
 use Assay\Permission\Privilege;
 use Assay\Core;
 
-function GetRequestSession():Privilege\Session
+function getRequestSession():Privilege\Session
 {
     $emptyData = Privilege\ISession::EMPTY_VALUE;
 
@@ -33,7 +33,7 @@ function GetRequestSession():Privilege\Session
     return $session;
 }
 
-function LogOff(Privilege\Session $session):Privilege\Session
+function logOff(Privilege\Session $session):Privilege\Session
 {
     $session->close();
     $defaultSession = new Privilege\Session();
@@ -43,7 +43,7 @@ function LogOff(Privilege\Session $session):Privilege\Session
     return $defaultSession;
 }
 
-function LogOn(string $login, string $password):array
+function logOn(string $login, string $password):array
 {
     $user = new Privilege\User();
     $user->login = $login;
@@ -57,7 +57,7 @@ function LogOn(string $login, string $password):array
     $session = new Privilege\Session();
     if ($authenticationSuccess) {
 
-        $currentSession = GetRequestSession();
+        $currentSession = getRequestSession();
         $currentSession->close();
 
         $sessionValues = Privilege\Session::open($user->id);
@@ -67,12 +67,13 @@ function LogOn(string $login, string $password):array
     return $result;
 }
 
-function RegistrationProcess(string $login,string $password,string $passwordConfirmation,string $email, string $object):bool{
+function registrationProcess(string $login, string $password, string $passwordConfirmation, string $email, string $object):bool
+{
 
     $result = false;
 
-    $session = GetRequestSession();
-    $isAllow = AuthorizationProcess($session,Privilege\IProcessRequest::USER_REGISTRATION,$object);
+    $session = getRequestSession();
+    $isAllow = authorizationProcess($session, Privilege\IProcessRequest::USER_REGISTRATION, $object);
 
     $registrationResult = false;
     if($isAllow){
@@ -81,18 +82,19 @@ function RegistrationProcess(string $login,string $password,string $passwordConf
     }
 
     if($registrationResult){
-        $logonResult = LogOn($login,$password);
+        $logonResult = logOn($login, $password);
         $result = Core\Common::setIfExists(0, $logonResult, false);
     }
     return $result;
 }
 
-function PasswordChangeProcess(string $password, string $newPassword, string $passwordConfirmation, string $object):bool{
+function passwordChangeProcess(string $password, string $newPassword, string $passwordConfirmation, string $object):bool
+{
 
     $result = false;
 
-    $session = GetRequestSession();
-    $isAllow = AuthorizationProcess($session,Privilege\IProcessRequest::CHANGE_PASSWORD, $object);
+    $session = getRequestSession();
+    $isAllow = authorizationProcess($session, Privilege\IProcessRequest::CHANGE_PASSWORD, $object);
 
     $isCorrectPassword= false;
     if($isAllow){
@@ -115,7 +117,8 @@ function PasswordChangeProcess(string $password, string $newPassword, string $pa
     return $result;
 }
 
-function PasswordRecoveryProcess(string $email):bool{
+function passwordRecoveryProcess(string $email):bool
+{
 
     $result = false;
 
@@ -129,7 +132,8 @@ function PasswordRecoveryProcess(string $email):bool{
     return $result;
 }
 
-function AuthorizationProcess(Privilege\Session $session, string $process, string $object):bool{
+function authorizationProcess(Privilege\Session $session, string $process, string $object):bool
+{
 
     $userId = $session->userId;
     $userRole = new Privilege\UserRole($userId);
@@ -137,17 +141,17 @@ function AuthorizationProcess(Privilege\Session $session, string $process, strin
     return $result;
 }
 
-$session = GetRequestSession();
+$session = getRequestSession();
 
-$logonResult = LogOn('', '');
+$logonResult = logOn('', '');
 $authenticationSuccess = Core\Common::setIfExists(0, $logonResult, false);
 if ($authenticationSuccess) {
     $emptySession = new Privilege\Session();
     $session = Core\Common::setIfExists(1, $logonResult, $emptySession);
-    LogOff($session);
+    logOff($session);
 }
 
-RegistrationProcess('','','','','');
-PasswordChangeProcess('','','','');
-PasswordRecoveryProcess('');
-$isAllow = AuthorizationProcess($session,'','');
+registrationProcess('', '', '', '', '');
+passwordChangeProcess('', '', '', '');
+passwordRecoveryProcess('');
+$isAllow = authorizationProcess($session, '', '');
