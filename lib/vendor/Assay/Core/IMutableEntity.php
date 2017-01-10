@@ -6,11 +6,19 @@
  * Time: 18:02
  */
 namespace Assay\Core {
+    /**
+     * Интерфейс обновления записи в БД
+     */
     interface IMutableEntity
     {
-        public function MutateEntity():bool;
+        /** Обновляет (изменяет) запись в БД
+         * @return bool успешность изменения
+         */
+        public function mutateEntity():bool;
 
-        public function ToEntity():array;
-
+        /** Формирует массив из свойств экземпляра
+         * @return array массив свойств экземпляра
+         */
+        public function toEntity():array;
     }
 }

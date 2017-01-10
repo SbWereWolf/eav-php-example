@@ -9,73 +9,73 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
     use Assay\Core\NamedEntity;
 
-    class Structure extends NamedEntity implements IStructure
+    class Structure extends NamedEntity implements IStructure    
     {
         public $parent;
 
 
-        public function AddEntity():int
+        public function addEntity():int
         {
 
         }
 
-        public function HideEntity():bool
+        public function hideEntity():bool
         {
 
         }
 
-        public function MutateEntity():bool
+        public function mutateEntity():bool
         {
 
         }
 
-        public function GetEntity(int $id):array
+        public function getEntity(int $id):array
         {
 
         }
 
-        public function GetElementDescription():array
+        public function getElementDescription():array
         {
 
         }
 
 
-        public function AddChild():int
+        public function addChild():int
         {
 
         }
 
-        public function GetChildrenNames():array
+        public function getChildrenNames():array
         {
 
         }
 
-        public function GetParent():int
+        public function getParent():int
         {
 
         }
 
-        public function IsPartition():bool
+        public function isPartition():bool
         {
 
         }
 
-        public function IsRubric():bool
+        public function isRubric():bool
         {
 
         }
 
-        public function GetPath():array
+        public function getPath():array
         {
 
         }
 
-        public function GetMap():array
+        public function getMap():array
         {
 
         }
 
-        public function Search(string $searchString, string $structureCode):array
+        public function search(string $searchString, string $structureCode):array
         {
         }
     }

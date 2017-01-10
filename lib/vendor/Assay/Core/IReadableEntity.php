@@ -6,13 +6,27 @@
  * Time: 18:01
  */
 namespace Assay\Core {
+    /**
+     * Интерфейс чтения сущности из БД
+     */
     interface IReadableEntity
     {
+        /** Прочитать запись из БД
+         * @param string $id идентификатор записи
+         * @return array значения колонок
+         */
+        public function readEntity(string $id):array;
 
-        public function ReadEntity(string $id):array;
 
-        public function GetStored():array;
+        /** Прочитать данные экземпляра из БД
+         * @return array колонки
+         */
+        public function getStored():array;
 
-        public function SetByNamedValue(array $namedValue);
+
+        /** Установить свойства объекта в соответствии с массивом
+         * @param array $namedValue массив значений
+         */
+        public function setByNamedValue(array $namedValue);
     }
 }

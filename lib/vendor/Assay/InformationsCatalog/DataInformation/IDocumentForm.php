@@ -8,8 +8,8 @@
 namespace Assay\InformationsCatalog\DataInformation {
     interface IDocumentForm
     {
-        public function GetFormPlaceholderValue():array;
+        public function getFormPlaceholderValue():array;
 
-        public function GetDocumentForm(string $code):array;
+        public function getDocumentForm(string $code):array;
     }
 }

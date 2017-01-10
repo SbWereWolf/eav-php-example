@@ -14,23 +14,23 @@ namespace Assay\InformationsCatalog\DataInformation {
     {
         public $rubricId;
 
-        public function GetShippingPricing():array
+        public function getShippingPricing():array
         {
         }
 
-        public function GetGoodsPricing():array
+        public function getGoodsPricing():array
         {
         }
 
-        public function GetCompanyRubrics():array
+        public function getCompanyRubrics():array
         {
         }
 
-        public function GetPositionByPrivileges($type = TypeEdit::Undefined):array
+        public function getPositionByPrivileges($type = TypeEdit::Undefined):array
         {
         }
 
-        public function Search(array $filterProperties, int $start, int $paging):array
+        public function search(array $filterProperties, int $start, int $paging):array
         {
         }
 

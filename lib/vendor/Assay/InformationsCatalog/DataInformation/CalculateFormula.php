@@ -9,11 +9,11 @@ namespace Assay\InformationsCatalog\DataInformation {
     class CalculateFormula implements ICalculateFormula
     {
 
-        public function GetFormulaArgumentValue():array
+        public function getFormulaArgumentValue():array
         {
         }
 
-        public function GetFormulaResult(array $arguments):array
+        public function getFormulaResult(array $arguments):array
         {
 
         }

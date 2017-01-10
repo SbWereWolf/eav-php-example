@@ -10,10 +10,10 @@ namespace Assay\InformationsCatalog\StructureInformation {
     {
         const EXTERNAL_ID = 'rubric_id';
 
-        public function GetMap():array;
+        public function getMap():array;
 
-        public function GetSearchParameters():array;
+        public function getSearchParameters():array;
 
-        public function GetProperties():array;
+        public function getProperties():array;
     }
 }

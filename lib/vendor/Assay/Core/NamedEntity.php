@@ -12,11 +12,11 @@ namespace Assay\Core {
         public $name;
         public $description;
 
-        public function LoadByCode(string $code):array
+        public function loadByCode(string $code):array
         {
         }
 
-        public function GetElementDescription():array
+        public function getElementDescription():array
         {
         }
     }

@@ -1,11 +1,13 @@
 <?php
 
+/**
+ * @param $className string Class to load
+ */
 function autoload($className)
 {
     $path = __DIR__ . "\\lib\\vendor\\";
     $className = ltrim($className, '\\');
-    $fileName = '';
-    $namespace = '';
+    $fileName  = '';
     if ($lastNsPos = strrpos($className, '\\')) {
         $namespace = substr($className, 0, $lastNsPos);
         $className = substr($className, $lastNsPos + 1);
@@ -13,7 +15,8 @@ function autoload($className)
     }
     $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
 
-    require $path . $fileName;
+    $classSource = ($path.$fileName);
+    require ($classSource);
 }
 
 spl_autoload_register('autoload');
@@ -24,34 +27,38 @@ include('index.php');
 use Assay\Permission\Privilege;
 use Assay\Core;
 
-function getRequestSession():Privilege\Session
+
+function getRequestSession():Assay\Permission\Privilege\Session
 {
     $emptyData = Privilege\ISession::EMPTY_VALUE;
 
-    $session = new Privilege\Session();
-    $cookie = new Privilege\Cookie();
+
+    $session = new Assay\Permission\Privilege\Session();
+    $cookie = new Assay\Permission\Privilege\Cookie();
     $session->setByCookie($cookie);
 
     if ($session->key != $emptyData) {
         $storedSession = $session->getStored();
 
-        $session->key = Core\Common::setIfExists(Privilege\Session::KEY, $storedSession, $emptyData);
-        $session->userId = Core\Common::setIfExists(Privilege\Session::USER_ID, $storedSession, $emptyData);
+
+        $session->key = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::KEY, $storedSession, $emptyData);
+        $session->userId = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::USER_ID, $storedSession, $emptyData);
     }
 
     if ($session->key == $emptyData) {
-        $sessionValues = Privilege\Session::open($session->userId);
+        $sessionValues = Assay\Permission\Privilege\Session::open($session->userId);
         $session->setByNamedValue($sessionValues);
     }
 
     return $session;
 }
 
-function logOff(Privilege\Session $session):Privilege\Session
+
+function logOff(Assay\Permission\Privilege\Session $session):Assay\Permission\Privilege\Session
 {
     $session->close();
-    $defaultSession = new Privilege\Session();
-    $sessionValues = Privilege\Session::open(Privilege\User::EMPTY_VALUE);
+    $defaultSession = new Assay\Permission\Privilege\Session();
+    $sessionValues = Assay\Permission\Privilege\Session::open(Assay\Permission\Privilege\User::EMPTY_VALUE);
     $defaultSession->setByNamedValue($sessionValues);
 
     return $defaultSession;
@@ -63,52 +70,54 @@ function logOn(string $login, string $password):array
     $user->login = $login;
     $storedUser = $user->getStored();
 
-
     $user->setByNamedValue($storedUser);
     $authenticationSuccess = $user->authentication($password);
     $user->updateActivityDate();
 
-    $session = new Privilege\Session();
+
+    $session = new Assay\Permission\Privilege\Session();
     if ($authenticationSuccess) {
 
         $currentSession = getRequestSession();
-        $currentSession->close();
+        $currentSession-> close();
 
-        $sessionValues = Privilege\Session::open($user->id);
+        $sessionValues = Assay\Permission\Privilege\Session::open($user->id);
         $session->setByNamedValue($sessionValues);
     }
     $result = array($authenticationSuccess, $session);
     return $result;
 }
 
-function registrationProcess(string $login, string $password, string $passwordConfirmation, string $email, string $object):bool
-{
+
+function registrationProcess(string $login, string $password, string $passwordConfirmation, string $email, string $object):bool{
 
     $result = false;
 
     $session = getRequestSession();
-    $isAllow = authorizationProcess($session, Privilege\IProcessRequest::USER_REGISTRATION, $object);
+
+    $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::USER_REGISTRATION,$object);
 
     $registrationResult = false;
     if($isAllow){
-        $user = new Privilege\User();
-        $registrationResult = $user->registration($login, $password, $passwordConfirmation, $email);
+        $user = new Assay\Permission\Privilege\User();
+        $registrationResult = $user->registration($login,$password,$passwordConfirmation,$email);
     }
 
     if($registrationResult){
-        $logonResult = logOn($login, $password);
-        $result = Core\Common::setIfExists(0, $logonResult, false);
+        $logonResult = logOn($login,$password);
+        $result = Assay\Core\Common::setIfExists(0, $logonResult, false);
     }
     return $result;
 }
 
-function passwordChangeProcess(string $password, string $newPassword, string $passwordConfirmation, string $object):bool
-{
+
+function passwordChangeProcess(string $password, string $newPassword, string $passwordConfirmation, string $object):bool{
 
     $result = false;
 
     $session = getRequestSession();
-    $isAllow = authorizationProcess($session, Privilege\IProcessRequest::CHANGE_PASSWORD, $object);
+
+    $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::CHANGE_PASSWORD, $object);
 
     $isCorrectPassword= false;
     if($isAllow){
@@ -120,7 +129,8 @@ function passwordChangeProcess(string $password, string $newPassword, string $pa
     if($isCorrectPassword){
         $user->id = $session->userId;
         $entityUser = $user->readEntity($user->id);
-        $user->setByNamedValue($entityUser);
+
+        $user->setByNamedValue($entityUser );
         $authenticationSuccess = $user->authentication($password);
     }
 
@@ -131,12 +141,12 @@ function passwordChangeProcess(string $password, string $newPassword, string $pa
     return $result;
 }
 
-function passwordRecoveryProcess(string $email):bool
-{
+
+function passwordRecoveryProcess(string $email):bool{
 
     $result = false;
 
-    $user = new Privilege\User();
+    $user = new Assay\Permission\Privilege\User();
     $isSuccess = $user->loadByEmail($email);
 
     if($isSuccess){
@@ -146,11 +156,11 @@ function passwordRecoveryProcess(string $email):bool
     return $result;
 }
 
-function authorizationProcess(Privilege\Session $session, string $process, string $object):bool
-{
+
+function authorizationProcess(Assay\Permission\Privilege\Session $session, string $process, string $object):bool{
 
     $userId = $session->userId;
-    $userRole = new Privilege\UserRole($userId);
+    $userRole = new Assay\Permission\Privilege\UserRole($userId);
     $result = $userRole->userAuthorization($process, $object);
     return $result;
 }
@@ -158,14 +168,15 @@ function authorizationProcess(Privilege\Session $session, string $process, strin
 $session = getRequestSession();
 
 $logonResult = logOn('', '');
-$authenticationSuccess = Core\Common::setIfExists(0, $logonResult, false);
+
+$authenticationSuccess = Assay\Core\Common::setIfExists(0, $logonResult, false);
 if ($authenticationSuccess) {
-    $emptySession = new Privilege\Session();
-    $session = Core\Common::setIfExists(1, $logonResult, $emptySession);
+    $emptySession = new Assay\Permission\Privilege\Session();
+    $session = Assay\Core\Common::setIfExists(1, $logonResult, $emptySession);
     logOff($session);
 }
 
-registrationProcess('', '', '', '', '');
-passwordChangeProcess('', '', '', '');
+registrationProcess('','','','','');
+passwordChangeProcess('','','','');
 passwordRecoveryProcess('');
-$isAllow = authorizationProcess($session, '', '');
+$isAllow = authorizationProcess($session,'','');

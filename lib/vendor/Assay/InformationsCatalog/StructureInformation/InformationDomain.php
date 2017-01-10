@@ -14,7 +14,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public $typeEdit;
         public $searchType = SearchType::Undefined;
 
-        public function GetSearchParameters():array
+        public function getSearchParameters():array
         {
 
         }
