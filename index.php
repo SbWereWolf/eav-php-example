@@ -1,4 +1,5 @@
 <?php
+/*
 namespace Assay\Core {
 
     interface ICommon
@@ -157,7 +158,9 @@ namespace Assay\Core {
         }
     }
 }
+*/
 
+/*
 namespace Assay\InformationsCatalog\StructureInformation {
 
 
@@ -349,6 +352,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         const RUBRIC = Rubric::EXTERNAL_ID;
     }
 }
+*/
 
 namespace Assay\InformationsCatalog\DataInformation {
 
