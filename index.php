@@ -1009,79 +1009,82 @@
 //    }
 //}
 //
+//
+//
+//namespace Assay\Communication\Permission {
+//
+//    use Assay;
+//    use Assay\Core;
+//    use Assay\Permission;
+//    use Assay\Permission\Privilege;
+//    use Assay\Communication;
+//    use Assay\Communication\Profile;
+//
+//    interface ICommunicationRequest
+//    {
+//        public function testPrivilege():bool;
+//    }
+//
+//    class CommunicationUser extends Assay\Core\Entity
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'communication_user_id';
+//
+//        /** @var string колонка ссылки на учётную запись пользователя */
+//        const USER_ID = Assay\Permission\Privilege\IUser::EXTERNAL_ID;
+//    }
+//
+//    class CommunicationProcess extends Assay\Core\NamedEntity
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'communication_process_id';
+//    }
+//
+//    class SocialGroupObject extends Assay\Core\Entity
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'social_group_object_id';
+//
+//        const SOCIAL_GROUP = Communication\Profile\SocialGroup::EXTERNAL_ID;
+//    }
+//
+//    class CommunicationPrivilege extends Assay\Core\Entity
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'communication_privilege_id';
+//
+//        /** @var string колонка ссылки на привелегию роли */
+//        const ROLE_DETAIL = Privilege\RoleDetail::EXTERNAL_ID;
+//    }
+//
+//    class SocialGroupPrivilege extends Assay\Core\Entity
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'social_group_privilege_id';
+//
+//        /** @var string колонка ссылки на социальный процесс */
+//        const PROCESS = CommunicationProcess::EXTERNAL_ID;
+//        /** @var string колонка ссылки на социальную группу */
+//        const OBJECT = SocialGroupObject::EXTERNAL_ID;
+//        /** @var string колонка ссылки на социальную привелегию */
+//        const COMMUNICATION_PRIVILEGE = CommunicationPrivilege::EXTERNAL_ID;
+//    }
+//
+//    class CommunicationRequest implements ICommunicationRequest
+//    {
+//        public $session;
+//        public $process;
+//        public $object;
+//        public $content;
+//
+//        public function testPrivilege():bool
+//        {
+//
+//        }
+//    }
+//}
+//
 
-namespace Assay\Communication\Permission {
-
-    use Assay;
-    use Assay\Core;
-    use Assay\Permission;
-    use Assay\Permission\Privilege;
-    use Assay\Communication;
-    use Assay\Communication\Profile;
-
-    interface ICommunicationRequest
-    {
-        public function testPrivilege():bool;
-    }
-
-    class CommunicationUser extends Assay\Core\Entity
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'communication_user_id';
-
-        /** @var string колонка ссылки на учётную запись пользователя */
-        const USER_ID = Assay\Permission\Privilege\IUser::EXTERNAL_ID;
-    }
-
-    class CommunicationProcess extends Assay\Core\NamedEntity
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'communication_process_id';
-    }
-
-    class SocialGroupObject extends Assay\Core\Entity
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'social_group_object_id';
-
-        const SOCIAL_GROUP = Communication\Profile\SocialGroup::EXTERNAL_ID;
-    }
-
-    class CommunicationPrivilege extends Assay\Core\Entity
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'communication_privilege_id';
-
-        /** @var string колонка ссылки на привелегию роли */
-        const ROLE_DETAIL = Privilege\RoleDetail::EXTERNAL_ID;
-    }
-
-    class SocialGroupPrivilege extends Assay\Core\Entity
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'social_group_privilege_id';
-
-        /** @var string колонка ссылки на социальный процесс */
-        const PROCESS = CommunicationProcess::EXTERNAL_ID;
-        /** @var string колонка ссылки на социальную группу */
-        const OBJECT = SocialGroupObject::EXTERNAL_ID;
-        /** @var string колонка ссылки на социальную привелегию */
-        const COMMUNICATION_PRIVILEGE = CommunicationPrivilege::EXTERNAL_ID;
-    }
-
-    class CommunicationRequest implements ICommunicationRequest
-    {
-        public $session;
-        public $process;
-        public $object;
-        public $content;
-
-        public function testPrivilege():bool
-        {
-
-        }
-    }
-}
 namespace Assay\Communication\InformationsCatalog {
 
     use Assay;
