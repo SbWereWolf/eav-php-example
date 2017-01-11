@@ -8,16 +8,21 @@
 namespace Assay\InformationsCatalog\StructureInformation {
 
     use Assay\Core\NamedEntity;
-
+    /**
+     * Тип редактирования позиции рубрики
+     */
     class TypeEdit extends NamedEntity
     {
+        /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'type_edit_id';
 
-        const Undefined = 0;
-        const System = 1;
-        const User = 2;
-        const Company = 3;
-
-        public $value = self::Undefined;
+        /** @var string значение не определено */
+        const UNDEFINED = '0';
+        /** @var string системные свойства */
+        const SYSTEM = '1';
+        /** @var string пользовательские свойства */
+        const USER = '2';
+        /** @var string свойства компании */
+        const COMPANY = '3';
     }
 }

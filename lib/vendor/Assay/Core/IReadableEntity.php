@@ -24,9 +24,14 @@ namespace Assay\Core {
         public function getStored():array;
 
 
-        /** Установить свойства объекта в соответствии с массивом
+        /** Установить свойства экземпляра в соответствии с массивом
          * @param array $namedValue массив значений
          */
         public function setByNamedValue(array $namedValue);
+
+        /** Добавить запись в БД на основе экземпляра
+         * @return bool успех выполнения
+         */
+        public function addReadable():bool;
     }
 }

@@ -9,7 +9,9 @@ namespace Assay\Communication\InformationsCatalog {
 
     use Assay\Communication\Profile\SocialObject;
     use Assay\Core\Entity;
-
+    /**
+     * Социальный объект общения
+     */
     class CommunicationSocialObject extends Entity
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */

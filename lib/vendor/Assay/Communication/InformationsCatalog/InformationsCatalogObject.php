@@ -8,7 +8,9 @@
 namespace Assay\Communication\InformationsCatalog {
 
     use Assay\Core\Entity;
-
+    /**
+     * Объект информационного каталога
+     */
     class InformationsCatalogObject extends Entity
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */

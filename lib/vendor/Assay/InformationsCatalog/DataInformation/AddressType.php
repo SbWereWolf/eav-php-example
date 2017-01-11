@@ -8,17 +8,23 @@
 namespace Assay\InformationsCatalog\DataInformation {
 
     use Assay\Core\NamedEntity;
-
+    /**
+     * Тип адреса
+     */
     class AddressType extends NamedEntity
     {
+        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
         const EXTERNAL_ID = 'address_type_id';
 
-        const Undefined = 0;
-        const Office = 1;
-        const Mine = 2;
-        const Construction = 3;
-        const Garage = 4;
-
-        public $value = self::Undefined;
+        /** @var string значение не определенно */
+        const UNDEFINED = '0';
+        /** @var string офис */
+        const OFFICE = '1';
+        /** @var string карьер */
+        const MINE = '2';
+        /** @var string строительная площадка*/
+        const CONSTRUCTION = '3';
+        /** @var string гараж */
+        const GARAGE = '4';
     }
 }
