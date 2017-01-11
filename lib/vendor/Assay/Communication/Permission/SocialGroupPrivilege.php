@@ -8,7 +8,9 @@
 namespace Assay\Communication\Permission {
 
     use Assay\Core\Entity;
-
+    /**
+     * Объект социальной группы
+     */
     class SocialGroupPrivilege extends Entity
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */
@@ -18,7 +20,7 @@ namespace Assay\Communication\Permission {
         const PROCESS = CommunicationProcess::EXTERNAL_ID;
         /** @var string колонка ссылки на социальную группу */
         const OBJECT = SocialGroupObject::EXTERNAL_ID;
-        /** @var string колонка ссылки на социальную привелегию */
+        /** @var string колонка ссылки на разрешение общения */
         const COMMUNICATION_PRIVILEGE = CommunicationPrivilege::EXTERNAL_ID;
     }
 }

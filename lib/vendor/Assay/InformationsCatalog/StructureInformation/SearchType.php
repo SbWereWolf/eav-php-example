@@ -11,13 +11,16 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
     class SearchType extends NamedEntity
     {
+        /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'search_type_id';
 
-        const Undefined = 0;
-        const Like = 1;
-        const Between = 2;
-        const Enumeration = 3;
-
-        public $value = self::Undefined;
+        /** @var string значение не определено */
+        const UNDEFINED = '0';
+        /** @var string поиск подобия */
+        const LIKE = '1';
+        /** @var string поиск в диапазоне */
+        const BETWEEN = '2';
+        /** @var string поиск перечисления */
+        const ENUMERATION = '3';
     }
 }

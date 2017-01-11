@@ -6,13 +6,19 @@
  * Time: 18:46
  */
 namespace Assay\InformationsCatalog\DataInformation {
+    /**
+     * Функционал работы с пользовательскими данными
+     */
     interface IInstanceUserInformation
     {
+        /** Получить свойства цены доставки
+         * @return array свойства цены
+         */
         public function getShippingPricing():array;
 
+        /** Получить свойства цены товара
+         * @return array свойства цены
+         */
         public function getGoodsPricing():array;
-
-        public function getCompanyRubrics():array;
-
     }
 }

@@ -8,7 +8,9 @@
 namespace Assay\Communication\Permission {
 
     use Assay\Core\NamedEntity;
-
+    /**
+     * Процесс общения
+     */
     class CommunicationProcess extends NamedEntity
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */

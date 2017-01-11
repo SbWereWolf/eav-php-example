@@ -8,7 +8,9 @@
 namespace Assay\Communication\InformationsCatalog {
 
     use Assay\Core\Entity;
-
+    /**
+     * Стыковка объекста общения с информационным объектом 
+     */
     class CommunicationInformationLinking extends Entity
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */
