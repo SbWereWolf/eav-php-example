@@ -739,274 +739,277 @@
 //    }
 //}
 //
+//
+//
+//namespace Assay\Communication\Profile {
+//
+//    use Assay;
+//    use Assay\Core;
+//    use Assay\Communication;
+//
+//    interface IPersonProfile
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'person_profile_id';
+//
+//        /** @var string колонка ссылки на социальный объект */
+//        const OBJECT = SocialObject::EXTERNAL_ID;
+//
+//        public function getForGreetings():string;
+//
+//        public function enableCommenting():bool;
+//
+//        public function testPrivilege():bool;
+//
+//        public function purgeGroup():bool;
+//
+//        public function setGroup():bool;
+//    }
+//
+//    interface ISocialGroup
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'social_group_id';
+//
+//        /** @var string колонка ссылки на социальный объект */
+//        const OBJECT = SocialObject::EXTERNAL_ID;
+//
+//        public function isMember():bool;
+//    }
+//
+//    interface ISocialElement
+//    {
+//        /** @var string колонка ссылки на социальный объект */
+//        const SOCIAL_OBJECT = SocialObject::EXTERNAL_ID;
+//
+//        public function count():int;
+//
+//        public function isOwn():bool;
+//    }
+//
+//    interface IComment
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'comment_id';
+//
+//        const CONTENT = 'content';
+//
+//        public function getByObject():array;
+//    }
+//
+//    interface IMessage
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'message_id';
+//
+//        const CONTENT = 'content';
+//
+//        public function getCorrespondent():array;
+//
+//        public function getByCorrespondent():array;
+//
+//        public function saveGoodsOrder():bool;
+//
+//        public function saveShippingOrder():bool;
+//    }
+//
+//    interface IAd
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'ad_id';
+//
+//        /** @var string колонка ссылки на социальный объект */
+//        const SOCIAL_OBJECT = SocialObject::EXTERNAL_ID;
+//
+//        const CONTENT = 'content';
+//        const UPDATE_DATE = 'update_date';
+//
+//        public function purge():bool;
+//    }
+//
+//    interface ISocialBlock
+//    {
+//        public function getCounter():array;
+//
+//        public function getComment():array;
+//    }
+//
+//    interface ISocialAction
+//    {
+//        public function socialAction():bool;
+//    }
+//
+//    interface IProfile
+//    {
+//
+//        public function getCommentEnableArea():bool;
+//    }
+//
+//    class SocialObject extends Assay\Core\Entity
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'social_object_id';
+//
+//        public $object;
+//    }
+//
+//    class PersonProfile extends Assay\Core\NamedEntity implements IPersonProfile
+//    {
+//        public function getForGreetings():string
+//        {
+//        }
+//
+//        public function enableCommenting():bool
+//        {
+//        }
+//
+//        public function testPrivilege():bool
+//        {
+//        }
+//
+//        public function purgeGroup():bool
+//        {
+//        }
+//
+//        public function setGroup():bool
+//        {
+//        }
+//    }
+//
+//    class SocialGroup extends Assay\Core\NamedEntity implements ISocialGroup
+//    {
+//        public function isMember():bool
+//        {
+//        }
+//    }
+//
+//    class GroupMembership extends Assay\Core\Entity
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'group_membership_id';
+//
+//        /** @var string колонка ссылки на социальную группу */
+//        const GROUP = SocialGroup::EXTERNAL_ID;
+//        /** @var string колонка ссылки на профиль пользователя */
+//        const PROFILE = PersonProfile::EXTERNAL_ID;
+//    }
+//
+//    class ProfileFeature extends Assay\Core\ReadableEntity
+//    {
+//        /** @var string колонка ссылки на профиль пользователя */
+//        const PROFILE = Assay\Communication\Profile\IPersonProfile::EXTERNAL_ID;
+//
+//        /** @var string профилоь пользователя */
+//        public $profile;
+//    }
+//
+//    class SocialElement extends ProfileFeature implements ISocialElement
+//    {
+//        /** @var string социальный объект */
+//        public $object;
+//
+//        public function count():int
+//        {
+//        }
+//
+//        public function isOwn():bool
+//        {
+//        }
+//    }
+//
+//    class Like extends SocialElement
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'like_id';
+//    }
+//
+//    class Favorite extends SocialElement
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'favorite_id';
+//    }
+//
+//    class Comment extends SocialElement implements IComment
+//    {
+//        public function getByObject():array
+//        {
+//        }
+//    }
+//
+//    class Message extends SocialElement implements IMessage
+//    {
+//        const GOODS_ORDER_PATTERN = 'GOODS_ORDER_PATTERN';
+//        const SHIPPING_ORDER_PATTERN = 'SHIPPING_ORDER_PATTERN';
+//
+//        public $correspondent;
+//
+//        public function getCorrespondent():array
+//        {
+//        }
+//
+//        public function getByCorrespondent():array
+//        {
+//        }
+//
+//        public function saveGoodsOrder():bool
+//        {
+//        }
+//
+//        public function saveShippingOrder():bool
+//        {
+//        }
+//    }
+//
+//    class CommunicationFeature extends Assay\Core\MutableEntity
+//    {
+//        /** @var string колонка ссылки на профиль пользователя */
+//        const PROFILE = Communication\Profile\IPersonProfile::EXTERNAL_ID;
+//
+//        public $profile;
+//    }
+//
+//    class Ad extends ProfileFeature implements IAd
+//    {
+//
+//        public $content;
+//        public $social_object;
+//
+//        public function purge():bool
+//        {
+//        }
+//    }
+//
+//    class SocialBlock implements ISocialBlock
+//    {
+//
+//        public function getCounter():array
+//        {
+//        }
+//
+//        public function getComment():array
+//        {
+//        }
+//    }
+//
+//    class SocialAction implements ISocialAction
+//    {
+//        public function socialAction():bool
+//        {
+//        }
+//    }
+//
+//    class Profile implements IProfile
+//    {
+//
+//        public $profile;
+//
+//        public function getCommentEnableArea():bool
+//        {
+//        }
+//    }
+//}
+//
 
-namespace Assay\Communication\Profile {
-
-    use Assay;
-    use Assay\Core;
-    use Assay\Communication;
-
-    interface IPersonProfile
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'person_profile_id';
-
-        /** @var string колонка ссылки на социальный объект */
-        const OBJECT = SocialObject::EXTERNAL_ID;
-
-        public function getForGreetings():string;
-
-        public function enableCommenting():bool;
-
-        public function testPrivilege():bool;
-
-        public function purgeGroup():bool;
-
-        public function setGroup():bool;
-    }
-
-    interface ISocialGroup
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'social_group_id';
-
-        /** @var string колонка ссылки на социальный объект */
-        const OBJECT = SocialObject::EXTERNAL_ID;
-
-        public function isMember():bool;
-    }
-
-    interface ISocialElement
-    {
-        /** @var string колонка ссылки на социальный объект */
-        const SOCIAL_OBJECT = SocialObject::EXTERNAL_ID;
-
-        public function count():int;
-
-        public function isOwn():bool;
-    }
-
-    interface IComment
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'comment_id';
-
-        const CONTENT = 'content';
-
-        public function getByObject():array;
-    }
-
-    interface IMessage
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'message_id';
-
-        const CONTENT = 'content';
-
-        public function getCorrespondent():array;
-
-        public function getByCorrespondent():array;
-
-        public function saveGoodsOrder():bool;
-
-        public function saveShippingOrder():bool;
-    }
-
-    interface IAd
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'ad_id';
-
-        /** @var string колонка ссылки на социальный объект */
-        const SOCIAL_OBJECT = SocialObject::EXTERNAL_ID;
-
-        const CONTENT = 'content';
-        const UPDATE_DATE = 'update_date';
-
-        public function purge():bool;
-    }
-
-    interface ISocialBlock
-    {
-        public function getCounter():array;
-
-        public function getComment():array;
-    }
-
-    interface ISocialAction
-    {
-        public function socialAction():bool;
-    }
-
-    interface IProfile
-    {
-
-        public function getCommentEnableArea():bool;
-    }
-
-    class SocialObject extends Assay\Core\Entity
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'social_object_id';
-
-        public $object;
-    }
-
-    class PersonProfile extends Assay\Core\NamedEntity implements IPersonProfile
-    {
-        public function getForGreetings():string
-        {
-        }
-
-        public function enableCommenting():bool
-        {
-        }
-
-        public function testPrivilege():bool
-        {
-        }
-
-        public function purgeGroup():bool
-        {
-        }
-
-        public function setGroup():bool
-        {
-        }
-    }
-
-    class SocialGroup extends Assay\Core\NamedEntity implements ISocialGroup
-    {
-        public function isMember():bool
-        {
-        }
-    }
-
-    class GroupMembership extends Assay\Core\Entity
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'group_membership_id';
-
-        /** @var string колонка ссылки на социальную группу */
-        const GROUP = SocialGroup::EXTERNAL_ID;
-        /** @var string колонка ссылки на профиль пользователя */
-        const PROFILE = PersonProfile::EXTERNAL_ID;
-    }
-
-    class ProfileFeature extends Assay\Core\ReadableEntity
-    {
-        /** @var string колонка ссылки на профиль пользователя */
-        const PROFILE = Assay\Communication\Profile\IPersonProfile::EXTERNAL_ID;
-
-        /** @var string профилоь пользователя */
-        public $profile;
-    }
-
-    class SocialElement extends ProfileFeature implements ISocialElement
-    {
-        /** @var string социальный объект */
-        public $object;
-
-        public function count():int
-        {
-        }
-
-        public function isOwn():bool
-        {
-        }
-    }
-
-    class Like extends SocialElement
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'like_id';
-    }
-
-    class Favorite extends SocialElement
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'favorite_id';
-    }
-
-    class Comment extends SocialElement implements IComment
-    {
-        public function getByObject():array
-        {
-        }
-    }
-
-    class Message extends SocialElement implements IMessage
-    {
-        const GOODS_ORDER_PATTERN = 'GOODS_ORDER_PATTERN';
-        const SHIPPING_ORDER_PATTERN = 'SHIPPING_ORDER_PATTERN';
-
-        public $correspondent;
-
-        public function getCorrespondent():array
-        {
-        }
-
-        public function getByCorrespondent():array
-        {
-        }
-
-        public function saveGoodsOrder():bool
-        {
-        }
-
-        public function saveShippingOrder():bool
-        {
-        }
-    }
-
-    class CommunicationFeature extends Assay\Core\MutableEntity
-    {
-        /** @var string колонка ссылки на профиль пользователя */
-        const PROFILE = Communication\Profile\IPersonProfile::EXTERNAL_ID;
-
-        public $profile;
-    }
-
-    class Ad extends ProfileFeature implements IAd
-    {
-
-        public $content;
-        public $social_object;
-
-        public function purge():bool
-        {
-        }
-    }
-
-    class SocialBlock implements ISocialBlock
-    {
-
-        public function getCounter():array
-        {
-        }
-
-        public function getComment():array
-        {
-        }
-    }
-
-    class SocialAction implements ISocialAction
-    {
-        public function socialAction():bool
-        {
-        }
-    }
-
-    class Profile implements IProfile
-    {
-
-        public $profile;
-
-        public function getCommentEnableArea():bool
-        {
-        }
-    }
-}
 namespace Assay\Communication\Permission {
 
     use Assay;
