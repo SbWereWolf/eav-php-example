@@ -5,6 +5,12 @@ namespace Assay\Core {
      */
     interface ICommon
     {
+        /** @var string константа значение не задано для значимых типов */
+        const EMPTY_VALUE = '';
+        /** @var string константа значение не задано для ссылочных типов */
+        const EMPTY_OBJECT = null;
+        /** @var string константа значение не задано для массивов */
+        const EMPTY_ARRAY = array();
         /**
          * Используется для инициализации переданным значение, если переданное значение не задано, то выдаётся значение по умолчанию
          * @param mixed $valueIfIsset переданное значение

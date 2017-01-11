@@ -9,7 +9,9 @@ namespace Assay\Communication\InformationsCatalog {
 
     use Assay\Core\Entity;
     use Assay\InformationsCatalog\DataInformation\IInformationInstance;
-
+    /**
+     * Объект воплощения рубрики
+     */
     class InstanceObject extends Entity // +Structure +Rubric
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */

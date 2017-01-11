@@ -8,11 +8,15 @@
 namespace Assay\InformationsCatalog\StructureInformation {
 
     use Assay\Core\NamedEntity;
-
+    /**
+     * Домен свойства
+     */
     class InformationDomain extends NamedEntity implements IInformationDomain
     {
+        /** @var string тип редактирования */
         public $typeEdit;
-        public $searchType = SearchType::Undefined;
+        /** @var string тип поиска */
+        public $searchType = SearchType::UNDEFINED;
 
         public function getSearchParameters():array
         {

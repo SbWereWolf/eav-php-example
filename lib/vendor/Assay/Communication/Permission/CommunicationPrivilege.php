@@ -9,7 +9,9 @@ namespace Assay\Communication\Permission {
 
     use Assay\Core\Entity;
     use Assay\Permission\Privilege\RoleDetail;
-
+    /**
+     * Привелегия общения
+     */
     class CommunicationPrivilege extends Entity
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */

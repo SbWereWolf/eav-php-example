@@ -5,11 +5,6 @@ namespace Assay\Core {
      */
     class Common implements ICommon
     {
-        /** @var string константа значение не задано для значимых типов */
-        const EMPTY_VALUE = '';
-        /** @var string константа значение не задано для ссылочных типов */
-        const EMPTY_OBJECT = null;
-
         public static function setIfExists($key, &$array, $valueIfNotIsset)
         {
             $value = $valueIfNotIsset;

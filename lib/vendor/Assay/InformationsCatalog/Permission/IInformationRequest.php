@@ -6,8 +6,14 @@
  * Time: 18:57
  */
 namespace Assay\InformationsCatalog\Permission {
+    /**
+     * Функционал информационного запроса
+     */
     interface IInformationRequest
     {
+        /** Проверить разрешения
+         * @return bool успех проверки
+         */
         public function testPrivilege():bool;
     }
 }
