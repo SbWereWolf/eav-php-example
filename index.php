@@ -1084,59 +1084,61 @@
 //    }
 //}
 //
-
-namespace Assay\Communication\InformationsCatalog {
-
-    use Assay;
-    use Assay\Core;
-    use Assay\InformationsCatalog;
-    use Assay\InformationsCatalog\DataInformation;
-    use Assay\InformationsCatalog\Permission;
-    use Assay\Communication;
-    use Assay\Communication\Profile;
-
-    class CommunicationObject extends Assay\Core\Entity
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'communication_object_id';
-    }
-
-    class CommunicationSocialObject extends Assay\Core\Entity
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'communication_social_object_id';
-
-        /** @var string колонка ссылки на социальный объект */
-        const SOCIAL_OBJECT = Assay\Communication\Profile\SocialObject::EXTERNAL_ID;
-        /** @var string колонка ссылки на объект общения */
-        const COMMUNICATION_OBJECT = CommunicationObject::EXTERNAL_ID;
-    }
-
-    class InformationsCatalogObject extends Assay\Core\Entity
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'information_catalog_object_id';
-    }
-
-    class InstanceObject extends Assay\Core\Entity // +Structure +Rubric
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'instance_object_id';
-
-        /** @var string колонка ссылки на воплощение рубрики */
-        const INSTANCE = InformationsCatalog\DataInformation\IInformationInstance::EXTERNAL_ID;
-        /** @var string колонка ссылки на объект каталога */
-        const INFORMATION_OBJECT = InformationsCatalogObject::EXTERNAL_ID;
-    }
-
-    class CommunicationInformationLinking extends Assay\Core\Entity
-    {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'communication_information_object_id';
-
-        /** @var string колонка ссылки на социальный объект общения */
-        const COMMUNICATION = CommunicationSocialObject::EXTERNAL_ID;
-        /** @var string колонка ссылки на объект информационного каталога */
-        const INFORMATION = InformationsCatalogObject::EXTERNAL_ID;
-    }
-}
+//
+//
+//namespace Assay\Communication\InformationsCatalog {
+//
+//    use Assay;
+//    use Assay\Core;
+//    use Assay\InformationsCatalog;
+//    use Assay\InformationsCatalog\DataInformation;
+//    use Assay\InformationsCatalog\Permission;
+//    use Assay\Communication;
+//    use Assay\Communication\Profile;
+//
+//    class CommunicationObject extends Assay\Core\Entity
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'communication_object_id';
+//    }
+//
+//    class CommunicationSocialObject extends Assay\Core\Entity
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'communication_social_object_id';
+//
+//        /** @var string колонка ссылки на социальный объект */
+//        const SOCIAL_OBJECT = Assay\Communication\Profile\SocialObject::EXTERNAL_ID;
+//        /** @var string колонка ссылки на объект общения */
+//        const COMMUNICATION_OBJECT = CommunicationObject::EXTERNAL_ID;
+//    }
+//
+//    class InformationsCatalogObject extends Assay\Core\Entity
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'information_catalog_object_id';
+//    }
+//
+//    class InstanceObject extends Assay\Core\Entity // +Structure +Rubric
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'instance_object_id';
+//
+//        /** @var string колонка ссылки на воплощение рубрики */
+//        const INSTANCE = InformationsCatalog\DataInformation\IInformationInstance::EXTERNAL_ID;
+//        /** @var string колонка ссылки на объект каталога */
+//        const INFORMATION_OBJECT = InformationsCatalogObject::EXTERNAL_ID;
+//    }
+//
+//    class CommunicationInformationLinking extends Assay\Core\Entity
+//    {
+//        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+//        const EXTERNAL_ID = 'communication_information_object_id';
+//
+//        /** @var string колонка ссылки на социальный объект общения */
+//        const COMMUNICATION = CommunicationSocialObject::EXTERNAL_ID;
+//        /** @var string колонка ссылки на объект информационного каталога */
+//        const INFORMATION = InformationsCatalogObject::EXTERNAL_ID;
+//    }
+//}
+//
