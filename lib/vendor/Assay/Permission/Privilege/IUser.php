@@ -20,6 +20,8 @@ namespace Assay\Permission\Privilege {
         const PASSWORD_HASH = 'password_hash';
         /** @var string колонка дата последней активности */
         const ACTIVITY_DATE = 'activity_date';
+        /** @var string колонка дата добавления */
+        const INSERT_DATE = 'insert_date';
         /** @var string колонка электронная почта */
         const EMAIL = 'email';
 
