@@ -59,7 +59,7 @@ namespace Assay\Permission\Privilege {
             $sth->execute();
             $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
 
-            if (len($rows) > 0):
+            if (count($rows) > 0):
                 $result = $rows[0][$this::ID];
             endif;
 
@@ -142,17 +142,16 @@ namespace Assay\Permission\Privilege {
                     UPDATE 
                         ".self::TABLE_NAME."
                     SET 
-                        ".self::LOGIN." = ':LOGIN', ".self::PASSWORD_HASH." = ':PASSWORD_HASH', 
-                        ".self::EMAIL." = ':EMAIL',".self::ACTIVITY_DATE." = now()
+                        ".self::LOGIN." = :LOGIN, ".self::PASSWORD_HASH." = :PASSWORD_HASH, 
+                        ".self::EMAIL." = :EMAIL,".self::ACTIVITY_DATE." = now()
                     WHERE 
-                        ".self::ID." = ':ID'
+                        ".self::ID." = :ID
                 ");
-                $sth->bindValue(':ID', $this->id, \PDO::PARAM_STR);
+                $sth->bindValue(':ID', $this->id, \PDO::PARAM_INT);
                 $sth->bindValue(':LOGIN', $this->login, \PDO::PARAM_STR);
                 $sth->bindValue(':EMAIL', $this->email, \PDO::PARAM_STR);
                 $sth->bindValue(':PASSWORD_HASH', $this->passwordHash, \PDO::PARAM_STR);
                 $sth->execute();
-                $sth->commit();
                 $result = true;
             }
 
