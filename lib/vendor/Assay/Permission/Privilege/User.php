@@ -14,7 +14,7 @@ namespace Assay\Permission\Privilege {
     class User extends MutableEntity implements IUser, IAuthenticateUser
     {
         /** @var string имя таблицы */
-        const TABLE_NAME = 'authentic_user';
+        const TABLE_NAME = 'users';
 
         /** @var string имя учётной записи */
         public $login;
@@ -24,6 +24,43 @@ namespace Assay\Permission\Privilege {
         public $activityDate;
         /** @var string электронная почта */
         public $email;
+        //Данные подключения к БД
+        /** @var string название базы данных */
+        const DB_NAME = "assay_catalog";
+        /** @var string хост подключения */
+        const DB_HOST = "localhost";
+        /** @var string логин */
+        const DB_LOGIN = "assay_manager";
+        /** @var string пароль */
+        const DB_PASSWORD = "df1funi";
+
+        /**
+         * Используется для инициализации элементом массива, если элемент не задан, то выдаётся значение по умолчанию
+         * @return string идентификатор добавленной записи БД
+         */
+        public function addEntity():string
+        {
+            $result = 0;
+            $dbh = new PDO("pgsql:dbname=".$this::DB_NAME.";host=".$this::DB_HOST, $this::DB_LOGIN, $this::DB_PASSWORD);
+            $sth = $dbh->prepare("
+                SELECT 
+                   ".self::ID."
+                FROM 
+                  ".self::TABLE_NAME."
+                WHERE 
+                  ".self::LOGIN."=':LOGIN' AND ".self::EMAIL."=':EMAIL'
+            ");
+            $sth->bindValue(':LOGIN', $this->login, PDO::PARAM_STR);
+            $sth->bindValue(':EMAIL', $this->email, PDO::PARAM_STR);
+            $sth->execute();
+            $rows = $sth->fetchAll(PDO::FETCH_ASSOC);
+
+            if (len($rows) > 0):
+                $result = $rows[0][$this::ID];
+            endif;
+
+            return $result;
+        }
 
         public function registration(string $login, string $password, string $passwordConfirmation, string $email):bool
         {
@@ -50,6 +87,31 @@ namespace Assay\Permission\Privilege {
             return $result;
         }
 
+        public function getStored():array
+        {
+            $result = array();
+
+            $dbh = new PDO("pgsql:dbname=".$this::DB_NAME.";host=".$this::DB_HOST, $this::DB_LOGIN, $this::DB_PASSWORD);
+            $sth = $dbh->prepare("
+                SELECT 
+                   ".self::LOGIN.",".self::EMAIL."
+                FROM 
+                  ".self::TABLE_NAME."
+                WHERE 
+                  ".self::ID."=:ID
+            ");
+            $sth->bindValue(':LOGIN', $this->login, PDO::PARAM_STR);
+            $sth->bindValue(':EMAIL', $this->email, PDO::PARAM_STR);
+            $sth->execute();
+            $rows = $sth->fetchAll(PDO::FETCH_ASSOC);
+
+            if (len($rows) > 0):
+                $result = $rows[0];
+            endif;
+
+            return $result;
+        }
+
         /** Обновляет (изменяет) запись в БД
          * @return bool успешность изменения
          */
@@ -71,9 +133,19 @@ namespace Assay\Permission\Privilege {
             }
             if ($needUpdate) {
                 // UPDATE DB RECORD;
+                $dbh = new PDO("pgsql:dbname=".$this::DB_NAME.";host=".$this::DB_HOST, $this::DB_LOGIN, $this::DB_PASSWORD);
+                $sth = $dbh->prepare("INSERT INTO 
+                          ".self::TABLE_NAME." 
+                          (
+                            ".self::LOGIN.", ".self::PASSWORD_HASH.", ".self::EMAIL."
+                          ) 
+                        VALUES 
+                        (
+                            ':LOGIN',':PASSWORD',':EMAIL'
+                        )";
+                $result = true;
             }
 
-            $result = true;
             return $result;
 
         }
