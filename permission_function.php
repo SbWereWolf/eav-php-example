@@ -101,6 +101,7 @@ function registrationProcess(string $login, string $password, string $passwordCo
     if($isAllow){
         $user = new Assay\Permission\Privilege\User();
         $registrationResult = $user->registration($login,$password,$passwordConfirmation,$email);
+        print $registrationResult;
     }
 
     if($registrationResult){
@@ -176,7 +177,9 @@ if ($authenticationSuccess) {
     logOff($session);
 }
 
-registrationProcess('','','','','');
+print registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw','');
+/*
 passwordChangeProcess('','','','');
 passwordRecoveryProcess('');
 $isAllow = authorizationProcess($session,'','');
+*/
