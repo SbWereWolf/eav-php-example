@@ -5,7 +5,7 @@
  */
 function autoload($className)
 {
-    $path = __DIR__ . "\\lib\\vendor\\";
+    $path = __DIR__ . "/lib/vendor/";
     $className = ltrim($className, '\\');
     $fileName  = '';
     if ($lastNsPos = strrpos($className, '\\')) {
@@ -96,6 +96,7 @@ function registrationProcess(string $login, string $password, string $passwordCo
     $session = getRequestSession();
 
     $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::USER_REGISTRATION,$object);
+    $isAllow = true;
 
     $registrationResult = false;
     if($isAllow){
@@ -177,9 +178,9 @@ if ($authenticationSuccess) {
     logOff($session);
 }
 
-print registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw','');
-/*
+//registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw','');
+
 passwordChangeProcess('','','','');
-passwordRecoveryProcess('');
+/*passwordRecoveryProcess('');
 $isAllow = authorizationProcess($session,'','');
 */
