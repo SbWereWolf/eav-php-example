@@ -11,8 +11,9 @@ namespace Assay\Permission\Privilege {
 
     interface IUser
     {
+
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
-        const EXTERNAL_ID = 'user_id';
+        const EXTERNAL_ID = 'account_id';
 
         /** @var string колонка "Имя учётной записи" */
         const LOGIN = 'login';

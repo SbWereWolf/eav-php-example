@@ -89,7 +89,7 @@ namespace Assay\Permission\Privilege {
             $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
             $sth = $dbh->prepare("
                 SELECT 
-                   ".self::LOGIN.",".self::EMAIL."
+                   *
                 FROM 
                   ".self::TABLE_NAME."
                 WHERE 
@@ -148,6 +148,38 @@ namespace Assay\Permission\Privilege {
 
             return $result;
 
+        }
+        /** Прочитать запись из БД
+         * @param string $id идентификатор записи
+         * @return array значения колонок
+         */
+        public function readEntity(string $id):array
+        {
+            $result = array();
+            $this->id = $id;
+            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
+            $sth = $dbh->prepare("
+                    SELECT 
+                        *
+                    FROM 
+                        ".self::TABLE_NAME."
+                    WHERE 
+                        ".self::ID."=:ID
+                ");
+            $sth->bindValue(':ID', $this->id, \PDO::PARAM_INT);
+            $sth->execute();
+            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (count($rows) && $sth->errorCode() == "00000") {
+                $row = $rows[0];
+                $this->login = $row[self::LOGIN];
+                $this->passwordHash = $row[self::PASSWORD_HASH];
+                $this->activityDate = $row[self::ACTIVITY_DATE];
+                $this->email = $row[self::EMAIL];
+            }
+
+            $result = $this->toEntity();
+            return $result;
         }
 
         /** Формирует массив из свойств экземпляра
@@ -215,7 +247,22 @@ namespace Assay\Permission\Privilege {
 
         public function loadByEmail(string $email):bool
         {
-            $result = true;
+            $result = false;
+            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
+            $sth = $dbh->prepare("
+                    SELECT 
+                        *
+                    FROM 
+                        ".self::TABLE_NAME."
+                    WHERE 
+                        ".self::EMAIL."=:EMAIL
+                ");
+            $sth->bindValue(':EMAIL', $email, \PDO::PARAM_STR);
+            $sth->execute();
+            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
+            if (count($rows) && $sth->errorCode() == "00000") {
+                $result = true;
+            }
             return $result;
         }
 
