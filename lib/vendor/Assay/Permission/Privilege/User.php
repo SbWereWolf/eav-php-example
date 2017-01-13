@@ -17,15 +17,6 @@ namespace Assay\Permission\Privilege {
         const TABLE_NAME = 'account';
         /** @var string колонка дата добавления */
         const INSERT_DATE = 'insert_date';
-        //Данные подключения к БД
-        /** @var string название базы данных */
-        const DB_NAME = "assay_catalog";
-        /** @var string хост подключения */
-        const DB_HOST = "localhost";
-        /** @var string логин */
-        const DB_LOGIN = "assay_manager";
-        /** @var string пароль */
-        const DB_PASSWORD = "df1funi";
 
         /** @var string имя учётной записи */
         public $login;
@@ -43,7 +34,7 @@ namespace Assay\Permission\Privilege {
         public function addEntity():string
         {
             $result = 0;
-            $dbh = new \PDO("pgsql:dbname=".$this::DB_NAME.";host=".$this::DB_HOST, $this::DB_LOGIN, $this::DB_PASSWORD);
+            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
             $sth = $dbh->prepare("
                 INSERT INTO 
                     ".self::TABLE_NAME." 
@@ -95,7 +86,7 @@ namespace Assay\Permission\Privilege {
         {
             $result = array();
 
-            $dbh = new \PDO("pgsql:dbname=".$this::DB_NAME.";host=".$this::DB_HOST, $this::DB_LOGIN, $this::DB_PASSWORD);
+            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
             $sth = $dbh->prepare("
                 SELECT 
                    ".self::LOGIN.",".self::EMAIL."
@@ -108,7 +99,7 @@ namespace Assay\Permission\Privilege {
             $sth->execute();
             $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
 
-            if (count($rows) > 0):
+            if (count($rows) > 0 and $sth->errorCode() == "00000"):
                 $result = $rows[0];
             endif;
 
@@ -135,8 +126,8 @@ namespace Assay\Permission\Privilege {
                     $needUpdate = true;
                 }
             }
-            $dbh = new \PDO("pgsql:dbname=".$this::DB_NAME.";host=".$this::DB_HOST, $this::DB_LOGIN, $this::DB_PASSWORD);
             if ($needUpdate) {
+                $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
                 // UPDATE DB RECORD;
                 $sth = $dbh->prepare("
                     UPDATE 
@@ -152,7 +143,7 @@ namespace Assay\Permission\Privilege {
                 $sth->bindValue(':EMAIL', $this->email, \PDO::PARAM_STR);
                 $sth->bindValue(':PASSWORD_HASH', $this->passwordHash, \PDO::PARAM_STR);
                 $sth->execute();
-                $result = true;
+                $result = ($sth->errorCode() == "00000")?true:false;
             }
 
             return $result;
