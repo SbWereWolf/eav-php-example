@@ -14,7 +14,18 @@ namespace Assay\Permission\Privilege {
     class User extends MutableEntity implements IUser, IAuthenticateUser
     {
         /** @var string имя таблицы */
-        const TABLE_NAME = 'authentic_user';
+        const TABLE_NAME = 'account';
+        /** @var string колонка дата добавления */
+        const INSERT_DATE = 'insert_date';
+        //Данные подключения к БД
+        /** @var string название базы данных */
+        const DB_NAME = "assay_catalog";
+        /** @var string хост подключения */
+        const DB_HOST = "localhost";
+        /** @var string логин */
+        const DB_LOGIN = "assay_manager";
+        /** @var string пароль */
+        const DB_PASSWORD = "df1funi";
 
         /** @var string имя учётной записи */
         public $login;
@@ -24,6 +35,36 @@ namespace Assay\Permission\Privilege {
         public $activityDate;
         /** @var string электронная почта */
         public $email;
+
+        /**
+         * Используется для инициализации элементом массива, если элемент не задан, то выдаётся значение по умолчанию
+         * @return string идентификатор добавленной записи БД
+         */
+        public function addEntity():string
+        {
+            $result = 0;
+            $dbh = new \PDO("pgsql:dbname=".$this::DB_NAME.";host=".$this::DB_HOST, $this::DB_LOGIN, $this::DB_PASSWORD);
+            $sth = $dbh->prepare("
+                INSERT INTO 
+                    ".self::TABLE_NAME." 
+                    (
+                      ".self::INSERT_DATE."
+                    ) 
+                VALUES 
+                    (
+                        now()
+                    )
+                RETURNING ".self::ID.";
+            ");
+            $sth->execute();
+            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (count($rows) > 0):
+                $result = $rows[0][$this::ID];
+            endif;
+
+            return $result;
+        }
 
         public function registration(string $login, string $password, string $passwordConfirmation, string $email):bool
         {
@@ -50,11 +91,36 @@ namespace Assay\Permission\Privilege {
             return $result;
         }
 
+        public function getStored():array
+        {
+            $result = array();
+
+            $dbh = new \PDO("pgsql:dbname=".$this::DB_NAME.";host=".$this::DB_HOST, $this::DB_LOGIN, $this::DB_PASSWORD);
+            $sth = $dbh->prepare("
+                SELECT 
+                   ".self::LOGIN.",".self::EMAIL."
+                FROM 
+                  ".self::TABLE_NAME."
+                WHERE 
+                  ".self::ID."=:ID
+            ");
+            $sth->bindValue(':ID', $this->id, \PDO::PARAM_STR);
+            $sth->execute();
+            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (count($rows) > 0):
+                $result = $rows[0];
+            endif;
+
+            return $result;
+        }
+
         /** Обновляет (изменяет) запись в БД
          * @return bool успешность изменения
          */
         public function mutateEntity():bool
         {
+            $result = false;
             $storedData = $this->getStored();
             $entity = $this->toEntity();
 
@@ -69,11 +135,26 @@ namespace Assay\Permission\Privilege {
                     $needUpdate = true;
                 }
             }
+            $dbh = new \PDO("pgsql:dbname=".$this::DB_NAME.";host=".$this::DB_HOST, $this::DB_LOGIN, $this::DB_PASSWORD);
             if ($needUpdate) {
                 // UPDATE DB RECORD;
+                $sth = $dbh->prepare("
+                    UPDATE 
+                        ".self::TABLE_NAME."
+                    SET 
+                        ".self::LOGIN." = :LOGIN, ".self::PASSWORD_HASH." = :PASSWORD_HASH, 
+                        ".self::EMAIL." = :EMAIL,".self::ACTIVITY_DATE." = now()
+                    WHERE 
+                        ".self::ID." = :ID
+                ");
+                $sth->bindValue(':ID', $this->id, \PDO::PARAM_INT);
+                $sth->bindValue(':LOGIN', $this->login, \PDO::PARAM_STR);
+                $sth->bindValue(':EMAIL', $this->email, \PDO::PARAM_STR);
+                $sth->bindValue(':PASSWORD_HASH', $this->passwordHash, \PDO::PARAM_STR);
+                $sth->execute();
+                $result = true;
             }
 
-            $result = true;
             return $result;
 
         }

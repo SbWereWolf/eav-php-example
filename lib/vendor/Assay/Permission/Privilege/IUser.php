@@ -73,5 +73,6 @@ namespace Assay\Permission\Privilege {
          * @return bool успех выполнения
          */
         public function sendRecovery():bool;
+        public function addEntity():string;
     }
 }
