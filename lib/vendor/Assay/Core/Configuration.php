@@ -16,7 +16,7 @@ class Configuration
     const DB_LOGIN = 'DB_LOGIN';
     const DB_PASSWORD = 'DB_PASSWORD';
     const DB_NAME = 'DB_NAME';
-    const DB_TYPE = 'DB_TYPE';
+    const DB_PREFIX = 'DB_PREFIX';
 
     static protected $rInstance = null;
     protected $section = 'main';
@@ -26,7 +26,7 @@ class Configuration
     public $optionLogin = 'DB_LOGIN';
     public $optionPassword = 'DB_PASSWORD';
     public $optionName = 'DB_NAME';
-    public $optionType = 'DB_TYPE';
+    public $optionType = 'DB_PREFIX';
     
     protected $rgIni;
 
@@ -42,7 +42,8 @@ class Configuration
             self::DB_PORT => $this->rgIni[$this->section][$this->optionPort],
             self::DB_LOGIN => $this->rgIni[$this->section][$this->optionLogin],
             self::DB_PASSWORD => $this->rgIni[$this->section][$this->optionPassword],
-            self::DB_NAME => $this->rgIni[$this->section][$this->optionName]
+            self::DB_NAME => $this->rgIni[$this->section][$this->optionName],
+            self::DB_PREFIX => $this->rgIni[$this->section][$this->optionType],
         );
     }
 

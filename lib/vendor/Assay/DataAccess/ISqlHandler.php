@@ -8,7 +8,7 @@
 
 namespace Assay\DataAccess;
 
-interface ISqlReader
+interface ISqlHandler
 {
 public function performQuery(array $arguments):array;
 }
