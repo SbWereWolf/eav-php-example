@@ -26,7 +26,7 @@ namespace Assay\Permission\Privilege {
         const OPEN_PROCESS = 'open_session';
         const SESSION_OBJECT = 'session';
 
-        public static function open(string $userId):array;
+        public static function open(string $userId):array ;
 
         public function close():bool;
     }

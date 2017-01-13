@@ -119,16 +119,18 @@ function passwordChangeProcess(string $password, string $newPassword, string $pa
     $session = getRequestSession();
 
     $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::CHANGE_PASSWORD, $object);
-
+    $isAllow = true;
     $isCorrectPassword= false;
     if($isAllow){
-        $isCorrectPassword = $newPassword == $passwordConfirmation;
+        $isCorrectPassword = ($newPassword == $passwordConfirmation && $newPassword != $password);
     }
 
     $user = new Privilege\User();
     $authenticationSuccess = false;
     if($isCorrectPassword){
         $user->id = $session->userId;
+        $user->id = 2;
+
         $entityUser = $user->readEntity($user->id);
 
         $user->setByNamedValue($entityUser );
@@ -136,7 +138,7 @@ function passwordChangeProcess(string $password, string $newPassword, string $pa
     }
 
     if($authenticationSuccess){
-        $user->changePassword($newPassword);
+        $result = $user->changePassword($newPassword);
     }
 
     return $result;
@@ -187,15 +189,14 @@ function testGrantRole(string $user_id,string $user_role_id):bool {
 function testRevokeRole(string $user_id,string $user_role_id):bool {
     $result = false;
     $userRole = new Privilege\UserRole($user_id);
-    $result = $userRole->revokeRole($user_id);
+    $result = $userRole->revokeRole($user_role_id);
     return $result;
 }
 
-var_dump(registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw',''));
-//var_dump(testGrantRole(1,2));
-var_dump(testRevokeRole(1,2));
+//var_dump(registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw',''));
+//var_dump(testGrantRole(33,1));
+//var_dump(testRevokeRole(33,1));
 
-//passwordChangeProcess('','','','');
-/*passwordRecoveryProcess('');
-$isAllow = authorizationProcess($session,'','');
-*/
+//var_dump(passwordChangeProcess('1','2','2',''));
+//passwordRecoveryProcess('mail@sancho.pw');
+//$isAllow = authorizationProcess($session,'','');

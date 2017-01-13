@@ -32,22 +32,3 @@ CREATE TABLE public.account
 
 CREATE UNIQUE INDEX account_login_uindex ON public.account (login);
 CREATE UNIQUE INDEX account_email_uindex ON public.account (email);
-
-DROP TABLE public.role;
-
-CREATE TABLE public.role
-(
-  id SERIAL PRIMARY KEY NOT NULL,
-  role_name VARCHAR NOT NULL
-);
-CREATE UNIQUE INDEX role_role_name_uindex ON public.role (role_name);
-
-DROP TABLE public.user_role;
-
-CREATE TABLE public.user_role
-(
-  id SERIAL PRIMARY KEY NOT NULL,
-  user_id INT NOT NULL,
-  user_role_id INT NOT NULL
-);
-CREATE UNIQUE INDEX role_role_user_uindex ON public.user_role (user_id, user_role_id);
