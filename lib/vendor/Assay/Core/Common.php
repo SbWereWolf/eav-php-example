@@ -7,8 +7,15 @@ namespace Assay\Core {
     {
         public static function setIfExists($key, &$array, $valueIfNotIsset)
         {
+
+            $isArray = is_array($array);
+
+            $maySet = false;
+            if($isArray){
+                $maySet = array_key_exists($key, $array);
+            }
+
             $value = $valueIfNotIsset;
-            $maySet = array_key_exists($key, $array);
             if ($maySet) {
                 $value = self::isSetEx($array[$key], $valueIfNotIsset);
             }
