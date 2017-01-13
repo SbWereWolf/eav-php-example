@@ -16,6 +16,15 @@ namespace Assay\Permission\Privilege {
         /** @var string колонка ссылки на бизнес роль */
         const ROLE = BusinessRole::EXTERNAL_ID;
 
+        /** @var string колонка "Имя учётной записи" */
+        const LOGIN = 'login';
+        /** @var string колонка хэш пароля */
+        const PASSWORD_HASH = 'password_hash';
+        /** @var string колонка дата последней активности */
+        const ACTIVITY_DATE = 'activity_date';
+        /** @var string колонка электронная почта */
+        const EMAIL = 'email';
+
         /** Назначить роль
          * @param string $role роль
          * @return bool успех выполнения

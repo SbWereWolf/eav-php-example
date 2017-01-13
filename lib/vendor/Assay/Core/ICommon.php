@@ -11,6 +11,18 @@ namespace Assay\Core {
         const EMPTY_OBJECT = null;
         /** @var string константа значение не задано для массивов */
         const EMPTY_ARRAY = array();
+
+
+        //Данные подключения к БД
+        /** @var string название базы данных */
+        const DB_NAME = "assay_catalog";
+        /** @var string хост подключения */
+        const DB_HOST = "localhost";
+        /** @var string логин */
+        const DB_LOGIN = "assay_manager";
+        /** @var string пароль */
+        const DB_PASSWORD = "df1funi";
+
         /**
          * Используется для инициализации переданным значение, если переданное значение не задано, то выдаётся значение по умолчанию
          * @param mixed $valueIfIsset переданное значение

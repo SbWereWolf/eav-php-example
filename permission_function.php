@@ -102,7 +102,6 @@ function registrationProcess(string $login, string $password, string $passwordCo
     if($isAllow){
         $user = new Assay\Permission\Privilege\User();
         $registrationResult = $user->registration($login,$password,$passwordConfirmation,$email);
-        print $registrationResult;
     }
 
     if($registrationResult){
@@ -178,9 +177,25 @@ if ($authenticationSuccess) {
     logOff($session);
 }
 
-//registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw','');
+function testGrantRole(string $user_id,string $user_role_id):bool {
+    $result = false;
+    $userRole = new Privilege\UserRole($user_id);
+    $result = $userRole->grantRole($user_role_id);
+    return $result;
+}
 
-passwordChangeProcess('','','','');
+function testRevokeRole(string $user_id,string $user_role_id):bool {
+    $result = false;
+    $userRole = new Privilege\UserRole($user_id);
+    $result = $userRole->revokeRole($user_id);
+    return $result;
+}
+
+var_dump(registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw',''));
+//var_dump(testGrantRole(1,2));
+var_dump(testRevokeRole(1,2));
+
+//passwordChangeProcess('','','','');
 /*passwordRecoveryProcess('');
 $isAllow = authorizationProcess($session,'','');
 */
