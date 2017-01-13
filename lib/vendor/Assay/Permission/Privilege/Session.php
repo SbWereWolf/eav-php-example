@@ -12,6 +12,8 @@ namespace Assay\Permission\Privilege {
 
     class Session extends MutableEntity implements ISession
     {
+        /** @var string имя таблицы */
+        const TABLE_NAME = 'session';
 
         public $cookies;
 
@@ -36,11 +38,87 @@ namespace Assay\Permission\Privilege {
             $this->userId = ISession::EMPTY_VALUE;
         }
 
+        /**
+         * Используется для инициализации элементом массива, если элемент не задан, то выдаётся значение по умолчанию
+         * @return string идентификатор добавленной записи БД
+         */
+        public function addEntity(
+
+        ):string
+        {
+            $result = 0;
+            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
+            $sth = $dbh->prepare("
+                INSERT INTO 
+                    ".self::TABLE_NAME." 
+                    (
+                      ".self::INSERT_DATE."
+                    ) 
+                VALUES 
+                    (
+                        now()
+                    )
+                RETURNING ".self::ID.";
+            ");
+            $sth->execute();
+            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (count($rows) > 0):
+                $result = $rows[0][$this::ID];
+            endif;
+
+            return $result;
+        }
+        /** Обновляет (изменяет) запись в БД
+         * @return bool успешность изменения
+         */
+        public function mutateEntity():bool
+        {
+            $result = false;
+            $storedData = $this->getStored();
+            $entity = $this->toEntity();
+
+            $needUpdate = false;
+            foreach ($entity as $key => $column) {
+                $isExist = array_key_exists($key, $storedData);
+                $equal = true;
+                if ($isExist) {
+                    $equal = $column == $storedData[$key];
+                }
+                if (!$equal) {
+                    $needUpdate = true;
+                }
+            }
+            if ($needUpdate) {
+                $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
+                // UPDATE DB RECORD;
+                $sth = $dbh->prepare("
+                    UPDATE 
+                        ".self::TABLE_NAME."
+                    SET 
+                        ".self::LOGIN." = :LOGIN, ".self::PASSWORD_HASH." = :PASSWORD_HASH, 
+                        ".self::EMAIL." = :EMAIL,".self::ACTIVITY_DATE." = now()
+                    WHERE 
+                        ".self::ID." = :ID
+                ");
+                $sth->bindValue(':ID', $this->id, \PDO::PARAM_INT);
+                $sth->bindValue(':LOGIN', $this->login, \PDO::PARAM_STR);
+                $sth->bindValue(':EMAIL', $this->email, \PDO::PARAM_STR);
+                $sth->bindValue(':PASSWORD_HASH', $this->passwordHash, \PDO::PARAM_STR);
+                $sth->execute();
+                $result = ($sth->errorCode() == "00000")?true:false;
+            }
+
+            return $result;
+
+        }
+
         public static function open(string $userId):array
         {
             $process = self::OPEN_PROCESS;
             $object = self::SESSION_OBJECT;
             $result = array();
+            $userId = ($userId == ISession::EMPTY_VALUE)?1:$userId; //Для теста. Если пустое значение, ставим ID гостя
 
             $userRole = new UserRole($userId);
             $isAllow = $userRole->userAuthorization($process, $object);
@@ -79,36 +157,32 @@ namespace Assay\Permission\Privilege {
             $this->userId = Common::setIfExists(
                 self::USER_ID, $namedValues, ISession::EMPTY_VALUE
             );
-        }
-
-        public function mutateEntity():bool
-        {
-            $storedData = $this->getStored();
-            $entity = $this->toEntity();
-
-            $needUpdate = false;
-            foreach ($entity as $key => $column) {
-                $isExist = array_key_exists($key, $storedData);
-                $equal = true;
-                if ($isExist) {
-                    $equal = $column == $storedData[$key];
-                }
-                if (!$equal) {
-                    $needUpdate = true;
-                }
-            }
-            if ($needUpdate) {
-                // UPDATE DB RECORD;
-            }
-
-            $result = true;
-            return $result;
-
+            $this->id = Common::setIfExists(
+                self::ID, $namedValues, ISession::EMPTY_VALUE
+            );
         }
 
         public function getStored():array
         {
             $result = array();
+
+            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
+            $sth = $dbh->prepare("
+                SELECT 
+                   *
+                FROM 
+                  ".self::TABLE_NAME."
+                WHERE 
+                  ".self::ID."=:ID
+            ");
+            $sth->bindValue(':ID', $this->id, \PDO::PARAM_STR);
+            $sth->execute();
+            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (count($rows) > 0 and $sth->errorCode() == "00000"):
+                $result = $rows[0];
+            endif;
+
             return $result;
         }
 
