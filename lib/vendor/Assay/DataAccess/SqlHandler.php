@@ -13,12 +13,8 @@ use Assay\Core\Configuration;
 
 //include_once(DB_READ_CONFIGURATION);
 
-class SqlReader implements ISqlReader
+class SqlHandler implements ISqlHandler
 {
-    private $credentials = array();
-    const DB_NAME_PARAMETER = 'dbname';
-    const DB_HOST_PARAMETER = 'host';
-
     const QUERY_TEXT = 'QUERY_TEXT';
     const QUERY_PARAMETER = 'QUERY_PARAMETER';
     const QUERY_PLACEHOLDER = 'QUERY_PLACEHOLDER';
@@ -28,21 +24,27 @@ class SqlReader implements ISqlReader
     const RECORDS = 'fetchAll';
     const ERROR_INFO = 'errorInfo';
 
-    private function initialization(string $settingFilename)
+    private $dataSource = Common::EMPTY_VALUE;
+    private $dbLogin = Common::EMPTY_VALUE;
+    private $dbPassword = Common::EMPTY_VALUE;
+
+    public function __construct( array $dbCredentials)
     {
-        $dbReaderConfiguration = new Configuration($settingFilename);
-        $this->credentials = $dbReaderConfiguration->getCredentials();
+        $this->dataSource = $dbCredentials[IDbCredentials::DATA_SOURCE_NAME];
+        $this->dbLogin = $dbCredentials[IDbCredentials::LOGIN];
+        $this->dbPassword = $dbCredentials[IDbCredentials::PASSWORD];
     }
 
     public function performQuery(array $arguments):array
     {
-        $this->initialization(DB_READ_CONFIGURATION);
-        $connection = $this->getConnection();
+        $connection = new \PDO ($this->dataSource,
+            $this->dbLogin,
+            $this->dbPassword);
         $dbQuery = self::getPdoStatement($connection, $arguments);
         $this->bindParameterValue($dbQuery, $arguments);
         $dbQuery->execute();
 
-        $records = $dbQuery->fetchAll();
+        $records = $dbQuery->fetchAll(\PDO::FETCH_ASSOC);
         $errorInfo = $dbQuery->errorInfo();
 
         $result[self::RECORDS] = $records;
@@ -51,7 +53,7 @@ class SqlReader implements ISqlReader
         return $result;
     }
 
-    public static function getPdoStatement(\PDO $connection, array $parameters):\PDOStatement
+    private static function getPdoStatement(\PDO $connection, array $parameters):\PDOStatement
     {
         $queryText = Common::setIfExists(self::QUERY_TEXT, $parameters, Common::EMPTY_VALUE);
 
@@ -64,38 +66,11 @@ class SqlReader implements ISqlReader
     }
 
     /**
-     * @return \PDO
-     */
-    public function getConnection()
-    {
-        $dbName = $this->credentials[Configuration::DB_NAME];
-        $dbHost = $this->credentials[Configuration::DB_HOST];
-        $dbAddress = self::DB_NAME_PARAMETER
-            . '='
-            . $dbName
-            . ';'
-            . self::DB_HOST_PARAMETER
-            . '='
-            . $dbHost;
-
-        $dbLogin = $this->credentials[Configuration::DB_LOGIN];
-        $dbPassword = $this->credentials[Configuration::DB_PASSWORD];
-
-        $connection = new \PDO(
-            'pgsql:'
-            . $dbAddress
-            , $dbLogin
-            , $dbPassword
-        );
-        return $connection;
-    }
-
-    /**
      * @param \PDOStatement $dbQuery
      * @param array $arguments
      * @internal param $emptyValue
      */
-    public function bindParameterValue(\PDOStatement $dbQuery, array $arguments)
+    private function bindParameterValue(\PDOStatement $dbQuery, array $arguments)
     {
         $emptyValue = Common::EMPTY_VALUE;
 
