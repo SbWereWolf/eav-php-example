@@ -109,7 +109,7 @@ class SqlReader implements ISqlReader
                 $value = Common::setIfExists(self::QUERY_VALUE, $queryParameter, $emptyValue);
                 $dataType = Common::setIfExists(self::QUERY_DATA_TYPE, $queryParameter, $emptyValue);
 
-                $isParametersEmpty = ($placeholder == $emptyValue) || ($value == $emptyValue) || ($dataType == $emptyValue);
+                $isParametersEmpty = ($placeholder == $emptyValue) || /*($value == $emptyValue) ||*/ ($dataType == $emptyValue);
                 if (!$isParametersEmpty) {
                     $dbQuery->bindValue($placeholder, $value, $dataType);
                 }

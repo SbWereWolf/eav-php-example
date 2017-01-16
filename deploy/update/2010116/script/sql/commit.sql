@@ -6,6 +6,7 @@ CREATE TABLE public.account
   login VARCHAR(4000),
   password_hash VARCHAR(4000),
   email VARCHAR(4000),
+  is_hidden INTEGER,
   activity_date TIMESTAMPTZ,
   insert_date TIMESTAMPTZ
 );
@@ -82,6 +83,7 @@ CREATE TABLE public.session
   paging VARCHAR(4000),
   userName VARCHAR(4000),
   insert_date TIMESTAMPTZ,
+  activity_date TIMESTAMPTZ,
   CONSTRAINT "FX_session_account_id" FOREIGN KEY (user_id) REFERENCES public.account (id) ON UPDATE NO ACTION ON DELETE NO ACTION
 )
 WITH (

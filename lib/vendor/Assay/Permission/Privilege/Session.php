@@ -59,9 +59,10 @@ namespace Assay\Permission\Privilege {
                     )
                 RETURNING ".self::ID.";
             ";
+
             $arguments[SqlReader::QUERY_PARAMETER] = [];
             $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
                 $result = (count($rows) > 0)?$rows[0][$this::ID]:$result;
             }
@@ -93,21 +94,39 @@ namespace Assay\Permission\Privilege {
                 $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
                 $id[SqlReader::QUERY_VALUE] = $this->id;
                 $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-                $key[SqlReader::QUERY_PLACEHOLDER] = ':KEY';
-                $key[SqlReader::QUERY_VALUE] = $this->key;
-                $key[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $key_field[SqlReader::QUERY_PLACEHOLDER] = ':KEY';
+                $key_field[SqlReader::QUERY_VALUE] = $this->key;
+                $key_field[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
                 $user_id[SqlReader::QUERY_PLACEHOLDER] = ':USER_ID';
                 $user_id[SqlReader::QUERY_VALUE] = $this->userId;
                 $user_id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $is_hidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
+                $is_hidden[SqlReader::QUERY_VALUE] = $this->isHidden;
+                $is_hidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+                $company_filter[SqlReader::QUERY_PLACEHOLDER] = ':COMPANY_FILTER';
+                $company_filter[SqlReader::QUERY_VALUE] = $this->companyFilter;
+                $company_filter[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $mode[SqlReader::QUERY_PLACEHOLDER] = ':MODE';
+                $mode[SqlReader::QUERY_VALUE] = $this->mode;
+                $mode[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $paging[SqlReader::QUERY_PLACEHOLDER] = ':PAGING';
+                $paging[SqlReader::QUERY_VALUE] = $this->paging;
+                $paging[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $user_name[SqlReader::QUERY_PLACEHOLDER] = ':USER_NAME';
+                $user_name[SqlReader::QUERY_VALUE] = $this->userName;
+                $user_name[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
                 $arguments[SqlReader::QUERY_TEXT] = "
                     UPDATE 
                         ".self::TABLE_NAME." 
                     SET 
-                        ".self::KEY."=".$key[SqlReader::QUERY_PLACEHOLDER].", ".self::USER_ID."=".$user_id[SqlReader::QUERY_PLACEHOLDER]."
+                        ".self::KEY."=".$key_field[SqlReader::QUERY_PLACEHOLDER].", ".self::USER_ID."=".$user_id[SqlReader::QUERY_PLACEHOLDER].",
+                        ".self::IS_HIDDEN."=".$is_hidden[SqlReader::QUERY_PLACEHOLDER].",".self::COMPANY_FILTER."=".$company_filter[SqlReader::QUERY_PLACEHOLDER].",
+                        ".self::MODE."=".$mode[SqlReader::QUERY_PLACEHOLDER].",".self::PAGING."=".$paging[SqlReader::QUERY_PLACEHOLDER].",
+                        ".self::USER_NAME."=".$user_name[SqlReader::QUERY_PLACEHOLDER]."
                     WHERE 
                         ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
                 ";
-                $arguments[SqlReader::QUERY_PARAMETER] = [$id,$key,$user_id];
+                $arguments[SqlReader::QUERY_PARAMETER] = [$id,$key_field,$user_id,$is_hidden,$company_filter,$mode,$paging,$user_name];
                 $result_sql = $sqlReader ->performQuery($arguments);
                 $result = ($result_sql[SqlReader::ERROR_INFO][0] == "00000")?true:false;
             }
@@ -157,6 +176,9 @@ namespace Assay\Permission\Privilege {
             $this->userName = Common::setIfExists(
                 self::USER_NAME, $namedValues, ISession::EMPTY_VALUE
             );
+            $this->isHidden = Common::setIfExists(
+                self::IS_HIDDEN, $namedValues, self::DEFAULT_IS_HIDDEN
+            );
             $this->userId = Common::setIfExists(
                 self::USER_ID, $namedValues, ISession::EMPTY_VALUE
             );
@@ -168,23 +190,24 @@ namespace Assay\Permission\Privilege {
         public function getStored():array
         {
             $result = array();
-
-            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
-            $sth = $dbh->prepare("
-                SELECT 
-                   *
-                FROM 
-                  ".self::TABLE_NAME."
-                WHERE 
-                  ".self::ID."=:ID
-            ");
-            $sth->bindValue(':ID', $this->id, \PDO::PARAM_STR);
-            $sth->execute();
-            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
-
-            if (count($rows) > 0 and $sth->errorCode() == "00000"):
-                $result = $rows[0];
-            endif;
+            $sqlReader = new SqlReader();
+            $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
+            $id[SqlReader::QUERY_VALUE] = $this->id;
+            $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $arguments[SqlReader::QUERY_TEXT] = "
+                    SELECT 
+                       *
+                    FROM 
+                      ".self::TABLE_NAME."
+                    WHERE 
+                      ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
+                ";
+            $arguments[SqlReader::QUERY_PARAMETER] = [$id];
+            $result_sql = $sqlReader ->performQuery($arguments);
+            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
+                $rows = $result_sql[SqlReader::RECORDS];
+                $result = (count($rows) > 0)?$rows[0]:$result;
+            }
 
             return $result;
         }
@@ -204,6 +227,23 @@ namespace Assay\Permission\Privilege {
             return $entity;
         }
 
+        public function setCookie(): bool
+        {
+            $result = true;
+            $cookie = new Cookie();
+            $cookie->key = $this->key;
+            $cookie->companyFilter = $this->companyFilter;
+            $cookie->mode = $this->mode;
+            $cookie->paging = $this->paging;
+            $cookie->userName = $this->userName;
+            $cookie->setKey();
+            $cookie->setCompanyFilter();
+            $cookie->setMode();
+            $cookie->setPaging();
+            $cookie->setUserName();
+            return $result;
+        }
+
         public function setByCookie(Cookie $cookies)
         {
             $this->cookies = $cookies;
@@ -217,6 +257,7 @@ namespace Assay\Permission\Privilege {
 
         public function close():bool
         {
+            $this->isHidden = true;
             $result = $this->hideEntity();
             return $result;
         }

@@ -50,7 +50,7 @@ namespace Assay\Permission\Privilege {
             ";
             $arguments[SqlReader::QUERY_PARAMETER] = [];
             $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
                 $result = (count($rows) > 0)?$rows[0][$this::ID]:$result;
             }
@@ -101,7 +101,7 @@ namespace Assay\Permission\Privilege {
             ";
             $arguments[SqlReader::QUERY_PARAMETER] = [$id];
             $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
                 $result = (count($rows) > 0)?$rows[0]:$result;
             }
@@ -155,7 +155,7 @@ namespace Assay\Permission\Privilege {
                 ";
                 $arguments[SqlReader::QUERY_PARAMETER] = [$id,$login,$pass_hash,$email];
                 $result_sql = $sqlReader ->performQuery($arguments);
-                $result = ($result_sql[SqlReader::ERROR_INFO][0] == '00000')?true:false;
+                $result = ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR)?true:false;
             }
 
             return $result;
@@ -184,7 +184,7 @@ namespace Assay\Permission\Privilege {
             ";
             $arguments[SqlReader::QUERY_PARAMETER] = [$id];
             $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
                 if (count($rows) > 0) {
                     $row = $rows[0];
@@ -279,10 +279,45 @@ namespace Assay\Permission\Privilege {
             ";
             $arguments[SqlReader::QUERY_PARAMETER] = [$email_field];
             $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
                 $result = (count($rows) > 0)?true:false;
             }
+            return $result;
+        }
+
+        public function loadByLogin():array
+        {
+            $result = [];
+            $sqlReader = new SqlReader();
+            $login_field[SqlReader::QUERY_PLACEHOLDER] = ':LOGIN';
+            $login_field[SqlReader::QUERY_VALUE] = $this->login;
+            $login_field[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $arguments[SqlReader::QUERY_TEXT] = "
+                SELECT 
+                   *
+                FROM 
+                  ".self::TABLE_NAME."
+                WHERE 
+                  ".self::LOGIN."=".$login_field[SqlReader::QUERY_PLACEHOLDER]."
+            ";
+            $arguments[SqlReader::QUERY_PARAMETER] = [$login_field];
+            $result_sql = $sqlReader ->performQuery($arguments);
+            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
+                $rows = $result_sql[SqlReader::RECORDS];
+                if (count($rows) > 0) {
+                    $row = $rows[0];
+                    $this->id = $row[self::ID];
+                    $this->login = $row[self::LOGIN];
+                    $this->passwordHash = $row[self::PASSWORD_HASH];
+                    $this->activityDate = $row[self::ACTIVITY_DATE];
+                    $this->email = $row[self::EMAIL];
+                    $this->isHidden = $row[self::IS_HIDDEN];
+                    $this->insertDate = $row[self::INSERT_DATE];
+                    $this->activityDate = $row[self::ACTIVITY_DATE];
+                }
+            }
+            $result = $this->toEntity();
             return $result;
         }
 

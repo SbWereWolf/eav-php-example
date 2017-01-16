@@ -28,6 +28,8 @@ namespace Assay\Permission\Privilege {
 
         public static function open(string $userId):array ;
 
+        public function setCookie():bool;
+
         public function close():bool;
     }
 }

@@ -6,6 +6,9 @@
  * Time: 10:10
  */
 namespace Assay\Permission\Privilege {
+
+    use Assay\Core\Common;
+
     class Cookie implements ICookies
     {
         public $key;
@@ -25,52 +28,77 @@ namespace Assay\Permission\Privilege {
 
         public static function getKey():string
         {
-            $result = ICookies::EMPTY_VALUE;
+            $result = Common::setIfExists(
+                self::KEY, $_COOKIE[self::KEY], ICookies::EMPTY_VALUE
+            );
             return $result;
         }
 
         public static function getCompanyFilter():string
         {
-            $result = ICookies::EMPTY_VALUE;
+            $result = Common::setIfExists(
+                self::COMPANY_FILTER, $_COOKIE[self::COMPANY_FILTER], ICookies::EMPTY_VALUE
+            );
             return $result;
         }
 
         public static function getMode():string
         {
-            $result = ICookies::EMPTY_VALUE;
+            $result = Common::setIfExists(
+                self::MODE, $_COOKIE[self::MODE], ICookies::EMPTY_VALUE
+            );
             return $result;
         }
 
         public static function getPaging():string
         {
-            $result = ICookies::EMPTY_VALUE;
+            $result = Common::setIfExists(
+                self::PAGING, $_COOKIE[self::PAGING], ICookies::EMPTY_VALUE
+            );
             return $result;
         }
 
         public static function getUserName():string
         {
-            $result = ICookies::EMPTY_VALUE;
+            $result = Common::setIfExists(
+                self::USER_NAME, $_COOKIE[self::USER_NAME], ICookies::EMPTY_VALUE
+            );
             return $result;
         }
 
         public function setKey():bool
         {
+            $result = true;
+            setcookie(self::KEY,$this->key,self::COOKIES_TIME);
+            return $result;
         }
 
         public function setCompanyFilter():bool
         {
+            $result = true;
+            setcookie(self::COMPANY_FILTER,$this->companyFilter,self::COOKIES_TIME);
+            return $result;
         }
 
         public function setMode():bool
         {
+            $result = true;
+            setcookie(self::MODE,$this->mode,self::COOKIES_TIME);
+            return $result;
         }
 
         public function setPaging():bool
         {
+            $result = true;
+            setcookie(self::PAGING,$this->paging,self::COOKIES_TIME);
+            return $result;
         }
 
         public function setUserName():bool
         {
+            $result = true;
+            setcookie(self::USER_NAME,$this->userName,self::COOKIES_TIME);
+            return $result;
         }
     }
 }

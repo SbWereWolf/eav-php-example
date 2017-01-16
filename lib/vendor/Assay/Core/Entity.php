@@ -6,6 +6,9 @@
  * Time: 18:00
  */
 namespace Assay\Core {
+
+    use Assay\DataAccess\SqlReader;
+
     /**
      * реализация интерфейса для работы с именнуемыми сущностями
      */
@@ -28,6 +31,26 @@ namespace Assay\Core {
 
         public function hideEntity():bool
         {
+            $result = true;
+            $sqlReader = new SqlReader();
+            $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
+            $id[SqlReader::QUERY_VALUE] = $this->id;
+            $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $ishidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
+            $ishidden[SqlReader::QUERY_VALUE] = $this->isHidden;
+            $ishidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $arguments[SqlReader::QUERY_TEXT] = "
+                UPDATE 
+                    ".self::TABLE_NAME."
+                SET 
+                    ".self::IS_HIDDEN."=".$ishidden[SqlReader::QUERY_PLACEHOLDER]."
+                WHERE 
+                    ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
+            ";
+            $arguments[SqlReader::QUERY_PARAMETER] = [$id,$ishidden];
+            $result_sql = $sqlReader ->performQuery($arguments);
+            $result = ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR)?true:$result;
+            return $result;
         }
     }
 }

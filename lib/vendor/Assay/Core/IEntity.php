@@ -18,7 +18,7 @@ namespace Assay\Core {
         /** @var string колонка дата добавления */
         const INSERT_DATE = 'insert_date';
         /** @var string значение по умолчанию для признака "является скрытым" */
-        const DEFAULT_IS_HIDDEN = false;
+        const DEFAULT_IS_HIDDEN = '0';
 
         /** Добавить запись сущности в БД
          * @return string идентификатор добавленой записи

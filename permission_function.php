@@ -72,7 +72,7 @@ function logOn(string $login, string $password):array
 {
     $user = new Privilege\User();
     $user->login = $login;
-    $storedUser = $user->getStored();
+    $storedUser = $user->loadByLogin();
 
     $user->setByNamedValue($storedUser);
     $authenticationSuccess = $user->authentication($password);
@@ -174,7 +174,7 @@ function authorizationProcess(Assay\Permission\Privilege\Session $session, strin
 
 $session = getRequestSession();
 
-$logonResult = logOn('', '');
+$logonResult = logOn('sancho', 'qwerty');
 
 $authenticationSuccess = Assay\Core\Common::setIfExists(0, $logonResult, false);
 if ($authenticationSuccess) {
@@ -215,9 +215,9 @@ if ($result[Assay\DataAccess\SqlReader::ERROR_INFO][0] == '00000') {
     print $result[Assay\DataAccess\SqlReader::RECORDS][0]['email'];
 }*/
 
-//var_dump(registrationProcess('sancho1','qwerty','qwerty','mail1@sancho.pw',''));
-//var_dump(testGrantRole(33,1));
-//var_dump(testRevokeRole(33,1));
+//var_dump(registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw',''));
+//var_dump(testGrantRole(2,2));
+//var_dump(testRevokeRole(2,2));
 
 //var_dump(passwordChangeProcess('1','2','2',''));
 //passwordRecoveryProcess('mail@sancho.pw');

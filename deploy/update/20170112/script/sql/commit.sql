@@ -17,18 +17,3 @@ CREATE USER assay_manager WITH
   PASSWORD 'df1funi';
 
 ALTER DATABASE assay_catalog OWNER TO assay_manager;
-
-DROP TABLE public.account;
-
-CREATE TABLE public.account
-(
-  id SERIAL PRIMARY KEY NOT NULL,
-  login VARCHAR,
-  password_hash VARCHAR,
-  email VARCHAR,
-  activity_date TIMESTAMPTZ,
-  insert_date TIMESTAMPTZ
-);
-
-CREATE UNIQUE INDEX account_login_uindex ON public.account (login);
-CREATE UNIQUE INDEX account_email_uindex ON public.account (email);

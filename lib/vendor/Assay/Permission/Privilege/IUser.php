@@ -70,6 +70,12 @@ namespace Assay\Permission\Privilege {
          */
         public function loadByEmail(string $email):bool;
 
+        /** Загрузить учётную запись по логину
+         * @param string $login
+         * @return bool успех выполнения
+         */
+        public function loadByLogin():array;
+
         /** Отправить ссылку для сброса пароля
          * @return bool успех выполнения
          */

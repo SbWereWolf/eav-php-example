@@ -11,6 +11,8 @@ namespace Assay\Core {
         const EMPTY_OBJECT = null;
         /** @var string константа значение не задано для массивов */
         const EMPTY_ARRAY = array();
+        /** @var string отсутствие ошибок при обращение к БД */
+        const NO_ERROR = '00000';
 
 
         //Данные подключения к БД

@@ -47,7 +47,7 @@ namespace Assay\Permission\Privilege {
             ";
             $arguments[SqlReader::QUERY_PARAMETER] = [$user_id,$role_field];
             $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
                 $result = (count($rows) > 0)?true:false;
             }
@@ -72,7 +72,7 @@ namespace Assay\Permission\Privilege {
             ";
             $arguments[SqlReader::QUERY_PARAMETER] = [$user_id,$role_field];
             $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
                 $result = (count($rows) > 0)?true:false;
             }
@@ -102,7 +102,7 @@ namespace Assay\Permission\Privilege {
             ";
             $arguments[SqlReader::QUERY_PARAMETER] = [$process_field,$object_field,$id_field];
             $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
                 $result = (count($rows) > 0)?true:false;
             }

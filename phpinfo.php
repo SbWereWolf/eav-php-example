@@ -1,8 +1,11 @@
 <?php
-if (!extension_loaded('PDO')) {
-    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-        dl('php_sqlite.dll');
-    } else {
-        dl('sqlite.so');
-    }
-}
+$z = [
+    [2],
+    4,
+    5,
+    6,
+    7,
+    [3,5,6,7]
+];
+
+print count($z);
