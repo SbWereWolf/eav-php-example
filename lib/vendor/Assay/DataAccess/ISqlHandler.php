@@ -10,5 +10,11 @@ namespace Assay\DataAccess;
 
 interface ISqlHandler
 {
-public function performQuery(array $arguments):array;
+    const QUERY_TEXT = 'QUERY_TEXT';
+    const QUERY_PARAMETER = 'QUERY_PARAMETER';
+    const QUERY_PLACEHOLDER = 'QUERY_PLACEHOLDER';
+    const QUERY_VALUE = 'QUERY_VALUE';
+    const QUERY_DATA_TYPE = 'QUERY_DATA_TYPE';
+    
+    public function performQuery(array $arguments):array;
 }
