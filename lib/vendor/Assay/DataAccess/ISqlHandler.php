@@ -15,6 +15,9 @@ interface ISqlHandler
     const QUERY_PLACEHOLDER = 'QUERY_PLACEHOLDER';
     const QUERY_VALUE = 'QUERY_VALUE';
     const QUERY_DATA_TYPE = 'QUERY_DATA_TYPE';
+
+    const EXEC_WITH_SUCCESS = '00000';
+    const EXEC_ERROR_CODE_INDEX = 0;
     
     public function performQuery(array $arguments):array;
 }

@@ -13,11 +13,13 @@ namespace Assay\InformationsCatalog\StructureInformation {
      */
     interface IStructure
     {
+        /** @var string имя таблицы */
+        const TABLE_NAME = 'structure';
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'structure_id';
 
         /** @var string родительский элемент */
-        const PARENT = 'parent';
+        const PARENT = self::EXTERNAL_ID;
 
         /** Добавить дочерний элемент
          * @return string идентификатор добавленого элемента

@@ -20,5 +20,15 @@ namespace Assay\Core {
          * @return array массив свойств экземпляра
          */
         public function toEntity():array;
+        /** Прочитать данные экземпляра из БД
+         * @return bool колонки
+         */
+        public function getStored():bool;
+
+
+        /** Установить свойства экземпляра в соответствии с массивом
+         * @param array $namedValue массив значений
+         */
+        public function setByNamedValue(array $namedValue);
     }
 }

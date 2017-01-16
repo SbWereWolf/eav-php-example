@@ -2,6 +2,8 @@
 
 use Assay\DataAccess\SqlHandler;
 use Assay\DataAccess\DbCredentials;
+use Assay\InformationsCatalog\StructureInformation\IStructure;
+use Assay\InformationsCatalog\StructureInformation\Structure;
 
 define('CONFIGURATION_ROOT', realpath(__DIR__ . DIRECTORY_SEPARATOR . 'configuration'));
 define('DB_READ_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_read.php');
@@ -28,8 +30,35 @@ function autoload($className)
 
 spl_autoload_register('autoload');
 
-$credentials = DbCredentials::getDbReader();
-$sqlReader = new SqlHandler($credentials);
+$structure = new Structure();
+
+$structureLinkage[IStructure::TABLE_NAME][IStructure::PARENT] = '7';
+echo "<pre>";
+echo " \n new structure \n";
+var_dump($structure);
+$structure->addReadable($structureLinkage);
+echo " \n structure->addReadable \n";
+var_dump($structure);
+$structure->hideEntity();
+echo " \n structure->hideEntity \n";
+var_dump($structure);
+$otherStructure = new Structure();
+$otherStructure->addReadable($structureLinkage);
+echo " \n otherStructure->addReadable \n";
+var_dump($otherStructure);
+$sameStructure = new Structure();
+$sameStructure->readEntity($otherStructure->id);
+echo " \n sameStructure->readEntity \n";
+var_dump($sameStructure);
+$sameStructure->getStored();
+echo " \n sameStructure->getStored \n";
+var_dump($sameStructure);
+echo "</pre>";
+
+/* === */
+
+
+$sqlReader = new SqlHandler(SqlHandler::DATA_READER);
 
 $oneParameter[SqlHandler::QUERY_PLACEHOLDER] = ':CIFRI';
 $oneParameter[SqlHandler::QUERY_VALUE] = '1351351';
@@ -52,6 +81,6 @@ $arguments[SqlHandler::QUERY_PARAMETER][] = $otherParameter;
 
 $result = $sqlReader->performQuery($arguments);
 echo '<pre>';
-var_dump($arguments);
+/*var_dump($arguments);*/
 var_dump($result);
 echo '</pre>';

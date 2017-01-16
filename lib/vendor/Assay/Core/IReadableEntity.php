@@ -13,25 +13,14 @@ namespace Assay\Core {
     {
         /** Прочитать запись из БД
          * @param string $id идентификатор записи
-         * @return array значения колонок
+         * @return bool значения колонок
          */
-        public function readEntity(string $id):array;
-
-
-        /** Прочитать данные экземпляра из БД
-         * @return array колонки
-         */
-        public function getStored():array;
-
-
-        /** Установить свойства экземпляра в соответствии с массивом
-         * @param array $namedValue массив значений
-         */
-        public function setByNamedValue(array $namedValue);
+        public function readEntity(string $id):bool;
 
         /** Добавить запись в БД на основе экземпляра
+         * @param array $namedValues значения колонок записи
          * @return bool успех выполнения
          */
-        public function addReadable():bool;
+        public function addReadable(array $namedValues):bool;
     }
 }

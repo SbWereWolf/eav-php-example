@@ -6,10 +6,10 @@ namespace Assay\Core {
     interface ICommon
     {
         /** @var string константа значение не задано для значимых типов */
-        const EMPTY_VALUE = '';
-        /** @var string константа значение не задано для ссылочных типов */
+        const EMPTY_VALUE = ' ';
+        /** @var null константа значение не задано для ссылочных типов */
         const EMPTY_OBJECT = null;
-        /** @var string константа значение не задано для массивов */
+        /** @var array константа значение не задано для массивов */
         const EMPTY_ARRAY = array();
 
 
