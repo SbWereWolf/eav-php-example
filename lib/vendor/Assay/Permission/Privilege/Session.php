@@ -109,28 +109,7 @@ namespace Assay\Permission\Privilege {
                 ";
                 $arguments[SqlReader::QUERY_PARAMETER] = [$id,$key,$user_id];
                 $result_sql = $sqlReader ->performQuery($arguments);
-                if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
-                    $rows = $result_sql[SqlReader::RECORDS];
-                    $result = (count($rows) > 0)?$rows[0]:$result;
-                }
-
-                $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
-                // UPDATE DB RECORD;
-                $sth = $dbh->prepare("
-                    UPDATE 
-                        ".self::TABLE_NAME."
-                    SET 
-                        ".self::LOGIN." = :LOGIN, ".self::PASSWORD_HASH." = :PASSWORD_HASH, 
-                        ".self::EMAIL." = :EMAIL,".self::ACTIVITY_DATE." = now()
-                    WHERE 
-                        ".self::ID." = :ID
-                ");
-                $sth->bindValue(':ID', $this->id, \PDO::PARAM_INT);
-                $sth->bindValue(':LOGIN', $this->login, \PDO::PARAM_STR);
-                $sth->bindValue(':EMAIL', $this->email, \PDO::PARAM_STR);
-                $sth->bindValue(':PASSWORD_HASH', $this->passwordHash, \PDO::PARAM_STR);
-                $sth->execute();
-                $result = ($sth->errorCode() == "00000")?true:false;
+                $result = ($result_sql[SqlReader::ERROR_INFO][0] == "00000")?true:false;
             }
 
             return $result;
