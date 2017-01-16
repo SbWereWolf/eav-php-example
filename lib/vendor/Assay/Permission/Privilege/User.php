@@ -35,6 +35,8 @@ namespace Assay\Permission\Privilege {
         public function addEntity():string
         {
             $result = 0;
+<<<<<<<<< Temporary merge branch 1
+=========
             $sqlReader = new SqlReader();
             $arguments[SqlReader::QUERY_TEXT] = "
                 INSERT INTO 
@@ -48,12 +50,33 @@ namespace Assay\Permission\Privilege {
                     )
                 RETURNING ".self::ID.";
             ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [];
+            $arguments[SqlReader::QUERY_PARAMETER] = [;
             $result_sql = $sqlReader ->performQuery($arguments);
             if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
                 $rows = $result_sql[SqlReader::RECORDS];
                 $result = (count($rows) > 0)?$rows[0][$this::ID]:$result;
             }
+
+>>>>>>>>> Temporary merge branch 2
+            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
+            $sth = $dbh->prepare("
+                INSERT INTO 
+                    ".self::TABLE_NAME." 
+                    (
+                      ".self::INSERT_DATE."
+                    ) 
+                VALUES 
+                    (
+                        now()
+                    )
+                RETURNING ".self::ID.";
+            ");
+            $sth->execute();
+            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (count($rows) > 0):
+                $result = $rows[0][$this::ID];
+            endif;
 
             return $result;
         }
@@ -87,24 +110,22 @@ namespace Assay\Permission\Privilege {
         {
             $result = array();
 
-            $sqlReader = new SqlReader();
-            $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
-            $id[SqlReader::QUERY_VALUE] = $this->id;
-            $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-            $arguments[SqlReader::QUERY_TEXT] = "
+            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
+            $sth = $dbh->prepare("
                 SELECT 
                    *
                 FROM 
                   ".self::TABLE_NAME."
                 WHERE 
-                  ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
-            ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [$id];
-            $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
-                $rows = $result_sql[SqlReader::RECORDS];
-                $result = (count($rows) > 0)?$rows[0]:$result;
-            }
+                  ".self::ID."=:ID
+            ");
+            $sth->bindValue(':ID', $this->id, \PDO::PARAM_STR);
+            $sth->execute();
+            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (count($rows) > 0 and $sth->errorCode() == "00000"):
+                $result = $rows[0];
+            endif;
 
             return $result;
         }
@@ -130,32 +151,23 @@ namespace Assay\Permission\Privilege {
                 }
             }
             if ($needUpdate) {
-
-                $sqlReader = new SqlReader();
-                $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
-                $id[SqlReader::QUERY_VALUE] = $this->id;
-                $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-                $login[SqlReader::QUERY_PLACEHOLDER] = ':LOGIN';
-                $login[SqlReader::QUERY_VALUE] = $this->login;
-                $login[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-                $pass_hash[SqlReader::QUERY_PLACEHOLDER] = ':PASSWORD_HASH';
-                $pass_hash[SqlReader::QUERY_VALUE] = $this->passwordHash;
-                $pass_hash[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-                $email[SqlReader::QUERY_PLACEHOLDER] = ':EMAIL';
-                $email[SqlReader::QUERY_VALUE] = $this->email;
-                $email[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-                $arguments[SqlReader::QUERY_TEXT] = "
+                $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
+                // UPDATE DB RECORD;
+                $sth = $dbh->prepare("
                     UPDATE 
                         ".self::TABLE_NAME."
                     SET 
-                        ".self::LOGIN." = ".$login[SqlReader::QUERY_PLACEHOLDER].", ".self::PASSWORD_HASH." = ".$pass_hash[SqlReader::QUERY_PLACEHOLDER].", 
-                        ".self::EMAIL." = ".$email[SqlReader::QUERY_PLACEHOLDER].",".self::ACTIVITY_DATE." = now()
+                        ".self::LOGIN." = :LOGIN, ".self::PASSWORD_HASH." = :PASSWORD_HASH, 
+                        ".self::EMAIL." = :EMAIL,".self::ACTIVITY_DATE." = now()
                     WHERE 
-                        ".self::ID." = ".$id[SqlReader::QUERY_PLACEHOLDER]."
-                ";
-                $arguments[SqlReader::QUERY_PARAMETER] = [$id,$login,$pass_hash,$email];
-                $result_sql = $sqlReader ->performQuery($arguments);
-                $result = ($result_sql[SqlReader::ERROR_INFO][0] == '00000')?true:false;
+                        ".self::ID." = :ID
+                ");
+                $sth->bindValue(':ID', $this->id, \PDO::PARAM_INT);
+                $sth->bindValue(':LOGIN', $this->login, \PDO::PARAM_STR);
+                $sth->bindValue(':EMAIL', $this->email, \PDO::PARAM_STR);
+                $sth->bindValue(':PASSWORD_HASH', $this->passwordHash, \PDO::PARAM_STR);
+                $sth->execute();
+                $result = ($sth->errorCode() == "00000")?true:false;
             }
 
             return $result;
@@ -169,30 +181,25 @@ namespace Assay\Permission\Privilege {
         {
             $result = array();
             $this->id = $id;
+            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
+            $sth = $dbh->prepare("
+                    SELECT 
+                        *
+                    FROM 
+                        ".self::TABLE_NAME."
+                    WHERE 
+                        ".self::ID."=:ID
+                ");
+            $sth->bindValue(':ID', $this->id, \PDO::PARAM_INT);
+            $sth->execute();
+            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
 
-            $sqlReader = new SqlReader();
-            $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
-            $id[SqlReader::QUERY_VALUE] = $this->id;
-            $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-            $arguments[SqlReader::QUERY_TEXT] = "
-                SELECT 
-                   *
-                FROM 
-                  ".self::TABLE_NAME."
-                WHERE 
-                  ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
-            ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [$id];
-            $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
-                $rows = $result_sql[SqlReader::RECORDS];
-                if (count($rows) > 0) {
-                    $row = $rows[0];
-                    $this->login = $row[self::LOGIN];
-                    $this->passwordHash = $row[self::PASSWORD_HASH];
-                    $this->activityDate = $row[self::ACTIVITY_DATE];
-                    $this->email = $row[self::EMAIL];
-                }
+            if (count($rows) && $sth->errorCode() == "00000") {
+                $row = $rows[0];
+                $this->login = $row[self::LOGIN];
+                $this->passwordHash = $row[self::PASSWORD_HASH];
+                $this->activityDate = $row[self::ACTIVITY_DATE];
+                $this->email = $row[self::EMAIL];
             }
 
             $result = $this->toEntity();
@@ -265,23 +272,20 @@ namespace Assay\Permission\Privilege {
         public function loadByEmail(string $email):bool
         {
             $result = false;
-            $sqlReader = new SqlReader();
-            $email_field[SqlReader::QUERY_PLACEHOLDER] = ':EMAIL';
-            $email_field[SqlReader::QUERY_VALUE] = $email;
-            $email_field[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-            $arguments[SqlReader::QUERY_TEXT] = "
-                SELECT 
-                   *
-                FROM 
-                  ".self::TABLE_NAME."
-                WHERE 
-                  ".self::EMAIL."=".$email_field[SqlReader::QUERY_PLACEHOLDER]."
-            ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [$email_field];
-            $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
-                $rows = $result_sql[SqlReader::RECORDS];
-                $result = (count($rows) > 0)?true:false;
+            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
+            $sth = $dbh->prepare("
+                    SELECT 
+                        *
+                    FROM 
+                        ".self::TABLE_NAME."
+                    WHERE 
+                        ".self::EMAIL."=:EMAIL
+                ");
+            $sth->bindValue(':EMAIL', $email, \PDO::PARAM_STR);
+            $sth->execute();
+            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
+            if (count($rows) && $sth->errorCode() == "00000") {
+                $result = true;
             }
             return $result;
         }
