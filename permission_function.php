@@ -197,7 +197,7 @@ function testRevokeRole(string $user_id,string $user_role_id):bool {
     return $result;
 }
 
-$sqlReader = new Assay\DataAccess\SqlReader();
+/*$sqlReader = new Assay\DataAccess\SqlReader();
 
 $login[Assay\DataAccess\SqlReader::QUERY_PLACEHOLDER] = ':LOGIN';
 $login[Assay\DataAccess\SqlReader::QUERY_VALUE] = 'sancho';
@@ -213,9 +213,9 @@ $result = $sqlReader ->performQuery($arguments);
 var_dump($result);
 if ($result[Assay\DataAccess\SqlReader::ERROR_INFO][0] == '00000') {
     print $result[Assay\DataAccess\SqlReader::RECORDS][0]['email'];
-}
+}*/
 
-//var_dump(registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw',''));
+//var_dump(registrationProcess('sancho1','qwerty','qwerty','mail1@sancho.pw',''));
 //var_dump(testGrantRole(33,1));
 //var_dump(testRevokeRole(33,1));
 

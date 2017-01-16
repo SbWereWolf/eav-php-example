@@ -9,6 +9,7 @@ namespace Assay\Permission\Privilege {
 
     use Assay\Core\Common;
     use Assay\Core\MutableEntity;
+    use Assay\DataAccess\SqlReader;
 
     class Session extends MutableEntity implements ISession
     {
@@ -42,13 +43,11 @@ namespace Assay\Permission\Privilege {
          * Используется для инициализации элементом массива, если элемент не задан, то выдаётся значение по умолчанию
          * @return string идентификатор добавленной записи БД
          */
-        public function addEntity(
-
-        ):string
+        public function addEntity():string
         {
             $result = 0;
-            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
-            $sth = $dbh->prepare("
+            $sqlReader = new SqlReader();
+            $arguments[SqlReader::QUERY_TEXT] = "
                 INSERT INTO 
                     ".self::TABLE_NAME." 
                     (
@@ -59,13 +58,13 @@ namespace Assay\Permission\Privilege {
                         now()
                     )
                 RETURNING ".self::ID.";
-            ");
-            $sth->execute();
-            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
-
-            if (count($rows) > 0):
-                $result = $rows[0][$this::ID];
-            endif;
+            ";
+            $arguments[SqlReader::QUERY_PARAMETER] = [];
+            $result_sql = $sqlReader ->performQuery($arguments);
+            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+                $rows = $result_sql[SqlReader::RECORDS];
+                $result = (count($rows) > 0)?$rows[0][$this::ID]:$result;
+            }
 
             return $result;
         }
@@ -90,6 +89,31 @@ namespace Assay\Permission\Privilege {
                 }
             }
             if ($needUpdate) {
+                $sqlReader = new SqlReader();
+                $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
+                $id[SqlReader::QUERY_VALUE] = $this->id;
+                $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $key[SqlReader::QUERY_PLACEHOLDER] = ':KEY';
+                $key[SqlReader::QUERY_VALUE] = $this->key;
+                $key[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $user_id[SqlReader::QUERY_PLACEHOLDER] = ':USER_ID';
+                $user_id[SqlReader::QUERY_VALUE] = $this->userId;
+                $user_id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $arguments[SqlReader::QUERY_TEXT] = "
+                    UPDATE 
+                        ".self::TABLE_NAME." 
+                    SET 
+                        ".self::KEY."=".$key[SqlReader::QUERY_PLACEHOLDER].", ".self::USER_ID."=".$user_id[SqlReader::QUERY_PLACEHOLDER]."
+                    WHERE 
+                        ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
+                ";
+                $arguments[SqlReader::QUERY_PARAMETER] = [$id,$key,$user_id];
+                $result_sql = $sqlReader ->performQuery($arguments);
+                if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+                    $rows = $result_sql[SqlReader::RECORDS];
+                    $result = (count($rows) > 0)?$rows[0]:$result;
+                }
+
                 $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
                 // UPDATE DB RECORD;
                 $sth = $dbh->prepare("
