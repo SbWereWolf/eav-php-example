@@ -10,11 +10,14 @@ namespace Assay\Permission\Privilege {
     use Assay\Core\Common;
     use Assay\Core\IEntity;
     use Assay\Core\MutableEntity;
+    use Assay\DataAccess\SqlReader;
 
     class User extends MutableEntity implements IUser, IAuthenticateUser
     {
         /** @var string имя таблицы */
-        const TABLE_NAME = 'authentic_user';
+        const TABLE_NAME = 'account';
+        /** @var string колонка дата добавления */
+        const INSERT_DATE = 'insert_date';
 
         /** @var string имя учётной записи */
         public $login;
@@ -24,6 +27,36 @@ namespace Assay\Permission\Privilege {
         public $activityDate;
         /** @var string электронная почта */
         public $email;
+
+        /**
+         * Используется для инициализации элементом массива, если элемент не задан, то выдаётся значение по умолчанию
+         * @return string идентификатор добавленной записи БД
+         */
+        public function addEntity():string
+        {
+            $result = 0;
+            $sqlReader = new SqlReader();
+            $arguments[SqlReader::QUERY_TEXT] = "
+                INSERT INTO 
+                    ".self::TABLE_NAME." 
+                    (
+                      ".self::INSERT_DATE."
+                    ) 
+                VALUES 
+                    (
+                        now()
+                    )
+                RETURNING ".self::ID.";
+            ";
+            $arguments[SqlReader::QUERY_PARAMETER] = [];
+            $result_sql = $sqlReader ->performQuery($arguments);
+            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+                $rows = $result_sql[SqlReader::RECORDS];
+                $result = (count($rows) > 0)?$rows[0][$this::ID]:$result;
+            }
+
+            return $result;
+        }
 
         public function registration(string $login, string $password, string $passwordConfirmation, string $email):bool
         {
@@ -50,11 +83,38 @@ namespace Assay\Permission\Privilege {
             return $result;
         }
 
+        public function getStored():array
+        {
+            $result = array();
+
+            $sqlReader = new SqlReader();
+            $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
+            $id[SqlReader::QUERY_VALUE] = $this->id;
+            $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $arguments[SqlReader::QUERY_TEXT] = "
+                SELECT 
+                   *
+                FROM 
+                  ".self::TABLE_NAME."
+                WHERE 
+                  ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
+            ";
+            $arguments[SqlReader::QUERY_PARAMETER] = [$id];
+            $result_sql = $sqlReader ->performQuery($arguments);
+            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+                $rows = $result_sql[SqlReader::RECORDS];
+                $result = (count($rows) > 0)?$rows[0]:$result;
+            }
+
+            return $result;
+        }
+
         /** Обновляет (изменяет) запись в БД
          * @return bool успешность изменения
          */
         public function mutateEntity():bool
         {
+            $result = false;
             $storedData = $this->getStored();
             $entity = $this->toEntity();
 
@@ -70,12 +130,73 @@ namespace Assay\Permission\Privilege {
                 }
             }
             if ($needUpdate) {
-                // UPDATE DB RECORD;
+
+                $sqlReader = new SqlReader();
+                $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
+                $id[SqlReader::QUERY_VALUE] = $this->id;
+                $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $login[SqlReader::QUERY_PLACEHOLDER] = ':LOGIN';
+                $login[SqlReader::QUERY_VALUE] = $this->login;
+                $login[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $pass_hash[SqlReader::QUERY_PLACEHOLDER] = ':PASSWORD_HASH';
+                $pass_hash[SqlReader::QUERY_VALUE] = $this->passwordHash;
+                $pass_hash[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $email[SqlReader::QUERY_PLACEHOLDER] = ':EMAIL';
+                $email[SqlReader::QUERY_VALUE] = $this->email;
+                $email[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $arguments[SqlReader::QUERY_TEXT] = "
+                    UPDATE 
+                        ".self::TABLE_NAME."
+                    SET 
+                        ".self::LOGIN." = ".$login[SqlReader::QUERY_PLACEHOLDER].", ".self::PASSWORD_HASH." = ".$pass_hash[SqlReader::QUERY_PLACEHOLDER].", 
+                        ".self::EMAIL." = ".$email[SqlReader::QUERY_PLACEHOLDER].",".self::ACTIVITY_DATE." = now()
+                    WHERE 
+                        ".self::ID." = ".$id[SqlReader::QUERY_PLACEHOLDER]."
+                ";
+                $arguments[SqlReader::QUERY_PARAMETER] = [$id,$login,$pass_hash,$email];
+                $result_sql = $sqlReader ->performQuery($arguments);
+                $result = ($result_sql[SqlReader::ERROR_INFO][0] == '00000')?true:false;
             }
 
-            $result = true;
             return $result;
 
+        }
+        /** Прочитать запись из БД
+         * @param string $id идентификатор записи
+         * @return array значения колонок
+         */
+        public function readEntity(string $id):array
+        {
+            $result = array();
+            $this->id = $id;
+
+            $sqlReader = new SqlReader();
+            $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
+            $id[SqlReader::QUERY_VALUE] = $this->id;
+            $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $arguments[SqlReader::QUERY_TEXT] = "
+                SELECT 
+                   *
+                FROM 
+                  ".self::TABLE_NAME."
+                WHERE 
+                  ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
+            ";
+            $arguments[SqlReader::QUERY_PARAMETER] = [$id];
+            $result_sql = $sqlReader ->performQuery($arguments);
+            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+                $rows = $result_sql[SqlReader::RECORDS];
+                if (count($rows) > 0) {
+                    $row = $rows[0];
+                    $this->login = $row[self::LOGIN];
+                    $this->passwordHash = $row[self::PASSWORD_HASH];
+                    $this->activityDate = $row[self::ACTIVITY_DATE];
+                    $this->email = $row[self::EMAIL];
+                }
+            }
+
+            $result = $this->toEntity();
+            return $result;
         }
 
         /** Формирует массив из свойств экземпляра
@@ -143,7 +264,25 @@ namespace Assay\Permission\Privilege {
 
         public function loadByEmail(string $email):bool
         {
-            $result = true;
+            $result = false;
+            $sqlReader = new SqlReader();
+            $email_field[SqlReader::QUERY_PLACEHOLDER] = ':EMAIL';
+            $email_field[SqlReader::QUERY_VALUE] = $email;
+            $email_field[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $arguments[SqlReader::QUERY_TEXT] = "
+                SELECT 
+                   *
+                FROM 
+                  ".self::TABLE_NAME."
+                WHERE 
+                  ".self::EMAIL."=".$email_field[SqlReader::QUERY_PLACEHOLDER]."
+            ";
+            $arguments[SqlReader::QUERY_PARAMETER] = [$email_field];
+            $result_sql = $sqlReader ->performQuery($arguments);
+            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+                $rows = $result_sql[SqlReader::RECORDS];
+                $result = (count($rows) > 0)?true:false;
+            }
             return $result;
         }
 
