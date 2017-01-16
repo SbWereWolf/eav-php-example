@@ -10,6 +10,7 @@ namespace Assay\Permission\Privilege {
     use Assay\Core\Common;
     use Assay\Core\IEntity;
     use Assay\Core\MutableEntity;
+    use Assay\DataAccess\SqlReader;
 
     class User extends MutableEntity implements IUser, IAuthenticateUser
     {
@@ -34,6 +35,26 @@ namespace Assay\Permission\Privilege {
         public function addEntity():string
         {
             $result = 0;
+            $sqlReader = new SqlReader();
+            $arguments[SqlReader::QUERY_TEXT] = "
+                INSERT INTO 
+                    ".self::TABLE_NAME." 
+                    (
+                      ".self::INSERT_DATE."
+                    ) 
+                VALUES 
+                    (
+                        now()
+                    )
+                RETURNING ".self::ID.";
+            ";
+            $arguments[SqlReader::QUERY_PARAMETER] = [;
+            $result_sql = $sqlReader ->performQuery($arguments);
+            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
+                $rows = $result_sql[SqlReader::RECORDS];
+                $result = (count($rows) > 0)?$rows[0][$this::ID]:$result;
+            }
+
             $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
             $sth = $dbh->prepare("
                 INSERT INTO 
