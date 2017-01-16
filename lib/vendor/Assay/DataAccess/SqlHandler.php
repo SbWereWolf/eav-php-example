@@ -15,12 +15,6 @@ use Assay\Core\Configuration;
 
 class SqlHandler implements ISqlHandler
 {
-    const QUERY_TEXT = 'QUERY_TEXT';
-    const QUERY_PARAMETER = 'QUERY_PARAMETER';
-    const QUERY_PLACEHOLDER = 'QUERY_PLACEHOLDER';
-    const QUERY_VALUE = 'QUERY_VALUE';
-    const QUERY_DATA_TYPE = 'QUERY_DATA_TYPE';
-
     const RECORDS = 'fetchAll';
     const ERROR_INFO = 'errorInfo';
 

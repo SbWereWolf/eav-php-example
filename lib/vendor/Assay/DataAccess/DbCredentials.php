@@ -46,12 +46,12 @@ class DbCredentials implements IDbCredentials
      */
     private static function parseDbCredentials(Configuration $dbConfiguration):array
     {
-        $dbCredentials = $dbConfiguration->getCredentials();
+        $dbCredentials = $dbConfiguration->getDbCredentials();
         
-        $dbType = $dbCredentials[Configuration::DB_PREFIX];
+        $pdoDriver = $dbCredentials[Configuration::PDO_DBMS];
         $dbName = $dbCredentials[Configuration::DB_NAME];
         $dbHost = $dbCredentials[Configuration::DB_HOST];
-        $dbAddress = $dbType
+        $dbAddress = $pdoDriver
             . ':'
             . self::DB_NAME_PARAMETER
             . '='
