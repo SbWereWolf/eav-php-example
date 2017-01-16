@@ -6,6 +6,7 @@
 function autoload($className)
 {
     $path = __DIR__ . "/lib/vendor/";
+    $path = str_replace('\/',DIRECTORY_SEPARATOR,$path);
     $className = ltrim($className, '\\');
     $fileName  = '';
     if ($lastNsPos = strrpos($className, '\\')) {
