@@ -21,9 +21,12 @@ function autoload($className)
 
 spl_autoload_register('autoload');
 
-include('index.php');
+define('CONFIGURATION_ROOT', realpath(__DIR__.DIRECTORY_SEPARATOR.'configuration'));
+define('DB_READ_CONFIGURATION', CONFIGURATION_ROOT.DIRECTORY_SEPARATOR.'db_read.ini');
 
-include('index.php');
+//include('index.php');
+
+//include('index.php');
 use Assay\Permission\Privilege;
 use Assay\Core;
 
@@ -191,6 +194,24 @@ function testRevokeRole(string $user_id,string $user_role_id):bool {
     $userRole = new Privilege\UserRole($user_id);
     $result = $userRole->revokeRole($user_role_id);
     return $result;
+}
+
+$sqlReader = new Assay\DataAccess\SqlReader();
+
+$login[Assay\DataAccess\SqlReader::QUERY_PLACEHOLDER] = ':LOGIN';
+$login[Assay\DataAccess\SqlReader::QUERY_VALUE] = 'sancho';
+$login[Assay\DataAccess\SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+
+$email[Assay\DataAccess\SqlReader::QUERY_PLACEHOLDER] = ':EMAIL';
+$email[Assay\DataAccess\SqlReader::QUERY_VALUE] = 'mail@sancho.pw';
+$email[Assay\DataAccess\SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+
+$arguments[Assay\DataAccess\SqlReader::QUERY_TEXT] = "SELECT * FROM account WHERE login=".$login[Assay\DataAccess\SqlReader::QUERY_PLACEHOLDER]." AND email=".$email[Assay\DataAccess\SqlReader::QUERY_PLACEHOLDER];
+$arguments[Assay\DataAccess\SqlReader::QUERY_PARAMETER] = [$login,$email];
+$result = $sqlReader ->performQuery($arguments);
+var_dump($result);
+if ($result[Assay\DataAccess\SqlReader::ERROR_INFO][0] == '00000') {
+    print $result[Assay\DataAccess\SqlReader::RECORDS][0]['email'];
 }
 
 //var_dump(registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw',''));
