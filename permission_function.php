@@ -5,8 +5,7 @@
  */
 function autoload($className)
 {
-    $path = __DIR__ . "/lib/vendor/";
-    $path = str_replace('\/',DIRECTORY_SEPARATOR,$path);
+    $path = __DIR__ . "\\lib\\vendor\\";
     $className = ltrim($className, '\\');
     $fileName  = '';
     if ($lastNsPos = strrpos($className, '\\')) {
@@ -22,12 +21,9 @@ function autoload($className)
 
 spl_autoload_register('autoload');
 
-define('CONFIGURATION_ROOT', realpath(__DIR__.DIRECTORY_SEPARATOR.'configuration'));
-define('DB_READ_CONFIGURATION', CONFIGURATION_ROOT.DIRECTORY_SEPARATOR.'db_read.ini');
+include('index.php');
 
-//include('index.php');
-
-//include('index.php');
+include('index.php');
 use Assay\Permission\Privilege;
 use Assay\Core;
 
@@ -100,7 +96,6 @@ function registrationProcess(string $login, string $password, string $passwordCo
     $session = getRequestSession();
 
     $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::USER_REGISTRATION,$object);
-    $isAllow = true;
 
     $registrationResult = false;
     if($isAllow){
@@ -123,18 +118,16 @@ function passwordChangeProcess(string $password, string $newPassword, string $pa
     $session = getRequestSession();
 
     $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::CHANGE_PASSWORD, $object);
-    $isAllow = true;
+
     $isCorrectPassword= false;
     if($isAllow){
-        $isCorrectPassword = ($newPassword == $passwordConfirmation && $newPassword != $password);
+        $isCorrectPassword = $newPassword == $passwordConfirmation;
     }
 
     $user = new Privilege\User();
     $authenticationSuccess = false;
     if($isCorrectPassword){
         $user->id = $session->userId;
-        $user->id = 2;
-
         $entityUser = $user->readEntity($user->id);
 
         $user->setByNamedValue($entityUser );
@@ -142,7 +135,7 @@ function passwordChangeProcess(string $password, string $newPassword, string $pa
     }
 
     if($authenticationSuccess){
-        $result = $user->changePassword($newPassword);
+        $user->changePassword($newPassword);
     }
 
     return $result;
@@ -183,42 +176,7 @@ if ($authenticationSuccess) {
     logOff($session);
 }
 
-function testGrantRole(string $user_id,string $user_role_id):bool {
-    $result = false;
-    $userRole = new Privilege\UserRole($user_id);
-    $result = $userRole->grantRole($user_role_id);
-    return $result;
-}
-
-function testRevokeRole(string $user_id,string $user_role_id):bool {
-    $result = false;
-    $userRole = new Privilege\UserRole($user_id);
-    $result = $userRole->revokeRole($user_role_id);
-    return $result;
-}
-
-$sqlReader = new Assay\DataAccess\SqlReader();
-
-$login[Assay\DataAccess\SqlReader::QUERY_PLACEHOLDER] = ':LOGIN';
-$login[Assay\DataAccess\SqlReader::QUERY_VALUE] = 'sancho';
-$login[Assay\DataAccess\SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-
-$email[Assay\DataAccess\SqlReader::QUERY_PLACEHOLDER] = ':EMAIL';
-$email[Assay\DataAccess\SqlReader::QUERY_VALUE] = 'mail@sancho.pw';
-$email[Assay\DataAccess\SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-
-$arguments[Assay\DataAccess\SqlReader::QUERY_TEXT] = "SELECT * FROM account WHERE login=".$login[Assay\DataAccess\SqlReader::QUERY_PLACEHOLDER]." AND email=".$email[Assay\DataAccess\SqlReader::QUERY_PLACEHOLDER];
-$arguments[Assay\DataAccess\SqlReader::QUERY_PARAMETER] = [$login,$email];
-$result = $sqlReader ->performQuery($arguments);
-var_dump($result);
-if ($result[Assay\DataAccess\SqlReader::ERROR_INFO][0] == '00000') {
-    print $result[Assay\DataAccess\SqlReader::RECORDS][0]['email'];
-}
-
-//var_dump(registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw',''));
-//var_dump(testGrantRole(33,1));
-//var_dump(testRevokeRole(33,1));
-
-//var_dump(passwordChangeProcess('1','2','2',''));
-//passwordRecoveryProcess('mail@sancho.pw');
-//$isAllow = authorizationProcess($session,'','');
+registrationProcess('','','','','');
+passwordChangeProcess('','','','');
+passwordRecoveryProcess('');
+$isAllow = authorizationProcess($session,'','');

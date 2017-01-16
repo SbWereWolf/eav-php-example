@@ -10,14 +10,11 @@ namespace Assay\Permission\Privilege {
     use Assay\Core\Common;
     use Assay\Core\IEntity;
     use Assay\Core\MutableEntity;
-    use Assay\DataAccess\SqlReader;
 
     class User extends MutableEntity implements IUser, IAuthenticateUser
     {
         /** @var string имя таблицы */
-        const TABLE_NAME = 'account';
-        /** @var string колонка дата добавления */
-        const INSERT_DATE = 'insert_date';
+        const TABLE_NAME = 'authentic_user';
 
         /** @var string имя учётной записи */
         public $login;
@@ -27,56 +24,6 @@ namespace Assay\Permission\Privilege {
         public $activityDate;
         /** @var string электронная почта */
         public $email;
-
-        /**
-         * Используется для инициализации элементом массива, если элемент не задан, то выдаётся значение по умолчанию
-         * @return string идентификатор добавленной записи БД
-         */
-        public function addEntity():string
-        {
-            $result = 0;
-            $sqlReader = new SqlReader();
-            $arguments[SqlReader::QUERY_TEXT] = "
-                INSERT INTO 
-                    ".self::TABLE_NAME." 
-                    (
-                      ".self::INSERT_DATE."
-                    ) 
-                VALUES 
-                    (
-                        now()
-                    )
-                RETURNING ".self::ID.";
-            ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [;
-            $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == '00000') {
-                $rows = $result_sql[SqlReader::RECORDS];
-                $result = (count($rows) > 0)?$rows[0][$this::ID]:$result;
-            }
-
-            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
-            $sth = $dbh->prepare("
-                INSERT INTO 
-                    ".self::TABLE_NAME." 
-                    (
-                      ".self::INSERT_DATE."
-                    ) 
-                VALUES 
-                    (
-                        now()
-                    )
-                RETURNING ".self::ID.";
-            ");
-            $sth->execute();
-            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
-
-            if (count($rows) > 0):
-                $result = $rows[0][$this::ID];
-            endif;
-
-            return $result;
-        }
 
         public function registration(string $login, string $password, string $passwordConfirmation, string $email):bool
         {
@@ -103,36 +50,11 @@ namespace Assay\Permission\Privilege {
             return $result;
         }
 
-        public function getStored():array
-        {
-            $result = array();
-
-            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
-            $sth = $dbh->prepare("
-                SELECT 
-                   *
-                FROM 
-                  ".self::TABLE_NAME."
-                WHERE 
-                  ".self::ID."=:ID
-            ");
-            $sth->bindValue(':ID', $this->id, \PDO::PARAM_STR);
-            $sth->execute();
-            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
-
-            if (count($rows) > 0 and $sth->errorCode() == "00000"):
-                $result = $rows[0];
-            endif;
-
-            return $result;
-        }
-
         /** Обновляет (изменяет) запись в БД
          * @return bool успешность изменения
          */
         public function mutateEntity():bool
         {
-            $result = false;
             $storedData = $this->getStored();
             $entity = $this->toEntity();
 
@@ -148,59 +70,12 @@ namespace Assay\Permission\Privilege {
                 }
             }
             if ($needUpdate) {
-                $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
                 // UPDATE DB RECORD;
-                $sth = $dbh->prepare("
-                    UPDATE 
-                        ".self::TABLE_NAME."
-                    SET 
-                        ".self::LOGIN." = :LOGIN, ".self::PASSWORD_HASH." = :PASSWORD_HASH, 
-                        ".self::EMAIL." = :EMAIL,".self::ACTIVITY_DATE." = now()
-                    WHERE 
-                        ".self::ID." = :ID
-                ");
-                $sth->bindValue(':ID', $this->id, \PDO::PARAM_INT);
-                $sth->bindValue(':LOGIN', $this->login, \PDO::PARAM_STR);
-                $sth->bindValue(':EMAIL', $this->email, \PDO::PARAM_STR);
-                $sth->bindValue(':PASSWORD_HASH', $this->passwordHash, \PDO::PARAM_STR);
-                $sth->execute();
-                $result = ($sth->errorCode() == "00000")?true:false;
             }
 
+            $result = true;
             return $result;
 
-        }
-        /** Прочитать запись из БД
-         * @param string $id идентификатор записи
-         * @return array значения колонок
-         */
-        public function readEntity(string $id):array
-        {
-            $result = array();
-            $this->id = $id;
-            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
-            $sth = $dbh->prepare("
-                    SELECT 
-                        *
-                    FROM 
-                        ".self::TABLE_NAME."
-                    WHERE 
-                        ".self::ID."=:ID
-                ");
-            $sth->bindValue(':ID', $this->id, \PDO::PARAM_INT);
-            $sth->execute();
-            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
-
-            if (count($rows) && $sth->errorCode() == "00000") {
-                $row = $rows[0];
-                $this->login = $row[self::LOGIN];
-                $this->passwordHash = $row[self::PASSWORD_HASH];
-                $this->activityDate = $row[self::ACTIVITY_DATE];
-                $this->email = $row[self::EMAIL];
-            }
-
-            $result = $this->toEntity();
-            return $result;
         }
 
         /** Формирует массив из свойств экземпляра
@@ -268,22 +143,7 @@ namespace Assay\Permission\Privilege {
 
         public function loadByEmail(string $email):bool
         {
-            $result = false;
-            $dbh = new \PDO("pgsql:dbname=".Common::DB_NAME.";host=".Common::DB_HOST, Common::DB_LOGIN, Common::DB_PASSWORD);
-            $sth = $dbh->prepare("
-                    SELECT 
-                        *
-                    FROM 
-                        ".self::TABLE_NAME."
-                    WHERE 
-                        ".self::EMAIL."=:EMAIL
-                ");
-            $sth->bindValue(':EMAIL', $email, \PDO::PARAM_STR);
-            $sth->execute();
-            $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
-            if (count($rows) && $sth->errorCode() == "00000") {
-                $result = true;
-            }
+            $result = true;
             return $result;
         }
 
