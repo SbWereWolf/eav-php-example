@@ -27,9 +27,10 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public function addChild():string ;
 
         /** Получить имена дочерних элементов
+         * @param string $nameKey имя индекса для имени дочернего элемента структуры
          * @return array имена элементов
          */
-        public function getChildrenNames():array;
+        public function getChildrenNames(string $nameKey = 'CHILD_NAME'):array;
 
         /** Получить получить идентификатор ролительского элемнта
          * @return string идентификатор

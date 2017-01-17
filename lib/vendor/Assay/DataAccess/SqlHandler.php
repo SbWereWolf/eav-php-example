@@ -132,7 +132,7 @@ class SqlHandler implements ISqlHandler
      * @param $response
      * @return array
      */
-    public static function getFirstRecord(array $response)
+    public static function getFirstRecord(array $response):array
     {
         $records = Common::setIfExists(SqlHandler::RECORDS,
             $response,
@@ -146,5 +146,13 @@ class SqlHandler implements ISqlHandler
                 Common::EMPTY_VALUE);
         }
         return $responseValue;
+    }
+    public static function getAllRecords(array $response):array
+    {
+        $records = Common::setIfExists(SqlHandler::RECORDS,
+            $response,
+            array());
+
+        return $records;
     }
 }

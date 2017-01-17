@@ -27,5 +27,25 @@ namespace Assay\Core {
             $value = isset($valueIfIsset) ? $valueIfIsset : $valueIfNotIsset;
             return $value;
         }
+        /** Проверяет что один массив полностью содержит элементы второго
+         * @param $oneArray array первый массив
+         * @param $otherArray array второй массив
+         * @return bool
+         */
+        public static function isOneArrayContainOther(array $oneArray, array $otherArray ):bool
+        {
+            $isContain = true;
+            foreach ($otherArray as $key => $column) {
+                $isExist = array_key_exists($key, $oneArray) && array_key_exists($key, $otherArray);
+                $equal = false;
+                if ($isExist) {
+                    $equal = $column == $oneArray[$key];
+                }
+                if (!$equal) {
+                    $isContain = false;
+                }
+            }
+            return $isContain;
+        }
     }
 }

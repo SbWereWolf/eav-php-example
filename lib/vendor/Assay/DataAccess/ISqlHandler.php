@@ -20,4 +20,6 @@ interface ISqlHandler
     const EXEC_ERROR_CODE_INDEX = 0;
     
     public function performQuery(array $arguments):array;
+    public static function getFirstRecord(array $response):array;
+    public static function getAllRecords(array $response):array;
 }
