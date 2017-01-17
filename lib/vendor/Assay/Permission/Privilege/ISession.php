@@ -30,6 +30,8 @@ namespace Assay\Permission\Privilege {
 
         public function setCookie():bool;
 
+        public function loadByKey():array;
+
         public function close():bool;
     }
 }

@@ -14,7 +14,7 @@ namespace Assay\Permission\Privilege {
 
     class User extends MutableEntity implements IUser, IAuthenticateUser
     {
-        /** @var string имя таблицы */
+        /** @var string название таблицы */
         const TABLE_NAME = 'account';
         /** @var string колонка дата добавления */
         const INSERT_DATE = 'insert_date';
@@ -28,6 +28,11 @@ namespace Assay\Permission\Privilege {
         /** @var string электронная почта */
         public $email;
 
+        function __construct()
+        {
+            $this->tablename = self::TABLE_NAME;
+        }
+
         /**
          * Используется для инициализации элементом массива, если элемент не задан, то выдаётся значение по умолчанию
          * @return string идентификатор добавленной записи БД
@@ -38,7 +43,7 @@ namespace Assay\Permission\Privilege {
             $sqlReader = new SqlReader();
             $arguments[SqlReader::QUERY_TEXT] = "
                 INSERT INTO 
-                    ".self::TABLE_NAME." 
+                    ".$this->tablename." 
                     (
                       ".self::INSERT_DATE."
                     ) 
@@ -95,7 +100,7 @@ namespace Assay\Permission\Privilege {
                 SELECT 
                    *
                 FROM 
-                  ".self::TABLE_NAME."
+                  ".$this->tablename."
                 WHERE 
                   ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
             ";
@@ -146,7 +151,7 @@ namespace Assay\Permission\Privilege {
                 $email[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
                 $arguments[SqlReader::QUERY_TEXT] = "
                     UPDATE 
-                        ".self::TABLE_NAME."
+                        ".$this->tablename."
                     SET 
                         ".self::LOGIN." = ".$login[SqlReader::QUERY_PLACEHOLDER].", ".self::PASSWORD_HASH." = ".$pass_hash[SqlReader::QUERY_PLACEHOLDER].", 
                         ".self::EMAIL." = ".$email[SqlReader::QUERY_PLACEHOLDER].",".self::ACTIVITY_DATE." = now()
@@ -178,7 +183,7 @@ namespace Assay\Permission\Privilege {
                 SELECT 
                    *
                 FROM 
-                  ".self::TABLE_NAME."
+                  ".$this->tablename."
                 WHERE 
                   ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
             ";
@@ -273,7 +278,7 @@ namespace Assay\Permission\Privilege {
                 SELECT 
                    *
                 FROM 
-                  ".self::TABLE_NAME."
+                  ".$this->tablename."
                 WHERE 
                   ".self::EMAIL."=".$email_field[SqlReader::QUERY_PLACEHOLDER]."
             ";
@@ -297,7 +302,7 @@ namespace Assay\Permission\Privilege {
                 SELECT 
                    *
                 FROM 
-                  ".self::TABLE_NAME."
+                  ".$this->tablename."
                 WHERE 
                   ".self::LOGIN."=".$login_field[SqlReader::QUERY_PLACEHOLDER]."
             ";

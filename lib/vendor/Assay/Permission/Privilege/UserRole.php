@@ -13,15 +13,16 @@ namespace Assay\Permission\Privilege {
 
     class UserRole extends Entity implements IUserRole, IAuthorizeProcess
     {
-        /** @var string имя таблицы */
-        const TABLE_NAME = 'user_business_role';
 
+        /** @var string название таблицы */
+        const TABLE_NAME = 'user_business_role';
         /** @var string ссылка на учётную запись */
         public $userId;
 
         public function __construct(string $userId)
         {
             $this->userId = $userId;
+            $this->tablename = self::TABLE_NAME;
         }
 
         public function grantRole(string $role):bool
@@ -36,7 +37,7 @@ namespace Assay\Permission\Privilege {
             $role_field[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
             $arguments[SqlReader::QUERY_TEXT] = "
                 INSERT INTO 
-                    ".self::TABLE_NAME."
+                    ".$this->tablename."
                 (
                     ".IUser::EXTERNAL_ID.", ".IUserRole::ROLE."
                 ) 
@@ -66,7 +67,7 @@ namespace Assay\Permission\Privilege {
             $role_field[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
             $arguments[SqlReader::QUERY_TEXT] = "
                 DELETE FROM
-                        ".self::TABLE_NAME."
+                        ".$this->tablename."
                     WHERE 
                         ".IUser::EXTERNAL_ID." = ".$user_id[SqlReader::QUERY_PLACEHOLDER]." AND ".IUserRole::ROLE." = ".$role_field[SqlReader::QUERY_PLACEHOLDER]."
             ";

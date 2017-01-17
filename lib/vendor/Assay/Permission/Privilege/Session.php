@@ -13,9 +13,9 @@ namespace Assay\Permission\Privilege {
 
     class Session extends MutableEntity implements ISession
     {
-        /** @var string имя таблицы */
-        const TABLE_NAME = 'session';
 
+        /** @var string название таблицы */
+        const TABLE_NAME = 'session';
         public $cookies;
 
         public $key;
@@ -23,6 +23,7 @@ namespace Assay\Permission\Privilege {
         public $mode;
         public $paging;
         public $userName;
+        public $tablename = self::TABLE_NAME;
 
         public $userId;
 
@@ -49,7 +50,7 @@ namespace Assay\Permission\Privilege {
             $sqlReader = new SqlReader();
             $arguments[SqlReader::QUERY_TEXT] = "
                 INSERT INTO 
-                    ".self::TABLE_NAME." 
+                    ".$this->tablename." 
                     (
                       ".self::INSERT_DATE."
                     ) 
@@ -117,7 +118,7 @@ namespace Assay\Permission\Privilege {
                 $user_name[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
                 $arguments[SqlReader::QUERY_TEXT] = "
                     UPDATE 
-                        ".self::TABLE_NAME." 
+                        ".$this->tablename." 
                     SET 
                         ".self::KEY."=".$key_field[SqlReader::QUERY_PLACEHOLDER].", ".self::USER_ID."=".$user_id[SqlReader::QUERY_PLACEHOLDER].",
                         ".self::IS_HIDDEN."=".$is_hidden[SqlReader::QUERY_PLACEHOLDER].",".self::COMPANY_FILTER."=".$company_filter[SqlReader::QUERY_PLACEHOLDER].",
@@ -193,12 +194,12 @@ namespace Assay\Permission\Privilege {
             $sqlReader = new SqlReader();
             $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
             $id[SqlReader::QUERY_VALUE] = $this->id;
-            $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
             $arguments[SqlReader::QUERY_TEXT] = "
                     SELECT 
                        *
                     FROM 
-                      ".self::TABLE_NAME."
+                      ".$this->tablename."
                     WHERE 
                       ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
                 ";
@@ -209,6 +210,31 @@ namespace Assay\Permission\Privilege {
                 $result = (count($rows) > 0)?$rows[0]:$result;
             }
 
+            return $result;
+        }
+
+        public function loadByKey():array
+        {
+            $result = array();
+            $sqlReader = new SqlReader();
+            $key[SqlReader::QUERY_PLACEHOLDER] = ':KEY';
+            $key[SqlReader::QUERY_VALUE] = $this->key;
+            $key[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $arguments[SqlReader::QUERY_TEXT] = "
+                SELECT 
+                   *
+                FROM 
+                  ".$this->tablename."
+                WHERE 
+                  ".self::KEY."=".$key[SqlReader::QUERY_PLACEHOLDER]." AND ".self::IS_HIDDEN." = 0 
+            ";
+            $arguments[SqlReader::QUERY_PARAMETER] = [$key];
+            $result_sql = $sqlReader ->performQuery($arguments);
+            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
+                $rows = $result_sql[SqlReader::RECORDS];
+                var_dump($rows);
+                $result = (count($rows) > 0)?$rows[0]:$result;
+            }
             return $result;
         }
 
@@ -229,6 +255,7 @@ namespace Assay\Permission\Privilege {
 
         public function setCookie(): bool
         {
+            var_dump($this);
             $result = true;
             $cookie = new Cookie();
             $cookie->key = $this->key;
@@ -236,6 +263,7 @@ namespace Assay\Permission\Privilege {
             $cookie->mode = $this->mode;
             $cookie->paging = $this->paging;
             $cookie->userName = $this->userName;
+            var_dump($this);
             $cookie->setKey();
             $cookie->setCompanyFilter();
             $cookie->setMode();
@@ -246,6 +274,7 @@ namespace Assay\Permission\Privilege {
 
         public function setByCookie(Cookie $cookies)
         {
+            //var_dump($_COOKIE);
             $this->cookies = $cookies;
 
             $this->key = $this->cookies->key;

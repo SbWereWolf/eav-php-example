@@ -15,13 +15,15 @@ namespace Assay\Core {
     class Entity implements IEntity
     {
         /** @var string имя таблицы БД для хранения сущности */
-        const TABLE_NAME = 'entity_table';
+        //const TABLE_NAME = 'entity_table';
         /** @var string идентификатор записи таблицы */
         public $id;
         /** @var string признак "является скрытым" */
         public $isHidden;
         /** @var string дата добавления записи */
         public $insertDate;
+        /** @var string дата добавления записи */
+        protected $tablename = 'entity_table';
 
         public function addEntity():string
         {
@@ -41,7 +43,7 @@ namespace Assay\Core {
             $ishidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
             $arguments[SqlReader::QUERY_TEXT] = "
                 UPDATE 
-                    ".self::TABLE_NAME."
+                    ".$this->tablename."
                 SET 
                     ".self::IS_HIDDEN."=".$ishidden[SqlReader::QUERY_PLACEHOLDER]."
                 WHERE 
