@@ -11,7 +11,9 @@ namespace Assay\Permission\Privilege {
 
     class BusinessProcess extends NamedEntity
     {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'user_process_id';
+        /** @var string название таблицы */
+        const TABLE_NAME = 'business_process';
+        /** @var string колонка для внешнего ключа ссылки на эту таблицу */
+        const EXTERNAL_ID = 'business_process_id';
     }
 }

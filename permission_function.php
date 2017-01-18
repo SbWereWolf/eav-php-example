@@ -36,11 +36,13 @@ function getRequestSession():Assay\Permission\Privilege\Session
 {
     $emptyData = Privilege\ISession::EMPTY_VALUE;
     $session = new Assay\Permission\Privilege\Session();
-    $cookie = new Assay\Permission\Privilege\Cookie();
-    $session->setByCookie($cookie);
-    var_dump($session->key,$session->key != $emptyData);
+    var_dump($session);
+    //$cookie = new Assay\Permission\Privilege\Cookie();
+    //$session->setByCookie($cookie);
+    var_dump("session->key",$session->key);
     if ($session->key != $emptyData) {
         $storedSession = $session->loadByKey();
+        var_dump("storedSession",$storedSession);
 
         $session->key = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::KEY, $storedSession, $emptyData);
         $session->userId = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::USER_ID, $storedSession, $emptyData);
@@ -48,11 +50,11 @@ function getRequestSession():Assay\Permission\Privilege\Session
     }
 
     if ($session->key == $emptyData) {
-        var_dump("Я ЗАЧЕМ-ТО РЕШИЛ ОТКРЫТЬ НОВУЮ СЕССИЮ!!!");
         $sessionValues = Assay\Permission\Privilege\Session::open($session->userId);
         $session->setByNamedValue($sessionValues);
-        $session->setCookie();
+        $session->setSession();
     }
+    var_dump("_SESSION",$_SESSION);
 
     return $session;
 }
@@ -63,7 +65,7 @@ function logOff(Assay\Permission\Privilege\Session $session):Assay\Permission\Pr
     $session->close();
     $defaultSession = new Assay\Permission\Privilege\Session();
     $sessionValues = Assay\Permission\Privilege\Session::open(Assay\Permission\Privilege\User::EMPTY_VALUE);
-    $session->setCookie();
+    $session->setSession();
     $defaultSession->setByNamedValue($sessionValues);
 
     return $defaultSession;
@@ -84,22 +86,19 @@ function logOn(string $login, string $password):array
     if ($authenticationSuccess) {
 
         $currentSession = getRequestSession();
-        var_dump("ПЕРЕД ЗАКРЫТИЕМ",$currentSession);
-        var_dump($currentSession-> close());
+        $currentSession->close();
 
-        $sessionValues = Assay\Permission\Privilege\Session::open($user->id);
-        var_dump("ОТКРЫЛ СЕССИЮ КАК АВТОРИЗОВАЛСЯ",$sessionValues);
+
+        $sessionValues = $session->open($user->id);
+        var_dump("sessionValues",$sessionValues);
         $session->userId = $sessionValues[$session::USER_ID];
         $session->key = $sessionValues[$session::KEY];
         $session->id = $sessionValues[$session::ID];
         $session->setByNamedValue($sessionValues);
-        var_dump("Перед установкой cookie",$_COOKIE);
 
-        $session->setCookie();
-        var_dump("После установки cookie",$_COOKIE);
+        $session->setSession();
     }
     $result = array($authenticationSuccess, $session);
-    var_dump($result);
     return $result;
 }
 
@@ -111,7 +110,6 @@ function registrationProcess(string $login, string $password, string $passwordCo
     $session = getRequestSession();
 
     $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::USER_REGISTRATION,$object);
-    $isAllow = true;
 
     $registrationResult = false;
     if($isAllow){
@@ -134,7 +132,6 @@ function passwordChangeProcess(string $password, string $newPassword, string $pa
     $session = getRequestSession();
 
     $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::CHANGE_PASSWORD, $object);
-    $isAllow = true;
     $isCorrectPassword= false;
     if($isAllow){
         $isCorrectPassword = ($newPassword == $passwordConfirmation && $newPassword != $password);
@@ -177,9 +174,9 @@ function passwordRecoveryProcess(string $email):bool{
 
 function authorizationProcess(Assay\Permission\Privilege\Session $session, string $process, string $object):bool{
 
-    $userId = $session->userId;
-    $userRole = new Assay\Permission\Privilege\UserRole($userId);
-    $result = $userRole->userAuthorization($process, $object);
+    $sessId = $session->id;
+    $userRole = new Assay\Permission\Privilege\UserRole($sessId);
+    $result = $userRole->userAuthorization($process, $object,$sessId);
     return $result;
 }
 
@@ -196,17 +193,30 @@ function testRevokeRole(string $user_id,string $user_role_id):bool {
     $result = $userRole->revokeRole($user_role_id);
     return $result;
 }
+/*session_start();
+session_regenerate_id();
+var_dump(session_id());
+session_unset();
+session_destroy();
+var_dump(session_id());*/
 
 $session = getRequestSession();
+//print phpinfo();
 
 $logonResult = logOn('sancho', 'qwerty');
 
+
 $authenticationSuccess = Assay\Core\Common::setIfExists(0, $logonResult, false);
-/*if ($authenticationSuccess) {
+var_dump("authenticationSuccess",$authenticationSuccess);
+if ($authenticationSuccess) {
     $emptySession = new Assay\Permission\Privilege\Session();
     $session = Assay\Core\Common::setIfExists(1, $logonResult, $emptySession);
-    logOff($session);
-}*/
+    $isAllow = authorizationProcess($session,'user_logout','account');
+
+    if($isAllow){
+        logOff($session);
+    }
+}
 
 
 //var_dump($_COOKIE);
@@ -228,7 +238,7 @@ if ($result[Assay\DataAccess\SqlReader::ERROR_INFO][0] == '00000') {
     print $result[Assay\DataAccess\SqlReader::RECORDS][0]['email'];
 }*/
 
-//var_dump(registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw',''));
+//var_dump(registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw','account'));
 //var_dump(testGrantRole(2,2));
 //var_dump(testRevokeRole(2,2));
 

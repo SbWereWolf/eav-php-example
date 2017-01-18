@@ -11,7 +11,9 @@ namespace Assay\Permission\Privilege {
 
     class RoleDetail extends NamedEntity
     {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+        /** @var string название таблицы */
+        const TABLE_NAME = 'role_detail';
+        /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'role_detail_id';
 
         /** @var string колонка ссылки на объект привелегий  */

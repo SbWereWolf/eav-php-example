@@ -14,8 +14,6 @@ namespace Assay\Permission\Privilege {
 
     class User extends MutableEntity implements IUser, IAuthenticateUser
     {
-        /** @var string название таблицы */
-        const TABLE_NAME = 'account';
         /** @var string колонка дата добавления */
         const INSERT_DATE = 'insert_date';
 

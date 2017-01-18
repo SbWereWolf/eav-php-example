@@ -9,15 +9,15 @@ namespace Assay\Permission\Privilege {
 
     use Assay\Core\Common;
     use Assay\Core\Entity;
+    use Assay\Core\NamedEntity;
     use Assay\DataAccess\SqlReader;
 
     class UserRole extends Entity implements IUserRole, IAuthorizeProcess
     {
 
-        /** @var string название таблицы */
-        const TABLE_NAME = 'user_business_role';
         /** @var string ссылка на учётную запись */
         public $userId;
+        public $userRole;
 
         public function __construct(string $userId)
         {
@@ -80,7 +80,7 @@ namespace Assay\Permission\Privilege {
             return $result;
         }
 
-        public function userAuthorization(string $process, string $object):bool
+        public function userAuthorization(string $process, string $object, string $sid):bool
         {
             $result = false;
             $sqlReader = new SqlReader();
@@ -90,18 +90,33 @@ namespace Assay\Permission\Privilege {
             $object_field[SqlReader::QUERY_PLACEHOLDER] = ':OBJECT';
             $object_field[SqlReader::QUERY_VALUE] = $object;
             $object_field[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-            $id_field[SqlReader::QUERY_PLACEHOLDER] = ':ACCOUNT_ID';
-            $id_field[SqlReader::QUERY_VALUE] = $this->userId;
-            $id_field[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $sid_field[SqlReader::QUERY_PLACEHOLDER] = ':ACCOUNT_ID';
+            $sid_field[SqlReader::QUERY_VALUE] = $this->userId;
+            $sid_field[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
             $arguments[SqlReader::QUERY_TEXT] = "
                 SELECT 
-                    *
-                FROM 
-                    business_role_rule AS brr, user_business_role AS ubr
-                WHERE 
-                    brr.process = :PROCESS AND brr.object = :OBJECT AND brr.business_role_id=ubr.business_role_id AND ubr.account_id=:ACCOUNT_ID
+                    NULL
+                FROM
+                    ".BusinessProcess::TABLE_NAME." BP
+                JOIN 
+                    ".ObjectPrivilege::TABLE_NAME." P ON BP.".self::ID." = P.".BusinessProcess::EXTERNAL_ID."
+                JOIN 
+                    ".BusinessObject::TABLE_NAME." BO ON BO.".self::ID." = P.".BusinessObject::EXTERNAL_ID."
+                JOIN 
+                    ".RoleDetail::TABLE_NAME." RD ON P.".self::ID." = RD.".ObjectPrivilege::EXTERNAL_ID."
+                JOIN 
+                    ".BusinessRole::TABLE_NAME." R ON RD.".BusinessRole::EXTERNAL_ID." = R.".self::ID."
+                JOIN 
+                    ".self::TABLE_NAME." AR ON R.".self::ID." = AR.".BusinessRole::EXTERNAL_ID."
+                JOIN 
+                    ".User::TABLE_NAME." U ON U.".self::ID." = AR.".User::EXTERNAL_ID."
+                JOIN 
+                    ".Session::TABLE_NAME." S ON S.".User::EXTERNAL_ID." = U.".self::ID."
+                WHERE
+                    BP.".NamedEntity::CODE." = ".$process_field[SqlReader::QUERY_PLACEHOLDER]." AND BO.".NamedEntity::CODE." = ".$object_field[SqlReader::QUERY_PLACEHOLDER]." AND S.".self::ID." = ".$sid_field[SqlReader::QUERY_PLACEHOLDER]."
             ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [$process_field,$object_field,$id_field];
+            var_dump("SQL",$arguments[SqlReader::QUERY_TEXT]);
+            $arguments[SqlReader::QUERY_PARAMETER] = [$process_field,$object_field,$sid_field];
             $result_sql = $sqlReader ->performQuery($arguments);
             if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
@@ -110,4 +125,5 @@ namespace Assay\Permission\Privilege {
             return $result;
         }
     }
+
 }

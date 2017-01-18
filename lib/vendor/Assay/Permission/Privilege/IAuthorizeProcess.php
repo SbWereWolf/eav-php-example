@@ -13,6 +13,6 @@ namespace Assay\Permission\Privilege {
          * @param string $object объект
          * @return bool успех авторизации
          */
-        public function userAuthorization(string $process, string $object):bool;
+        public function userAuthorization(string $process, string $object, string $sid):bool;
     }
 }

@@ -45,7 +45,7 @@ namespace Assay\Core {
                 UPDATE 
                     ".$this->tablename."
                 SET 
-                    ".self::IS_HIDDEN."=".$ishidden[SqlReader::QUERY_PLACEHOLDER]."
+                    ".self::IS_HIDDEN."=".$ishidden[SqlReader::QUERY_PLACEHOLDER].",".self::ACTIVITY_DATE."=now()
                 WHERE 
                     ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
             ";

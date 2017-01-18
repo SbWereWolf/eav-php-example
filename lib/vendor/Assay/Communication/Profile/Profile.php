@@ -6,6 +6,9 @@
  * Time: 10:42
  */
 namespace Assay\Communication\Profile {
+
+    use Assay\Core\Common;
+
     class Profile implements IProfile
     {
 
@@ -13,6 +16,12 @@ namespace Assay\Communication\Profile {
 
         public function getCommentEnableArea():bool
         {
+        }
+
+        public function getGreetingsRole(): string
+        {
+            $result = Common::EMPTY_VALUE;
+            return $result;
         }
     }
 }
