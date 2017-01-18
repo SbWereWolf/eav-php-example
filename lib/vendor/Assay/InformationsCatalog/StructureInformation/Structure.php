@@ -83,12 +83,18 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
             $isSuccessfulRead = SqlHandler::isNoError($response);
 
+            $record = array();
             if ($isSuccessfulRead) {
                 $record = SqlHandler::getFirstRecord($response);
                 $this->setByNamedValue($record);
             }
 
-            return $isSuccessfulRead;
+            $result = false;
+            if( $record != array() ){
+                $result = true;
+            }
+
+            return $result;
         }
 
         /** Прочитать данные экземпляра из БД
@@ -127,7 +133,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $parent = Core\Common::EMPTY_VALUE;
             if ($linkToParent != Core\Common::EMPTY_VALUE) {
                 $parent = Core\Common::setIfExists(
-                    IStructure::PARENT,
+                    self::PARENT,
                     $linkToParent,
                     Core\Common::EMPTY_VALUE);
             }
@@ -144,7 +150,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'INSERT INTO '
-                . IStructure::TABLE_NAME
+                . self::TABLE_NAME
                 . ' (' . self::PARENT . ')'
                 . ' VALUES('
                 . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
@@ -220,10 +226,6 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $idParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
             $idParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
 
-            $insertDateParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':INSERT_DATE';
-            $insertDateParameter[ISqlHandler::QUERY_VALUE] = $this->insertDate;
-            $insertDateParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-
             $isHiddenParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
             $isHiddenParameter[ISqlHandler::QUERY_VALUE] = intval($this->isHidden);
             $isHiddenParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
@@ -239,7 +241,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'UPDATE '
                 . self::TABLE_NAME
-                . ' SET'
+                . ' SET '
                 . self::CODE
                 . ' = '
                 . $codeParameter[ISqlHandler::QUERY_PLACEHOLDER]
@@ -247,10 +249,6 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 . self::IS_HIDDEN
                 . ' = '
                 . $isHiddenParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . ' , '
-                . self::INSERT_DATE
-                . ' = '
-                . $insertDateParameter[ISqlHandler::QUERY_PLACEHOLDER]
                 . ' , '
                 . self::PARENT
                 . ' = '
@@ -273,7 +271,6 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $descriptionParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $insertDateParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $nameParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $parentParameter;
@@ -376,7 +373,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         {
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'UPDATE '
-                . IStructure::TABLE_NAME
+                . self::TABLE_NAME
                 . ' SET ' . Core\IHide::IS_HIDDEN . ' ='
                 . Core\IHide::DEFINE_AS_HIDDEN
                 . ' WHERE '
@@ -415,7 +412,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
          * @param string $nameKey имя индекса для имени дочернего элемента структуры
          * @return array имена элементов
          */
-        public function getChildrenNames(string $nameKey = 'CHILD_NAME'):array
+        public function getChildrenNames(string $nameKey = Core\INamedEntity::NAME):array
         {
             $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
             $oneParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
@@ -423,16 +420,46 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' SELECT 
-                NAME AS '
+                '.self::NAME.' AS '
                 . $nameKey
-                . 'FROM '
+                . ' FROM '
                 . self::TABLE_NAME
                 . ' WHERE '
                 . self::PARENT . ' = '
                 . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
                 . ';';
 
-            $arguments[ISqlHandler::QUERY_PARAMETER] = $oneParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+            $response = $sqlReader->performQuery($arguments);
+            $resultCountChildren = SqlHandler::isNoError($response);
+
+            $result = array();
+            if ($resultCountChildren) {
+                $result = SqlHandler::getAllRecords($response);
+            }
+            return $result;
+        }
+
+        public function getChildrenCodes(string $codeKey = Core\INamedEntity::CODE):array
+        {
+            $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
+            $oneParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
+            $oneParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' SELECT 
+                '.self::CODE.' AS '
+                . $codeKey
+                . ' FROM '
+                . self::TABLE_NAME
+                . ' WHERE '
+                . self::PARENT . ' = '
+                . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                . ';';
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
 
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
             $response = $sqlReader->performQuery($arguments);
@@ -484,14 +511,124 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public function getPath():array
         {
 
+            $idParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
+            $idParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
+            $idParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+
+            $queryText =
+                '
+WITH RECURSIVE children ( id, structure_id, code, name,level ) AS
+(
+  SELECT
+    SC.' . self::ID . ',
+    SC.' . self::PARENT . ',
+    SC.' . self::CODE . ',
+    SC.' . self::NAME . ',
+    0
+  FROM ' . self::TABLE_NAME . ' SC
+  WHERE SC.id = ' . $idParameter[ISqlHandler::QUERY_PLACEHOLDER] . '
+  UNION
+  SELECT
+    SN.' . self::ID . ',
+    SN.' . self::PARENT . ',
+    SN.' . self::CODE . ',
+    SN.' . self::NAME . ',
+    level + 1
+  FROM ' . self::TABLE_NAME . ' SN
+    INNER JOIN children C
+      ON (C.' . self::PARENT . ' = SN.' . self::ID . ')
+)
+SELECT '
+    . self::CODE
+    . ', '
+    . self::NAME
+    . '
+FROM children
+ORDER BY level DESC
+;
+';
+
+            $arguments[ISqlHandler::QUERY_TEXT] = $queryText;
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
+
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+
+            $response = $sqlReader->performQuery($arguments);
+
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+
+            $records = array();
+            if ($isSuccessfulRead) {
+                $records = SqlHandler::getAllRecords($response);
+                $this->setByNamedValue($records);
+            }
+
+            return $records;
         }
 
-        /** Получить описание всех элементов
-         * @return array элменты пути
+        /**
+         * @param string $code
+         * @return array
          */
-        public function getMap():array
+        public static function getMap(string $code = ' '):array
         {
+            $codeParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':CODE';
+            $codeParameter[ISqlHandler::QUERY_VALUE] = $code;
+            $codeParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
 
+            $arguments[ISqlHandler::QUERY_TEXT] =
+'
+WITH RECURSIVE nodes ( id, structure_id, code, name, path, level ) AS
+(
+  SELECT
+    SC.' . self::ID . ',
+    SC.' . self::PARENT . ',
+    SC.' . self::CODE . ',
+    SC.' . self::NAME . ',
+    CAST ( SC.' . self::CODE . ' AS text ),
+    0
+  FROM ' . self::TABLE_NAME . ' SC
+  WHERE SC.' . self::CODE . ' = '.$codeParameter[ISqlHandler::QUERY_PLACEHOLDER].' 
+    OR (
+        '.$codeParameter[ISqlHandler::QUERY_PLACEHOLDER].' = \' \' 
+        AND SC.' . self::PARENT . ' IS NULL
+    )
+  UNION
+  SELECT
+    SN.' . self::ID . ',
+    SN.' . self::PARENT . ',
+    SN.' . self::CODE . ',
+    SN.' . self::NAME . ',
+    CAST ( N.path || \'-\'|| SN.' . self::CODE . '  AS text ),
+    level + 1
+  FROM ' . self::TABLE_NAME . ' SN
+    INNER JOIN nodes N
+      ON (N.id = SN.' . self::PARENT . ')
+)
+SELECT
+  ' . self::CODE . ',
+  ' . self::NAME . ',
+  path,
+  level
+FROM nodes
+ORDER BY path
+;
+'
+            ;
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
+
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+            $response = $sqlReader->performQuery($arguments);
+            
+            $resultCountChildren = SqlHandler::isNoError($response);
+
+            $record =array();
+            if ($resultCountChildren) {
+                $record = SqlHandler::getAllRecords($response);
+            }
+            return $record ;
         }
 
         /** Выполнить поиск
@@ -501,18 +638,131 @@ namespace Assay\InformationsCatalog\StructureInformation {
          * @param int $paging количество для отображения
          * @return array результаты поиска
          */
-        public function search(string $searchString = ICommon::EMPTY_VALUE, string $structureCode = ICommon::EMPTY_VALUE, int $start, int $paging):array
+        public static  function search(string $searchString = ICommon::EMPTY_VALUE,
+                               string $structureCode = ICommon::EMPTY_VALUE,
+                               int $start = 0,
+                               int $paging = 0):array
         {
+            $searchStringParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':SEARCH_STRING';
+            $searchStringParameter[ISqlHandler::QUERY_VALUE] = $searchString;
+            $searchStringParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
 
+            $structureCodeParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':CODE';
+            $structureCodeParameter[ISqlHandler::QUERY_VALUE] = $structureCode;
+            $structureCodeParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+
+            $queryText =
+                'SELECT '
+                . self::CODE
+                . ' , '
+                . self::NAME
+                . ' , '
+                . self::DESCRIPTION
+                . ' FROM '
+                . self::TABLE_NAME
+                . ' AS SO '
+                . ' WHERE SO.'
+                . self::IS_HIDDEN
+                . ' = 0';
+
+            $queryWithString = '';
+            if ($searchStringParameter[ISqlHandler::QUERY_VALUE] != ICommon::EMPTY_VALUE) {
+
+                $queryWithString =
+                    ' AND ( SO.'
+                    . self::NAME
+                    . ' LIKE '
+                    . '\'%\'||'
+                    . $searchStringParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                    . '||\'%\''
+                    . ' OR SO.'
+                    . self::DESCRIPTION
+                    . ' LIKE '
+                    . '\'%\'||'
+                    . $searchStringParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                    . '||\'%\' )';
+                $arguments[ISqlHandler::QUERY_PARAMETER][] = $searchStringParameter;
+            }
+            $queryText .= $queryWithString;
+
+            $queryWithCode = '';
+            if ($structureCodeParameter[ISqlHandler::QUERY_VALUE] != ICommon::EMPTY_VALUE) {
+
+                $queryWithCode =
+
+                    '
+AND EXISTS
+(
+    SELECT NULL
+    FROM
+      (
+        WITH RECURSIVE children ( id, structure_id, code, level ) AS
+        (
+          SELECT
+            SC.' . self::ID . ',
+            SC.' . self::PARENT . ',
+            SC.' . self::CODE . ',
+            0
+          FROM ' . self::TABLE_NAME . ' SC
+          WHERE SC.' . self::ID . ' = SO.' . self::ID . '
+          UNION
+          SELECT
+            SN.' . self::ID . ',
+            SN.' . self::PARENT . ',
+            SN.' . self::CODE . ',
+            level + 1
+          FROM ' . self::TABLE_NAME . ' SN
+            INNER JOIN children C
+              ON (C.' . self::PARENT . ' = SN.' . self::ID . ')
+        )
+        SELECT code
+        FROM children
+        ORDER BY level DESC
+        LIMIT 1
+      ) AS R
+    WHERE R.code = '
+                    . $structureCodeParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                    . ')';
+
+                $arguments[ISqlHandler::QUERY_PARAMETER][] = $structureCodeParameter;
+            }
+            $queryText .= $queryWithCode;
+
+            $queryLimit = '';
+            if ($paging > 0) {
+                $queryLimit = " LIMIT $paging ";
+            }
+            $queryText .= $queryLimit;
+
+            $queryOffset = '';
+            if ($start > 0) {
+                $queryOffset = "  OFFSET $start ";
+            }
+            $queryText .= $queryOffset;
+
+            $arguments[ISqlHandler::QUERY_TEXT] = $queryText;
+
+
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+
+            $response = $sqlReader->performQuery($arguments);
+
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+
+            $record = array();
+            if ($isSuccessfulRead) {
+                $record = SqlHandler::getAllRecords($response);
+            }
+
+            return $record;
         }
-
 
         /**
          * @return int
          */
         private function calculateChildren():int
         {
-            $resultColumnName = 'RESULT';
+            $resultColumnName = 'result';
 
             $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
             $oneParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
@@ -520,29 +770,30 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' SELECT 
-                SUM(1) AS '
+                COUNT(*) AS '
                 . $resultColumnName
-                . 'FROM '
+                . ' FROM '
                 . self::TABLE_NAME
                 . ' WHERE '
                 . self::PARENT . ' = '
                 . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
                 . ';';
 
-            $arguments[ISqlHandler::QUERY_PARAMETER] = $oneParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
 
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
             $response = $sqlReader->performQuery($arguments);
+
             $resultCountChildren = SqlHandler::isNoError($response);
 
-            $result = -1;
+            $result = Core\Common::NO_INDEX;
             if ($resultCountChildren) {
                 $record = SqlHandler::getFirstRecord($response);
-                $result = intval($record[$resultColumnName]);
+                $result = Core\Common::setIfExists($resultColumnName,
+                    $record,
+                    Core\Common::NO_INDEX);
             }
             return $result;
         }
-
-
     }
 }

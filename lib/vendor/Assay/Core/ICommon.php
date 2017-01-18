@@ -11,6 +11,8 @@ namespace Assay\Core {
         const EMPTY_OBJECT = null;
         /** @var array константа значение не задано для массивов */
         const EMPTY_ARRAY = array();
+        /** @var array константа индекс не определён */
+        const NO_INDEX = -1;
 
 
         //Данные подключения к БД

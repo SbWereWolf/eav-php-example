@@ -8,6 +8,8 @@
 namespace Assay\InformationsCatalog\StructureInformation {
 
     use Assay\Core\ICommon;
+    use Assay\Core\INamedEntity;
+
     /**
      * Функционал работы со структурой
      */
@@ -30,7 +32,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
          * @param string $nameKey имя индекса для имени дочернего элемента структуры
          * @return array имена элементов
          */
-        public function getChildrenNames(string $nameKey = 'CHILD_NAME'):array;
+        public function getChildrenNames(string $nameKey = INamedEntity::NAME):array;
 
         /** Получить получить идентификатор ролительского элемнта
          * @return string идентификатор
@@ -50,10 +52,12 @@ namespace Assay\InformationsCatalog\StructureInformation {
          * @return array элменты пути
          */
         public function getPath():array;
-        /** Получить описание всех элементов
+
+        /** Получить описание всех дочерних элементов элементов
+         * @param string $code код робительского элемента
          * @return array элменты пути
          */
-        public function getMap():array;
+        public static function getMap(string $code = ' '):array;
 
         /** Выполнить поиск
          * @param string $searchString поисковая строка
@@ -62,6 +66,12 @@ namespace Assay\InformationsCatalog\StructureInformation {
          * @param int $paging количество для отображения
          * @return array результаты поиска
          */
-        public function search(string $searchString= ICommon::EMPTY_VALUE, string $structureCode = ICommon::EMPTY_VALUE, int $start, int $paging):array;
+        public static function search(string $searchString= ICommon::EMPTY_VALUE, string $structureCode = ICommon::EMPTY_VALUE, int $start, int $paging):array;
+
+        /** Получить коды элементов для которых этот родительский
+         * @param string $codeKey наименование индекса для кода дочернего элемента структуры
+         * @return array
+         */
+        public function getChildrenCodes(string $codeKey = INamedEntity::CODE):array;
     }
 }

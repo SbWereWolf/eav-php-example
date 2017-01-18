@@ -50,9 +50,10 @@ class SqlHandler implements ISqlHandler
             Common::EMPTY_VALUE);
     }
 
+
     /**
      * @param $response
-     * @return array
+     * @return bool
      */
     public static function isNoError($response):bool
     {
@@ -61,12 +62,18 @@ class SqlHandler implements ISqlHandler
             Common::EMPTY_VALUE);
 
         $errorCode = Common::EMPTY_VALUE;
+        $errorNumber = Common::EMPTY_VALUE;
+        $errorMessage = Common::EMPTY_VALUE;
         if ($errorInfo != Common::EMPTY_VALUE) {
             $errorCode = $errorInfo[SqlHandler::EXEC_ERROR_CODE_INDEX];
+            $errorNumber = $errorInfo[SqlHandler::EXEC_ERROR_NUMBER_INDEX];
+            $errorMessage = $errorInfo[SqlHandler::EXEC_ERROR_MESSAGE_INDEX];
         }
         $isSuccessfulRequest = false;
         if ($errorCode != Common::EMPTY_VALUE) {
-            $isSuccessfulRequest = $errorCode == SqlHandler::EXEC_WITH_SUCCESS;
+            $isSuccessfulRequest = $errorCode == SqlHandler::EXEC_WITH_SUCCESS_CODE
+                && $errorNumber == SqlHandler::EXEC_WITH_SUCCESS_NUMBER
+                && $errorMessage == SqlHandler::EXEC_WITH_SUCCESS_MESSAGE;
         }
         return $isSuccessfulRequest;
     }
@@ -120,7 +127,7 @@ class SqlHandler implements ISqlHandler
                 $value = Common::setIfExists(self::QUERY_VALUE, $queryParameter, $emptyValue);
                 $dataType = Common::setIfExists(self::QUERY_DATA_TYPE, $queryParameter, $emptyValue);
 
-                $isParametersEmpty = ($placeholder == $emptyValue) || ($value == $emptyValue) || ($dataType == $emptyValue);
+                $isParametersEmpty = ($placeholder == $emptyValue) /*|| ($value == $emptyValue)*/ || ($dataType == $emptyValue);
                 if (!$isParametersEmpty) {
                     $dbQuery->bindValue($placeholder, $value, $dataType);
                 }
@@ -138,15 +145,16 @@ class SqlHandler implements ISqlHandler
             $response,
             Common::EMPTY_VALUE);
 
-        $responseValue = Common::EMPTY_VALUE;
+        $responseValue = array();
         if ($records != Common::EMPTY_VALUE) {
             $responseIndex = 0;
             $responseValue = Common::setIfExists($responseIndex,
                 $records,
-                Common::EMPTY_VALUE);
+                array());
         }
         return $responseValue;
     }
+
     public static function getAllRecords(array $response):array
     {
         $records = Common::setIfExists(SqlHandler::RECORDS,
