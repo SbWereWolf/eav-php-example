@@ -123,9 +123,9 @@ class SqlHandler implements ISqlHandler
         if (!$isArgumentsEmpty) {
             foreach ($queryParameters as $queryParameter) {
 
-                $placeholder = Common::setIfExists(self::QUERY_PLACEHOLDER, $queryParameter, $emptyValue);
-                $value = Common::setIfExists(self::QUERY_VALUE, $queryParameter, $emptyValue);
-                $dataType = Common::setIfExists(self::QUERY_DATA_TYPE, $queryParameter, $emptyValue);
+                $placeholder = Common::setIfExists(self::PLACEHOLDER, $queryParameter, $emptyValue);
+                $value = Common::setIfExists(self::VALUE, $queryParameter, $emptyValue);
+                $dataType = Common::setIfExists(self::DATA_TYPE, $queryParameter, $emptyValue);
 
                 $isParametersEmpty = ($placeholder == $emptyValue) /*|| ($value == $emptyValue)*/ || ($dataType == $emptyValue);
                 if (!$isParametersEmpty) {
