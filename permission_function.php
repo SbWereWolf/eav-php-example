@@ -203,7 +203,13 @@ var_dump(session_id());*/
 $session = getRequestSession();
 //print phpinfo();
 
-$logonResult = logOn('sancho', 'qwerty');
+$logonResult = [];
+
+$isAllow = authorizationProcess($session,'user_login','account');
+
+if($isAllow){
+    logOn('sancho', 'qwerty');
+}
 
 
 $authenticationSuccess = Assay\Core\Common::setIfExists(0, $logonResult, false);
@@ -212,7 +218,7 @@ if ($authenticationSuccess) {
     $emptySession = new Assay\Permission\Privilege\Session();
     $session = Assay\Core\Common::setIfExists(1, $logonResult, $emptySession);
     $isAllow = authorizationProcess($session,'user_logout','account');
-
+    var_dump("logout isAllow",$isAllow);
     if($isAllow){
         logOff($session);
     }

@@ -33,7 +33,6 @@ namespace Assay\Permission\Privilege {
         public function __construct()
         {
             //$this->cookies = Common::EMPTY_OBJECT;
-
             session_start();
             $this->key = session_id();
             $this->companyFilter = ISession::EMPTY_VALUE;
@@ -44,42 +43,13 @@ namespace Assay\Permission\Privilege {
             $this->userId = ISession::EMPTY_VALUE;
         }
 
-        /**
-         * Используется для инициализации элементом массива, если элемент не задан, то выдаётся значение по умолчанию
-         * @return string идентификатор добавленной записи БД
-         */
-        public function addEntity():string
-        {
-            $result = 0;
-            $sqlReader = new SqlReader();
-            $arguments[SqlReader::QUERY_TEXT] = "
-                INSERT INTO 
-                    ".$this->tablename." 
-                    (
-                      ".self::INSERT_DATE.",".self::ACTIVITY_DATE."
-                    ) 
-                VALUES 
-                    (
-                        now(),now()
-                    )
-                RETURNING ".self::ID.";
-            ";
-
-            $arguments[SqlReader::QUERY_PARAMETER] = [];
-            $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
-                $rows = $result_sql[SqlReader::RECORDS];
-                $result = (count($rows) > 0)?$rows[0][$this::ID]:$result;
-            }
-
-            return $result;
-        }
         /** Обновляет (изменяет) запись в БД
          * @return bool успешность изменения
          */
         public function mutateEntity():bool
         {
             $result = false;
+
             $storedData = $this->getStored();
             $entity = $this->toEntity();
 
@@ -128,12 +98,12 @@ namespace Assay\Permission\Privilege {
 
         public static function open(string $userId):array
         {
-            $process = self::OPEN_PROCESS;
-            $object = self::SESSION_OBJECT;
+            //$process = self::OPEN_PROCESS;
+            //$object = self::SESSION_OBJECT;
             $result = array();
             $userId = ($userId == ISession::EMPTY_VALUE)?1:$userId; //Для теста. Если пустое значение, ставим ID гостя
 
-            $userRole = new UserRole($userId);
+            //$userRole = new UserRole($userId);
             $userProfile = new Profile();
             $userInterface = new UserInreface();
             $bussinessProcess = new BussinessProcess();
@@ -195,15 +165,19 @@ namespace Assay\Permission\Privilege {
             $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
             $id[SqlReader::QUERY_VALUE] = $this->id;
             $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $is_hidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[SqlReader::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
             $arguments[SqlReader::QUERY_TEXT] = "
                     SELECT 
-                       *
+                        *
                     FROM 
-                      ".$this->tablename."
+                        ".$this->tablename."
                     WHERE 
-                      ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
+                        ".self::IS_HIDDEN."=".$is_hidden[SqlReader::QUERY_PLACEHOLDER]." AND 
+                        ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
                 ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [$id];
+            $arguments[SqlReader::QUERY_PARAMETER] = [$is_hidden,$id];
             $result_sql = $sqlReader ->performQuery($arguments);
             if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
@@ -220,15 +194,19 @@ namespace Assay\Permission\Privilege {
             $key[SqlReader::QUERY_PLACEHOLDER] = ':KEY';
             $key[SqlReader::QUERY_VALUE] = $this->key;
             $key[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $is_hidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[SqlReader::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
             $arguments[SqlReader::QUERY_TEXT] = "
                 SELECT 
-                   *
+                    *
                 FROM 
-                  ".$this->tablename."
+                    ".$this->tablename."
                 WHERE 
-                  ".self::KEY."=".$key[SqlReader::QUERY_PLACEHOLDER]." AND ".self::IS_HIDDEN." = 0 
+                    ".self::IS_HIDDEN."=".$is_hidden[SqlReader::QUERY_PLACEHOLDER]." AND 
+                    ".self::KEY."=".$key[SqlReader::QUERY_PLACEHOLDER]." AND ".self::IS_HIDDEN." = 0 
             ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [$key];
+            $arguments[SqlReader::QUERY_PARAMETER] = [$is_hidden,$key];
             $result_sql = $sqlReader ->performQuery($arguments);
             if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];

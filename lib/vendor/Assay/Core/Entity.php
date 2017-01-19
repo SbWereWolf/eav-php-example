@@ -28,6 +28,29 @@ namespace Assay\Core {
         public function addEntity():string
         {
             $result = 0;
+            $sqlReader = new SqlReader();
+            $is_hidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[SqlReader::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $arguments[SqlReader::QUERY_TEXT] = "
+                INSERT INTO 
+                    ".$this->tablename." 
+                    (
+                      ".self::INSERT_DATE.",".self::IS_HIDDEN."
+                    ) 
+                VALUES 
+                    (
+                        now(),".$is_hidden[SqlReader::QUERY_PLACEHOLDER]."
+                    )
+                RETURNING ".self::ID.";
+            ";
+            $arguments[SqlReader::QUERY_PARAMETER] = [$is_hidden];
+            $result_sql = $sqlReader ->performQuery($arguments);
+            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
+                $rows = $result_sql[SqlReader::RECORDS];
+                $result = (count($rows) > 0)?$rows[0][$this::ID]:$result;
+            }
+
             return $result;
         }
 

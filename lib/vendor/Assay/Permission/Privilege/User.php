@@ -25,46 +25,11 @@ namespace Assay\Permission\Privilege {
         public $activityDate;
         /** @var string электронная почта */
         public $email;
-
-        function __construct()
-        {
-            $this->tablename = self::TABLE_NAME;
-        }
-
-        /**
-         * Используется для инициализации элементом массива, если элемент не задан, то выдаётся значение по умолчанию
-         * @return string идентификатор добавленной записи БД
-         */
-        public function addEntity():string
-        {
-            $result = 0;
-            $sqlReader = new SqlReader();
-            $arguments[SqlReader::QUERY_TEXT] = "
-                INSERT INTO 
-                    ".$this->tablename." 
-                    (
-                      ".self::INSERT_DATE."
-                    ) 
-                VALUES 
-                    (
-                        now()
-                    )
-                RETURNING ".self::ID.";
-            ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [];
-            $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
-                $rows = $result_sql[SqlReader::RECORDS];
-                $result = (count($rows) > 0)?$rows[0][$this::ID]:$result;
-            }
-
-            return $result;
-        }
+        public $tablename = self::TABLE_NAME;
 
         public function registration(string $login, string $password, string $passwordConfirmation, string $email):bool
         {
             $result = false;
-
             $isCorrectPassword = $password == $passwordConfirmation;
             if ($isCorrectPassword) {
                 $this->activityDate = time();
@@ -94,15 +59,19 @@ namespace Assay\Permission\Privilege {
             $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
             $id[SqlReader::QUERY_VALUE] = $this->id;
             $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $is_hidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[SqlReader::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
             $arguments[SqlReader::QUERY_TEXT] = "
                 SELECT 
-                   *
+                    *
                 FROM 
-                  ".$this->tablename."
+                    ".$this->tablename."
                 WHERE 
-                  ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
+                    ".self::IS_HIDDEN."=".$is_hidden[SqlReader::QUERY_PLACEHOLDER]." AND 
+                    ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
             ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [$id];
+            $arguments[SqlReader::QUERY_PARAMETER] = [$is_hidden,$id];
             $result_sql = $sqlReader ->performQuery($arguments);
             if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
@@ -147,6 +116,9 @@ namespace Assay\Permission\Privilege {
                 $email[SqlReader::QUERY_PLACEHOLDER] = ':EMAIL';
                 $email[SqlReader::QUERY_VALUE] = $this->email;
                 $email[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $is_hidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
+                $is_hidden[SqlReader::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
+                $is_hidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
                 $arguments[SqlReader::QUERY_TEXT] = "
                     UPDATE 
                         ".$this->tablename."
@@ -154,9 +126,10 @@ namespace Assay\Permission\Privilege {
                         ".self::LOGIN." = ".$login[SqlReader::QUERY_PLACEHOLDER].", ".self::PASSWORD_HASH." = ".$pass_hash[SqlReader::QUERY_PLACEHOLDER].", 
                         ".self::EMAIL." = ".$email[SqlReader::QUERY_PLACEHOLDER].",".self::ACTIVITY_DATE." = now()
                     WHERE 
+                        ".self::IS_HIDDEN."=".$is_hidden[SqlReader::QUERY_PLACEHOLDER]." AND 
                         ".self::ID." = ".$id[SqlReader::QUERY_PLACEHOLDER]."
                 ";
-                $arguments[SqlReader::QUERY_PARAMETER] = [$id,$login,$pass_hash,$email];
+                $arguments[SqlReader::QUERY_PARAMETER] = [$id,$login,$pass_hash,$email,$is_hidden];
                 $result_sql = $sqlReader ->performQuery($arguments);
                 $result = ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR)?true:false;
             }
@@ -177,15 +150,19 @@ namespace Assay\Permission\Privilege {
             $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
             $id[SqlReader::QUERY_VALUE] = $this->id;
             $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $is_hidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[SqlReader::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
             $arguments[SqlReader::QUERY_TEXT] = "
                 SELECT 
-                   *
+                    *
                 FROM 
-                  ".$this->tablename."
+                    ".$this->tablename."
                 WHERE 
-                  ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
+                    ".self::IS_HIDDEN."=".$is_hidden[SqlReader::QUERY_PLACEHOLDER]." AND 
+                    ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
             ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [$id];
+            $arguments[SqlReader::QUERY_PARAMETER] = [$is_hidden.$id];
             $result_sql = $sqlReader ->performQuery($arguments);
             if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
@@ -272,15 +249,19 @@ namespace Assay\Permission\Privilege {
             $email_field[SqlReader::QUERY_PLACEHOLDER] = ':EMAIL';
             $email_field[SqlReader::QUERY_VALUE] = $email;
             $email_field[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $is_hidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[SqlReader::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
             $arguments[SqlReader::QUERY_TEXT] = "
                 SELECT 
-                   *
+                    NULL
                 FROM 
-                  ".$this->tablename."
-                WHERE 
-                  ".self::EMAIL."=".$email_field[SqlReader::QUERY_PLACEHOLDER]."
+                    ".$this->tablename."
+                WHERE
+                    ".self::IS_HIDDEN."=".$is_hidden[SqlReader::QUERY_PLACEHOLDER]." AND 
+                    ".self::EMAIL."=".$email_field[SqlReader::QUERY_PLACEHOLDER]."
             ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [$email_field];
+            $arguments[SqlReader::QUERY_PARAMETER] = [$email_field,$is_hidden];
             $result_sql = $sqlReader ->performQuery($arguments);
             if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
@@ -296,15 +277,19 @@ namespace Assay\Permission\Privilege {
             $login_field[SqlReader::QUERY_PLACEHOLDER] = ':LOGIN';
             $login_field[SqlReader::QUERY_VALUE] = $this->login;
             $login_field[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $is_hidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[SqlReader::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
             $arguments[SqlReader::QUERY_TEXT] = "
                 SELECT 
-                   *
+                    *
                 FROM 
-                  ".$this->tablename."
+                    ".$this->tablename."
                 WHERE 
-                  ".self::LOGIN."=".$login_field[SqlReader::QUERY_PLACEHOLDER]."
+                    ".self::IS_HIDDEN."=".$is_hidden[SqlReader::QUERY_PLACEHOLDER]." AND
+                    ".self::LOGIN."=".$login_field[SqlReader::QUERY_PLACEHOLDER]."
             ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [$login_field];
+            $arguments[SqlReader::QUERY_PARAMETER] = [$login_field,$is_hidden];
             $result_sql = $sqlReader ->performQuery($arguments);
             if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
                 $rows = $result_sql[SqlReader::RECORDS];
