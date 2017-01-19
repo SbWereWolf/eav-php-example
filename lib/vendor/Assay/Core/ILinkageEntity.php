@@ -9,18 +9,18 @@ namespace Assay\Core {
     /**
      * Интерфейс чтения сущности из БД
      */
-    interface IReadableEntity
+    interface ILinkageEntity
     {
-        /** Прочитать запись из БД
-         * @param string $id идентификатор записи
+        /** Удалить связь
+         * @param array $foreignKey значение внешнего ключа
          * @return bool значения колонок
          */
-        public function readEntity(string $id):bool;
+        public function dropLinkage(array $foreignKey):bool;
 
         /** Добавить запись в БД на основе экземпляра
-         * @param array $namedValues значения колонок записи
+         * @param array $foreignKey значение внешнего ключа
          * @return bool успех выполнения
          */
-        public function addReadable(array $namedValues):bool;
+        public function addLinkage(array $foreignKey):bool;
     }
 }

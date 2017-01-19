@@ -9,7 +9,7 @@ namespace Assay\Core {
     /**
      * Реализация интерфейса для работы с именнуемыми сущностями
      */
-    class NamedEntity extends MutableEntity implements INamedEntity
+    class NamedEntity extends Entity implements INamedEntity
     {
         /** @var string код */
         public $code;
@@ -21,14 +21,21 @@ namespace Assay\Core {
          * @param string $code код записи
          * @return array значения записи
          */
-        public function loadByCode(string $code):array
+        public function loadByCode(string $code):bool
         {
+            $result = false;
+            return $result;
         }
         /** Получить имя и описание записи
+         * @param string $code значение ключа для свойства код
+         * @param string $name значение ключа для свойства имя
+         * @param string $description значение ключа для свойства описание
          * @return array массив с именем и описанием
          */
-        public function getElementDescription():array
-        {
+        public function getElementDescription(string $code = INamedEntity::CODE,
+                                              string $name = INamedEntity::NAME,
+                                              string $description = INamedEntity::DESCRIPTION):array{
+            
         }
     }
 }
