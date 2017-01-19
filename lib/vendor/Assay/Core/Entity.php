@@ -12,7 +12,7 @@ namespace Assay\Core {
     /**
      * реализация интерфейса для работы с именнуемыми сущностями
      */
-    class Entity implements IEntity
+    class Entity implements IEntity , IHide
     {
         /** @var string имя таблицы БД для хранения сущности */
         //const TABLE_NAME = 'entity_table';

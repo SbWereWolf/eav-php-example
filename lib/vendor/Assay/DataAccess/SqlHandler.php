@@ -9,7 +9,6 @@
 namespace Assay\DataAccess;
 
 use Assay\Core\Common;
-use Assay\Core\Configuration;
 
 //include_once(DB_READ_CONFIGURATION);
 
@@ -18,15 +17,65 @@ class SqlHandler implements ISqlHandler
     const RECORDS = 'fetchAll';
     const ERROR_INFO = 'errorInfo';
 
+    const DATA_READER = 1;
+    const DATA_WRITER = 2;
+
     private $dataSource = Common::EMPTY_VALUE;
     private $dbLogin = Common::EMPTY_VALUE;
     private $dbPassword = Common::EMPTY_VALUE;
 
-    public function __construct( array $dbCredentials)
+    public function __construct($type = self::DATA_READER)
     {
-        $this->dataSource = $dbCredentials[IDbCredentials::DATA_SOURCE_NAME];
-        $this->dbLogin = $dbCredentials[IDbCredentials::LOGIN];
-        $this->dbPassword = $dbCredentials[IDbCredentials::PASSWORD];
+        $dbCredentials = array();
+        switch ($type) {
+            case self::DATA_READER :
+                $dbCredentials = DbCredentials::getDbReader();
+                break;
+            case self::DATA_WRITER :
+                $dbCredentials = DbCredentials::getDbWriter();
+                break;
+        }
+
+        $this->dataSource = Common::setIfExists(
+            IDbCredentials::DATA_SOURCE_NAME,
+            $dbCredentials,
+            Common::EMPTY_VALUE);
+        $this->dbLogin = Common::setIfExists(
+            IDbCredentials::LOGIN,
+            $dbCredentials,
+            Common::EMPTY_VALUE);
+        $this->dbPassword = Common::setIfExists(
+            IDbCredentials::PASSWORD,
+            $dbCredentials,
+            Common::EMPTY_VALUE);
+    }
+
+
+    /**
+     * @param $response
+     * @return bool
+     */
+    public static function isNoError($response):bool
+    {
+        $errorInfo = Common::setIfExists(SqlHandler::ERROR_INFO,
+            $response,
+            Common::EMPTY_VALUE);
+
+        $errorCode = Common::EMPTY_VALUE;
+        $errorNumber = Common::EMPTY_VALUE;
+        $errorMessage = Common::EMPTY_VALUE;
+        if ($errorInfo != Common::EMPTY_VALUE) {
+            $errorCode = $errorInfo[SqlHandler::EXEC_ERROR_CODE_INDEX];
+            $errorNumber = $errorInfo[SqlHandler::EXEC_ERROR_NUMBER_INDEX];
+            $errorMessage = $errorInfo[SqlHandler::EXEC_ERROR_MESSAGE_INDEX];
+        }
+        $isSuccessfulRequest = false;
+        if ($errorCode != Common::EMPTY_VALUE) {
+            $isSuccessfulRequest = $errorCode == SqlHandler::EXEC_WITH_SUCCESS_CODE
+                && $errorNumber == SqlHandler::EXEC_WITH_SUCCESS_NUMBER
+                && $errorMessage == SqlHandler::EXEC_WITH_SUCCESS_MESSAGE;
+        }
+        return $isSuccessfulRequest;
     }
 
     public function performQuery(array $arguments):array
@@ -78,11 +127,40 @@ class SqlHandler implements ISqlHandler
                 $value = Common::setIfExists(self::QUERY_VALUE, $queryParameter, $emptyValue);
                 $dataType = Common::setIfExists(self::QUERY_DATA_TYPE, $queryParameter, $emptyValue);
 
-                $isParametersEmpty = ($placeholder == $emptyValue) || ($value == $emptyValue) || ($dataType == $emptyValue);
+                $isParametersEmpty = ($placeholder == $emptyValue) /*|| ($value == $emptyValue)*/ || ($dataType == $emptyValue);
                 if (!$isParametersEmpty) {
                     $dbQuery->bindValue($placeholder, $value, $dataType);
                 }
             }
         }
+    }
+
+    /**
+     * @param $response
+     * @return array
+     */
+    public static function getFirstRecord(array $response):array
+    {
+        $records = Common::setIfExists(SqlHandler::RECORDS,
+            $response,
+            Common::EMPTY_VALUE);
+
+        $responseValue = array();
+        if ($records != Common::EMPTY_VALUE) {
+            $responseIndex = 0;
+            $responseValue = Common::setIfExists($responseIndex,
+                $records,
+                array());
+        }
+        return $responseValue;
+    }
+
+    public static function getAllRecords(array $response):array
+    {
+        $records = Common::setIfExists(SqlHandler::RECORDS,
+            $response,
+            array());
+
+        return $records;
     }
 }

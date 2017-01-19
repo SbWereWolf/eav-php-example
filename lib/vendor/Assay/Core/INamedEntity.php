@@ -18,16 +18,22 @@ namespace Assay\Core {
         /** @var string колонка ОПИСАЕИЕ */
         const DESCRIPTION = 'description';
 
-        /** Чтение записи из БД по коду
+
+        /** Загрузить по коду записи
          * @param string $code код записи
-         * @return array значения записи
+         * @return bool успех выполнения
          */
-        public function loadByCode(string $code):array;
+        public function loadByCode(string $code):bool;
 
         /** Получить имя и описание записи
+         * @param string $code значение ключа для свойства код
+         * @param string $name значение ключа для свойства имя
+         * @param string $description значение ключа для свойства описание
          * @return array массив с именем и описанием
          */
-        public function getElementDescription():array;
+        public function getElementDescription(string $code = INamedEntity::CODE,
+                                              string $name = INamedEntity::NAME,
+                                              string $description = INamedEntity::DESCRIPTION):array;
 
     }
 }
