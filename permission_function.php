@@ -3,6 +3,11 @@
 /**
  * @param $className string Class to load
  */
+
+define('CONFIGURATION_ROOT', realpath(__DIR__ . DIRECTORY_SEPARATOR . 'configuration'));
+define('DB_READ_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_read.php');
+define('DB_WRITE_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_write.php');
+
 function autoload($className)
 {
     $path = __DIR__ . "/lib/vendor/";
@@ -21,9 +26,6 @@ function autoload($className)
 }
 
 spl_autoload_register('autoload');
-
-define('CONFIGURATION_ROOT', realpath(__DIR__.DIRECTORY_SEPARATOR.'configuration'));
-define('DB_READ_CONFIGURATION', CONFIGURATION_ROOT.DIRECTORY_SEPARATOR.'db_read.ini');
 
 //include('index.php');
 
@@ -203,7 +205,7 @@ var_dump(session_id());*/
 $session = getRequestSession();
 //print phpinfo();
 
-$logonResult = [];
+/*$logonResult = [];
 
 $isAllow = authorizationProcess($session,'user_login','account');
 
@@ -222,7 +224,7 @@ if ($authenticationSuccess) {
     if($isAllow){
         logOff($session);
     }
-}
+}*/
 
 
 //var_dump($_COOKIE);

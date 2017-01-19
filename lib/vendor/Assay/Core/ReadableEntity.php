@@ -15,7 +15,7 @@ namespace Assay\Core {
          * @param string $id идентификатор записи
          * @return array значения колонок
          */
-        public function readEntity(string $id):array
+        public function readEntity(string $id):bool
         {
         }
         /** Прочитать данные экземпляра из БД
@@ -35,7 +35,7 @@ namespace Assay\Core {
         /** Добавить запись в БД на основе экземпляра
          * @return bool успех выполнения
          */
-        public function addReadable():bool
+        public function addReadable(array $namedValues):bool
         {
             $result = true;
             return $result;

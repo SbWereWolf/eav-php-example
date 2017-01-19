@@ -12,7 +12,8 @@ namespace Assay\Permission\Privilege {
     use Assay\Communication\Profile\Profile;
     use Assay\Core\Common;
     use Assay\Core\MutableEntity;
-    use Assay\DataAccess\SqlReader;
+    use Assay\DataAccess\ISqlHandler;
+    use Assay\DataAccess\SqlHandler;
 
     class Session extends MutableEntity implements ISession
     {
@@ -65,31 +66,33 @@ namespace Assay\Permission\Privilege {
                 }
             }
             if ($needUpdate) {
-                $sqlReader = new SqlReader();
-                $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
-                $id[SqlReader::QUERY_VALUE] = $this->id;
-                $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-                $key_field[SqlReader::QUERY_PLACEHOLDER] = ':KEY';
-                $key_field[SqlReader::QUERY_VALUE] = $this->key;
-                $key_field[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-                $user_id[SqlReader::QUERY_PLACEHOLDER] = ':USER_ID';
-                $user_id[SqlReader::QUERY_VALUE] = $this->userId;
-                $user_id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-                $is_hidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-                $is_hidden[SqlReader::QUERY_VALUE] = $this->isHidden;
-                $is_hidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
-                $arguments[SqlReader::QUERY_TEXT] = "
+                $id[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
+                $id[ISqlHandler::QUERY_VALUE] = $this->id;
+                $id[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $key_field[ISqlHandler::QUERY_PLACEHOLDER] = ':KEY';
+                $key_field[ISqlHandler::QUERY_VALUE] = $this->key;
+                $key_field[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $user_id[ISqlHandler::QUERY_PLACEHOLDER] = ':USER_ID';
+                $user_id[ISqlHandler::QUERY_VALUE] = $this->userId;
+                $user_id[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+                $is_hidden[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
+                $is_hidden[ISqlHandler::QUERY_VALUE] = $this->isHidden;
+                $is_hidden[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+                $arguments[ISqlHandler::QUERY_TEXT] = "
                     UPDATE 
                         ".$this->tablename." 
                     SET 
-                        ".self::KEY."=".$key_field[SqlReader::QUERY_PLACEHOLDER].", ".self::USER_ID."=".$user_id[SqlReader::QUERY_PLACEHOLDER].",
-                        ".self::IS_HIDDEN."=".$is_hidden[SqlReader::QUERY_PLACEHOLDER].",".self::ACTIVITY_DATE."=now()
+                        ".self::KEY."=".$key_field[ISqlHandler::QUERY_PLACEHOLDER].", ".self::USER_ID."=".$user_id[ISqlHandler::QUERY_PLACEHOLDER].",
+                        ".self::IS_HIDDEN."=".$is_hidden[ISqlHandler::QUERY_PLACEHOLDER].",".self::ACTIVITY_DATE."=now()
                     WHERE 
-                        ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
+                        ".self::ID."=".$id[ISqlHandler::QUERY_PLACEHOLDER]."
                 ";
-                $arguments[SqlReader::QUERY_PARAMETER] = [$id,$key_field,$user_id,$is_hidden];
-                $result_sql = $sqlReader ->performQuery($arguments);
-                $result = ($result_sql[SqlReader::ERROR_INFO][0] == "00000")?true:false;
+                $arguments[ISqlHandler::QUERY_PARAMETER] = [$id,$key_field,$user_id,$is_hidden];
+                $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
+                $response = $sqlWriter->performQuery($arguments);
+
+                $result = SqlHandler::isNoError($response);
+                return $result;
             }
 
             return $result;
@@ -98,17 +101,12 @@ namespace Assay\Permission\Privilege {
 
         public static function open(string $userId):array
         {
-            //$process = self::OPEN_PROCESS;
-            //$object = self::SESSION_OBJECT;
             $result = array();
             $userId = ($userId == ISession::EMPTY_VALUE)?1:$userId; //Для теста. Если пустое значение, ставим ID гостя
 
-            //$userRole = new UserRole($userId);
             $userProfile = new Profile();
             $userInterface = new UserInreface();
             $bussinessProcess = new BussinessProcess();
-            //$isAllow = $userRole->userAuthorization($process, $object,$this->id);
-            //if ($isAllow) {
             var_dump("Открываю сессию");
             session_start();
             $result[self::USER_ID] = $userId;
@@ -126,7 +124,6 @@ namespace Assay\Permission\Privilege {
 
             $session->setByNamedValue($result);
             $session->mutateEntity();
-            //}
             return $result;
         }
 
@@ -158,31 +155,45 @@ namespace Assay\Permission\Privilege {
             );
         }
 
-        public function getStored():array
+        public function getStored():bool
         {
-            $result = array();
-            $sqlReader = new SqlReader();
-            $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
-            $id[SqlReader::QUERY_VALUE] = $this->id;
-            $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
-            $is_hidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden[SqlReader::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
-            $arguments[SqlReader::QUERY_TEXT] = "
-                    SELECT 
-                        *
-                    FROM 
-                        ".$this->tablename."
-                    WHERE 
-                        ".self::IS_HIDDEN."=".$is_hidden[SqlReader::QUERY_PLACEHOLDER]." AND 
-                        ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
-                ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [$is_hidden,$id];
-            $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
-                $rows = $result_sql[SqlReader::RECORDS];
-                $result = (count($rows) > 0)?$rows[0]:$result;
+            $result = $this->readEntity($this->id);
+            return $result;
+        }
+
+        /** Прочитать запись из БД
+         * @param string $id идентификатор записи
+         * @return array значения колонок
+         */
+        public function readEntity(string $id):bool
+        {
+            $id_field[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
+            $id_field[ISqlHandler::QUERY_VALUE] = $id;
+            $id_field[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $is_hidden[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[ISqlHandler::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+
+            $arguments[ISqlHandler::QUERY_TEXT] ='
+                SELECT 
+                    *
+                FROM 
+                    '.$this->tablename.'
+                WHERE 
+                    '.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::QUERY_PLACEHOLDER].' AND 
+                    '.self::ID.'='.$id_field[ISqlHandler::QUERY_PLACEHOLDER];
+            $arguments[ISqlHandler::QUERY_PARAMETER] = [$is_hidden,$id_field];
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+            $response = $sqlReader->performQuery($arguments);
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+
+            $record = array();
+            if ($isSuccessfulRead) {
+                $record = SqlHandler::getFirstRecord($response);
+                $this->setByNamedValue($record);
             }
+
+            $result = $record != Common::EMPTY_ARRAY;
 
             return $result;
         }
@@ -190,29 +201,30 @@ namespace Assay\Permission\Privilege {
         public function loadByKey():array
         {
             $result = array();
-            $sqlReader = new SqlReader();
-            $key[SqlReader::QUERY_PLACEHOLDER] = ':KEY';
-            $key[SqlReader::QUERY_VALUE] = $this->key;
-            $key[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-            $is_hidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden[SqlReader::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
-            $arguments[SqlReader::QUERY_TEXT] = "
+            $key[ISqlHandler::QUERY_PLACEHOLDER] = ':KEY';
+            $key[ISqlHandler::QUERY_VALUE] = $this->key;
+            $key[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $is_hidden[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[ISqlHandler::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $arguments[ISqlHandler::QUERY_TEXT] = "
                 SELECT 
                     *
                 FROM 
                     ".$this->tablename."
                 WHERE 
-                    ".self::IS_HIDDEN."=".$is_hidden[SqlReader::QUERY_PLACEHOLDER]." AND 
-                    ".self::KEY."=".$key[SqlReader::QUERY_PLACEHOLDER]." AND ".self::IS_HIDDEN." = 0 
+                    ".self::IS_HIDDEN."=".$is_hidden[ISqlHandler::QUERY_PLACEHOLDER]." AND 
+                    ".self::KEY."=".$key[ISqlHandler::QUERY_PLACEHOLDER]." AND ".self::IS_HIDDEN." = 0 
             ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [$is_hidden,$key];
-            $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
-                $rows = $result_sql[SqlReader::RECORDS];
-                var_dump($rows);
-                $result = (count($rows) > 0)?$rows[0]:$result;
+            $arguments[ISqlHandler::QUERY_PARAMETER] = [$is_hidden,$key];
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+            $response = $sqlReader->performQuery($arguments);
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+
+            if ($isSuccessfulRead) {
+                $result = SqlHandler::getFirstRecord($response);
             }
+
             return $result;
         }
 

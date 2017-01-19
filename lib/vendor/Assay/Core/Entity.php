@@ -7,6 +7,7 @@
  */
 namespace Assay\Core {
 
+    use Assay\DataAccess\SqlHandler;
     use Assay\DataAccess\SqlReader;
 
     /**
@@ -28,36 +29,28 @@ namespace Assay\Core {
         public function addEntity():string
         {
             $result = 0;
-            $sqlReader = new SqlReader();
-            $is_hidden[SqlReader::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden[SqlReader::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
             $arguments[SqlReader::QUERY_TEXT] = "
                 INSERT INTO 
                     ".$this->tablename." 
-                    (
-                      ".self::INSERT_DATE.",".self::IS_HIDDEN."
-                    ) 
-                VALUES 
-                    (
-                        now(),".$is_hidden[SqlReader::QUERY_PLACEHOLDER]."
-                    )
+                DEFAULT VALUES
                 RETURNING ".self::ID.";
             ";
-            $arguments[SqlReader::QUERY_PARAMETER] = [$is_hidden];
-            $result_sql = $sqlReader ->performQuery($arguments);
-            if ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR) {
-                $rows = $result_sql[SqlReader::RECORDS];
-                $result = (count($rows) > 0)?$rows[0][$this::ID]:$result;
-            }
+            $arguments[SqlReader::QUERY_PARAMETER] = [];
 
+            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
+            $response = $sqlWriter->performQuery($arguments);
+
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+            if ($isSuccessfulRead) {
+                $record = SqlHandler::getFirstRecord($response);
+                $result = $record[self::ID];
+            }
             return $result;
         }
 
         public function hideEntity():bool
         {
             $result = true;
-            $sqlReader = new SqlReader();
             $id[SqlReader::QUERY_PLACEHOLDER] = ':ID';
             $id[SqlReader::QUERY_VALUE] = $this->id;
             $id[SqlReader::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
@@ -73,8 +66,10 @@ namespace Assay\Core {
                     ".self::ID."=".$id[SqlReader::QUERY_PLACEHOLDER]."
             ";
             $arguments[SqlReader::QUERY_PARAMETER] = [$id,$ishidden];
-            $result_sql = $sqlReader ->performQuery($arguments);
-            $result = ($result_sql[SqlReader::ERROR_INFO][0] == Common::NO_ERROR)?true:$result;
+            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
+            $response = $sqlWriter->performQuery($arguments);
+
+            $result = SqlHandler::isNoError($response);
             return $result;
         }
     }

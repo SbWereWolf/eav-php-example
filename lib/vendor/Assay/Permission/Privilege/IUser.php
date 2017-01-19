@@ -57,7 +57,7 @@ namespace Assay\Permission\Privilege {
         /** Получить запись из БД
          * @return array значения колонок
          */
-        public function getStored():array;
+        public function getStored():bool;
 
         /** Установить по умолчанию
          * @return bool успех выполнения
