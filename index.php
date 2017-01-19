@@ -1,5 +1,6 @@
 <?php
 
+
 use Assay\DataAccess\SqlHandler;
 use Assay\InformationsCatalog\StructureInformation\Structure;
 

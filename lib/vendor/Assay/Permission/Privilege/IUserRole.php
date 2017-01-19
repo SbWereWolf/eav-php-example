@@ -9,8 +9,10 @@ namespace Assay\Permission\Privilege {
     interface IUserRole
     {
 
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'user_role_id';
+        /** @var string название таблицы */
+        const TABLE_NAME = 'account_role';
+        /** @var string колонка для внешнего ключа ссылки на эту таблицу */
+        const EXTERNAL_ID = 'account_role_id';
 
         /** @var string колонка ссылки на учётную запись пользователя */
         const USER = IUser::EXTERNAL_ID;
@@ -21,8 +23,6 @@ namespace Assay\Permission\Privilege {
         const LOGIN = 'login';
         /** @var string колонка хэш пароля */
         const PASSWORD_HASH = 'password_hash';
-        /** @var string колонка дата последней активности */
-        const ACTIVITY_DATE = 'activity_date';
         /** @var string колонка электронная почта */
         const EMAIL = 'email';
 
@@ -38,5 +38,6 @@ namespace Assay\Permission\Privilege {
          */
         public function revokeRole(string $role):bool;
 
+        public function userAuthorization(string $process, string $object, string $sid):bool;
     }
 }

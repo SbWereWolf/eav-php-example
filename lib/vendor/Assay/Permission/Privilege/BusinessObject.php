@@ -11,7 +11,9 @@ namespace Assay\Permission\Privilege {
 
     class BusinessObject extends NamedEntity
     {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'user_object_id';
+        /** @var string название таблицы */
+        const TABLE_NAME = 'business_object';
+        /** @var string колонка для внешнего ключа ссылки на эту таблицу */
+        const EXTERNAL_ID = 'business_object_id';
     }
 }

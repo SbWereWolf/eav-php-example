@@ -11,7 +11,9 @@ namespace Assay\Permission\Privilege {
 
     class BusinessRole extends NamedEntity
     {
-        /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'business_role_id';
+        /** @var string название таблицы */
+        const TABLE_NAME = 'role';
+        /** @var string колонка для внешнего ключа ссылки на эту таблицу */
+        const EXTERNAL_ID = 'role_id';
     }
 }

@@ -20,6 +20,9 @@ CREATE TABLE public.business_role
   id SERIAL PRIMARY KEY NOT NULL,
   code INTEGER NOT NULL,
   name VARCHAR(4000) NOT NULL,
+  insert_date TIMESTAMPTZ,
+  activity_date TIMESTAMPTZ,
+  is_hidden INTEGER,
   discription VARCHAR(4000)
 );
 CREATE UNIQUE INDEX UX_business_role_name ON public.business_role (name);
@@ -71,8 +74,13 @@ DROP TABLE public.session CASCADE;
 CREATE TABLE public.session
 (
   id serial,
-  key VARCHAR(4000) NOT NULL,
-  user_id INTEGER NOT NULL,
+  key VARCHAR(4000),
+  user_id INTEGER,
+  is_hidden INTEGER,
+  companyFilter VARCHAR(4000),
+  mode VARCHAR(4000),
+  paging VARCHAR(4000),
+  userName VARCHAR(4000),
   insert_date TIMESTAMPTZ,
   CONSTRAINT "FX_session_account_id" FOREIGN KEY (user_id) REFERENCES public.account (id) ON UPDATE NO ACTION ON DELETE NO ACTION
 )

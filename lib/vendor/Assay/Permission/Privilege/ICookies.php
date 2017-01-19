@@ -21,6 +21,8 @@ namespace Assay\Permission\Privilege {
         const PAGING = 'paging';
         /** @var string имя пользователя */
         const USER_NAME = 'user_name';
+        /** @var integer время жизни cookies */
+        const COOKIES_TIME = 365*24*60*60;
 
         /** @var string константа для пустого значения */
         const EMPTY_VALUE = Common::EMPTY_VALUE;

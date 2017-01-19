@@ -16,32 +16,46 @@ class Configuration
     const DB_LOGIN = 'DB_LOGIN';
     const DB_PASSWORD = 'DB_PASSWORD';
     const DB_NAME = 'DB_NAME';
-    const PDO_DBMS = 'PDO_DBMS';
+    const DB_TYPE = 'DB_TYPE';
+
+    static protected $rInstance = null;
+    protected $section = 'main';
 
     public $optionHost = 'DB_HOST';
     public $optionPort = 'DB_PORT';
     public $optionLogin = 'DB_LOGIN';
     public $optionPassword = 'DB_PASSWORD';
     public $optionName = 'DB_NAME';
-    public $optionDbms = 'PDO_DBMS';
-    
-    protected $settings;
+    public $optionType = 'DB_TYPE';
+
+    protected $rgIni;
 
     function __construct(string $path)
     {
-        $this->settings = include($path);
+        $this->rgIni = parse_ini_file($path, $this->section);
     }
 
-    public function getDbCredentials()
+    public function getCredentials()
     {
-
         return array(
-            self::DB_HOST => $this->settings[$this->optionHost],
-            self::DB_PORT => $this->settings[$this->optionPort],
-            self::DB_LOGIN => $this->settings[$this->optionLogin],
-            self::DB_PASSWORD => $this->settings[$this->optionPassword],
-            self::DB_NAME => $this->settings[$this->optionName],
-            self::PDO_DBMS => $this->settings[$this->optionDbms],
+            self::DB_HOST => $this->rgIni[$this->section][$this->optionHost],
+            self::DB_PORT => $this->rgIni[$this->section][$this->optionPort],
+            self::DB_LOGIN => $this->rgIni[$this->section][$this->optionLogin],
+            self::DB_PASSWORD => $this->rgIni[$this->section][$this->optionPassword],
+            self::DB_NAME => $this->rgIni[$this->section][$this->optionName]
         );
+    }
+
+    public function getWebpath()
+    {
+        $webRoot = preg_replace('#^http\:\/\/#i', '', $this->rgIni[$this->section]['web_root']);
+        $webRoot = preg_replace('#^' . $_SERVER['HTTP_HOST'] . '#i', '', $webRoot);
+        $webRoot = ltrim($webRoot, '/');
+        return $webRoot;
+    }
+
+    public function getWebRoot()
+    {
+        return $this->rgIni[$this->section]['web_root'];
     }
 }
