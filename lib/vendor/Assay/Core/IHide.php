@@ -14,7 +14,9 @@ interface IHide
     /** @var string колонка признака "является скрытым" */
     const IS_HIDDEN = 'is_hidden';
     /** @var string колонка дата добавления */
-    const INSERT_DATE = 'insert_date';
+    //const INSERT_DATE = 'insert_date';
+    /** @var string колонка дата обновления */
+    const ACTIVITY_DATE = 'activity_date';
     /** @var string значение для поднятого флага "является скрытым" */
     const DEFINE_AS_HIDDEN = true;
     /** @var string значение для поднятого флага "является скрытым" */

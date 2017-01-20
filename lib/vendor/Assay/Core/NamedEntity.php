@@ -21,14 +21,18 @@ namespace Assay\Core {
          * @param string $code код записи
          * @return array значения записи
          */
-        public function loadByCode(string $code):array
+        public function loadByCode(string $code):bool
         {
         }
         /** Получить имя и описание записи
          * @return array массив с именем и описанием
          */
-        public function getElementDescription():array
+        public function getElementDescription(string $code = INamedEntity::CODE,
+                                              string $name = INamedEntity::NAME,
+                                              string $description = INamedEntity::DESCRIPTION):array
         {
+            $result = array();
+            return $result;
         }
     }
 }

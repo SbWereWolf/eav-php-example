@@ -20,6 +20,8 @@ namespace Assay\Permission\Privilege {
 
         /** @var string название таблицы */
         const TABLE_NAME = 'session';
+        /** @var string колонка дата обновления */
+        const UPDATE_DATE = 'update_date';
         public $cookies;
 
         public $key;
@@ -51,8 +53,9 @@ namespace Assay\Permission\Privilege {
         {
             $result = false;
 
-            $storedData = $this->getStored();
             $entity = $this->toEntity();
+            $this->getStored();
+            $storedData = $this->toEntity();
 
             $needUpdate = false;
             foreach ($entity as $key => $column) {
@@ -67,23 +70,23 @@ namespace Assay\Permission\Privilege {
             }
             if ($needUpdate) {
                 $id[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-                $id[ISqlHandler::QUERY_VALUE] = $this->id;
+                $id[ISqlHandler::QUERY_VALUE] = $entity[self::ID];
                 $id[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
                 $key_field[ISqlHandler::QUERY_PLACEHOLDER] = ':KEY';
-                $key_field[ISqlHandler::QUERY_VALUE] = $this->key;
+                $key_field[ISqlHandler::QUERY_VALUE] = $entity[self::KEY];
                 $key_field[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
                 $user_id[ISqlHandler::QUERY_PLACEHOLDER] = ':USER_ID';
-                $user_id[ISqlHandler::QUERY_VALUE] = $this->userId;
+                $user_id[ISqlHandler::QUERY_VALUE] = $entity[self::USER_ID];
                 $user_id[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
                 $is_hidden[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-                $is_hidden[ISqlHandler::QUERY_VALUE] = $this->isHidden;
+                $is_hidden[ISqlHandler::QUERY_VALUE] = $entity[self::IS_HIDDEN];
                 $is_hidden[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
                 $arguments[ISqlHandler::QUERY_TEXT] = "
                     UPDATE 
                         ".$this->tablename." 
                     SET 
                         ".self::KEY."=".$key_field[ISqlHandler::QUERY_PLACEHOLDER].", ".self::USER_ID."=".$user_id[ISqlHandler::QUERY_PLACEHOLDER].",
-                        ".self::IS_HIDDEN."=".$is_hidden[ISqlHandler::QUERY_PLACEHOLDER].",".self::ACTIVITY_DATE."=now()
+                        ".self::IS_HIDDEN."=".$is_hidden[ISqlHandler::QUERY_PLACEHOLDER].",".self::UPDATE_DATE."=now()
                     WHERE 
                         ".self::ID."=".$id[ISqlHandler::QUERY_PLACEHOLDER]."
                 ";
@@ -214,7 +217,7 @@ namespace Assay\Permission\Privilege {
                     ".$this->tablename."
                 WHERE 
                     ".self::IS_HIDDEN."=".$is_hidden[ISqlHandler::QUERY_PLACEHOLDER]." AND 
-                    ".self::KEY."=".$key[ISqlHandler::QUERY_PLACEHOLDER]." AND ".self::IS_HIDDEN." = 0 
+                    ".self::KEY."=".$key[ISqlHandler::QUERY_PLACEHOLDER]."
             ";
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$is_hidden,$key];
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);

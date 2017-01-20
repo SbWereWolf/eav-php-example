@@ -85,7 +85,7 @@ namespace Assay\Permission\Privilege {
 
             $id[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
             $id[ISqlHandler::QUERY_VALUE] = $this->id;
-            $id[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $id[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
             $login[ISqlHandler::QUERY_PLACEHOLDER] = ':LOGIN';
             $login[ISqlHandler::QUERY_VALUE] = $this->login;
             $login[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
@@ -104,7 +104,7 @@ namespace Assay\Permission\Privilege {
                     '.$this->tablename.'
                 SET 
                     '.self::LOGIN.' = '.$login[ISqlHandler::QUERY_PLACEHOLDER].', '.self::PASSWORD_HASH.' = '.$pass_hash[ISqlHandler::QUERY_PLACEHOLDER].', 
-                    '.self::EMAIL.' = '.$email[ISqlHandler::QUERY_PLACEHOLDER].','.self::ACTIVITY_DATE.' = now()
+                    '.self::EMAIL.' = '.$email[ISqlHandler::QUERY_PLACEHOLDER].','.IHide::ACTIVITY_DATE.' = now()
                 WHERE 
                     '.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::QUERY_PLACEHOLDER].' AND 
                     '.self::ID.' = '.$id[ISqlHandler::QUERY_PLACEHOLDER];
@@ -123,9 +123,9 @@ namespace Assay\Permission\Privilege {
          */
         public function readEntity(string $id):bool
         {
-            $id[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $id[ISqlHandler::QUERY_VALUE] = $this->id;
-            $id[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $id_field[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
+            $id_field[ISqlHandler::QUERY_VALUE] = $id;
+            $id_field[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
             $is_hidden[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
             $is_hidden[ISqlHandler::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
             $is_hidden[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
@@ -137,9 +137,9 @@ namespace Assay\Permission\Privilege {
                     '.$this->tablename.'
                 WHERE 
                     '.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::QUERY_PLACEHOLDER].' AND 
-                    '.self::ID.'='.$id[ISqlHandler::QUERY_PLACEHOLDER].'
+                    '.self::ID.'='.$id_field[ISqlHandler::QUERY_PLACEHOLDER].'
             ';
-            $arguments[ISqlHandler::QUERY_PARAMETER] = [$is_hidden.$id];
+            $arguments[ISqlHandler::QUERY_PARAMETER] = [$is_hidden,$id_field];
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
             $response = $sqlReader->performQuery($arguments);
             $isSuccessfulRead = SqlHandler::isNoError($response);

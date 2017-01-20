@@ -4,6 +4,10 @@
  * @param $className string Class to load
  */
 
+ini_set('error_reporting', E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
 define('CONFIGURATION_ROOT', realpath(__DIR__ . DIRECTORY_SEPARATOR . 'configuration'));
 define('DB_READ_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_read.php');
 define('DB_WRITE_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_write.php');
@@ -205,9 +209,10 @@ var_dump(session_id());*/
 $session = getRequestSession();
 //print phpinfo();
 
-/*$logonResult = [];
+$logonResult = [];
 
 $isAllow = authorizationProcess($session,'user_login','account');
+var_dump("isAllow",$isAllow);
 
 if($isAllow){
     logOn('sancho', 'qwerty');
@@ -224,7 +229,7 @@ if ($authenticationSuccess) {
     if($isAllow){
         logOff($session);
     }
-}*/
+}
 
 
 //var_dump($_COOKIE);

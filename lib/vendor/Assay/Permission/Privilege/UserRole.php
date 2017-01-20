@@ -10,6 +10,7 @@ namespace Assay\Permission\Privilege {
     use Assay\Core\Common;
     use Assay\Core\Entity;
     use Assay\Core\NamedEntity;
+    use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
 
     class UserRole extends Entity implements IUserRole, IAuthorizeProcess
