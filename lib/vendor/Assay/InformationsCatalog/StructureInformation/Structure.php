@@ -44,7 +44,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
         /** Прочитать запись из БД
          * @param string $id идентификатор записи
-         * @return bool значения колонок
+         * @return bool успех выполнения
          */
         public function loadById(string $id):bool
         {
@@ -96,13 +96,15 @@ namespace Assay\InformationsCatalog\StructureInformation {
         }
 
         /** Прочитать данные экземпляра из БД
-         * @return bool колонки
+         * @return bool успех выполнения
          */
-        public function getStored():bool
-        {
-            $result = $this->loadById($this->id);
-            return $result;
-        }
+        /*
+                public function getStored():bool
+                {
+                    $result = $this->loadById($this->id);
+                    return $result;
+                }
+        */
 
         /** Установить свойства экземпляра в соответствии со значениями
          * @param array $namedValue массив значений
@@ -110,14 +112,18 @@ namespace Assay\InformationsCatalog\StructureInformation {
          */
         public function setByNamedValue(array $namedValue):bool
         {
+            /*
             $this->code = Core\Common::setIfExists(self::CODE, $namedValue, Core\Common::EMPTY_VALUE);
             $this->description = Core\Common::setIfExists(self::DESCRIPTION, $namedValue, Core\Common::EMPTY_VALUE);
             $this->id = Core\Common::setIfExists(self::ID, $namedValue, Core\Common::EMPTY_VALUE);
             $this->isHidden = Core\Common::setIfExists(self::IS_HIDDEN, $namedValue, Core\Common::EMPTY_VALUE);
             $this->name = Core\Common::setIfExists(self::NAME, $namedValue, Core\Common::EMPTY_VALUE);
+            */
+
+            $result = parent::setByNamedValue($namedValue);
             $this->parent = Core\Common::setIfExists(self::PARENT, $namedValue, Core\Common::EMPTY_VALUE);
 
-            return true;
+            return $result;
         }
 
         /** Добавить запись в БД на основе экземпляра
@@ -177,7 +183,7 @@ UPDATE '
         }
 
         /** Обновляет (изменяет) запись в БД
-         * @return bool успешность изменения
+         * @return bool успех выполнения
          */
         public function mutateEntity():bool
         {
@@ -194,7 +200,7 @@ UPDATE '
             }
 
             $isContain = Core\Common::isOneArrayContainOther($entity, $storedEntity);
-            
+
             if (!$isContain) {
                 $result = $this->updateEntity();
             }
@@ -202,6 +208,9 @@ UPDATE '
             return $result;
         }
 
+        /** Обновить данные в БД
+         * @return bool успех выполнения
+         */
         private function updateEntity():bool
         {
 
@@ -260,21 +269,22 @@ UPDATE '
          */
         public function toEntity():array
         {
-            $result = array();
-
+            /*
             $result [self::CODE] = $this->code;
             $result [self::DESCRIPTION] = $this->description;
             $result [self::ID] = $this->id;
             $result [self::IS_HIDDEN] = $this->isHidden;
             $result [self::NAME] = $this->name;
+            */
+            $result = parent::toEntity();
             $result [self::PARENT] = $this->parent;
 
             return $result;
         }
 
-        /** Чтение записи из БД по коду
+        /** Чтение данных из БД по коду
          * @param string $code код записи
-         * @return bool значения записи
+         * @return bool успех выполнения
          */
         public function loadByCode(string $code):bool
         {
@@ -325,6 +335,7 @@ UPDATE '
          * @param string $description значение ключа для свойства описание
          * @return array массив с именем и описанием
          */
+/*
         public function getElementDescription(string $code = Core\INamedEntity::CODE,
                                               string $name = Core\INamedEntity::NAME,
                                               string $description = Core\INamedEntity::DESCRIPTION):array
@@ -334,6 +345,7 @@ UPDATE '
             $result[$description] = $this->description;
             return $result;
         }
+*/
 
         /** Скрыть сущность
          * @return bool успех операции
@@ -420,6 +432,10 @@ UPDATE '
             return $result;
         }
 
+        /** Получить коды дочерних элементов
+         * @param string $codeKey значение для индекса элемента с кодом
+         * @return array массив кодов
+         */
         public function getChildrenCodes(string $codeKey = Core\INamedEntity::CODE):array
         {
             $idParameter[ISqlHandler::PLACEHOLDER] = ':ID';
@@ -460,7 +476,7 @@ UPDATE '
          */
         public function getParent():string
         {
-            $result = $this->parent;
+            $result = strval($this->parent);
             return $result;
         }
 
@@ -536,7 +552,6 @@ ORDER BY level DESC
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
 
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-
             $response = $sqlReader->performQuery($arguments);
 
             $isSuccessfulRead = SqlHandler::isNoError($response);
@@ -550,9 +565,9 @@ ORDER BY level DESC
             return $records;
         }
 
-        /**
-         * @param string $code
-         * @return array
+        /** Получить элменты карты структуры
+         * @param string $code код корневого элмента
+         * @return array массив с элементами карты
          */
         public static function getMap(string $code = ' '):array
         {

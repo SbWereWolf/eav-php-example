@@ -15,18 +15,21 @@ namespace Assay\Core {
      */
     class Entity implements IEntity
     {
+        /** @var string константа значение не задано для значимых типов */
+        const EMPTY_VALUE = ICommon::EMPTY_VALUE;
+
         const TABLE_NAME = 'entity_table';
         /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
         /** @var string идентификатор записи таблицы */
-        public $id;
+        public $id = self::EMPTY_VALUE ;
         /** @var string признак "является скрытым" */
-        public $isHidden;
+        public $isHidden = self::EMPTY_VALUE ;
 
         public function addEntity():bool
         {
-            $arguments[ISqlHandler::QUERY_TEXT] = '
-            INSERT INTO ' . $this->tablename
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' INSERT INTO ' . $this->tablename
                 . ' DEFAULT VALUES RETURNING '
                 . self::ID
                 .' , '.self::IS_HIDDEN 
@@ -95,11 +98,12 @@ namespace Assay\Core {
             return $result;
         }
 
-        /** Загрузить данные сохранённые в БД
+        /** Прочитать данные экземпляра из БД
          * @return bool успех выполнения
          */
-        public function getStored():bool{
-            $result = false;
+        public function getStored():bool
+        {
+            $result = $this->loadById($this->id);
             return $result;
         }
 
