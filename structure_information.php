@@ -3,6 +3,7 @@
 
 use Assay\DataAccess\SqlHandler;
 use Assay\InformationsCatalog\StructureInformation\Structure;
+use Assay\InformationsCatalog\StructureInformation\Rubric;
 
 define('CONFIGURATION_ROOT', realpath(__DIR__ . DIRECTORY_SEPARATOR . 'configuration'));
 define('DB_READ_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_read.php');
@@ -29,11 +30,74 @@ function autoload($className)
 
 spl_autoload_register('autoload');
 
+echo '<pre>';
+
+echo " \n rubric = new Rubric() \n";
+$rubric = new Rubric();
+var_dump($rubric );
+echo " \n rubric->addEntity() \n";
+$rubric->addEntity();
+$rubricId= $rubric->id;
+var_dump($rubric );
+echo " \n rubric->code = $rubric->id \n";
+$rubricCode = "rubric id $rubric->id";
+$rubric->code = $rubricCode ;
+$rubric->description= ' test add entity for rubric ';
+$rubric->name = " rubric NAME $rubric->id ";
+var_dump($rubric );
+echo " \n rubric->getElementDescription() \n";
+$rubricDescription = $rubric->getElementDescription();
+var_dump($rubricDescription );
+echo " \n rubric->toEntity() \n";
+$rubricToEntity = $rubric->toEntity();
+var_dump($rubricToEntity);
+echo " \n rubricForNamedValues = new Rubric() \n";
+$rubricForNamedValues = new Rubric();
+var_dump($rubricForNamedValues);
+echo " \n rubric->setByNamedValue(rubricToEntity)\n";
+$rubricForNamedValues= $rubric->setByNamedValue($rubricToEntity);
+var_dump($rubricForNamedValues);
+echo " \n rubric before \n";
+var_dump($rubric);
+echo " \n rubric->mutateEntity() \n";
+$rubricMutateResult = $rubric->mutateEntity();
+var_dump($rubricMutateResult);
+echo " \n rubric after \n";
+var_dump($rubric);
+echo " \n otherRubric = new Rubric() \n";
+$otherRubric = new Rubric();
+var_dump($otherRubric );
+echo " \n otherRubric->loadByCode($rubricCode) \n";
+$otherRubric->loadByCode($rubricCode);
+var_dump($otherRubric );
+echo " \n someRubric = new Rubric() \n";
+$someRubric = new Rubric();
+var_dump($someRubric);
+echo " \n someRubric->loadById($rubricId) \n";
+$someRubric->loadById($rubricId);
+var_dump($someRubric);
+echo " \n rubric->hideEntity() \n";
+$rubric->hideEntity();
+var_dump($rubric);
+echo " \n rubricForGetStored = new Rubric() \n";
+$rubricForGetStored = new Rubric();
+var_dump($rubricForGetStored);
+echo " \n rubricForGetStored->getStored() \n";
+$rubricForGetStored->getStored();
+var_dump($rubricForGetStored);
+echo " \n rubricForGetStored->getStored() with id => $rubricId\n";
+$rubricForGetStored->id = $rubricId;
+$rubricForGetStored->getStored();
+var_dump($rubricForGetStored);
+
+echo '</pre>';
+
+/*
 $structure = new Structure();
 
 echo "<pre>";
 
-/*
+
 echo " \n searchResult = Structure::search() \n";
 $searchResult = Structure::search();
 var_dump($searchResult);
@@ -122,9 +186,7 @@ echo " \n readEntity => structure->getParent() \n";
 $structureForParent->loadById('6');
 $parent = $structureForParent->getParent();
 var_dump($parent);
-*/
 
-/*
 $structureForMap = new Structure();
 echo " \n structure->getMap(code) \n";
 $map = $structureForMap::getMap('code');
@@ -133,9 +195,6 @@ var_dump($map);
 echo " \n structure->getMap() \n";
 $map = $structureForMap::getMap();
 var_dump($map);
-*/
-
-
 
 $structureLinkage[Structure::PARENT] = '20';
 
@@ -167,14 +226,16 @@ $sameStructure = new Structure();
 echo " \n sameStructure->loadById($otherStructure->id) \n";
 $sameStructure->loadById($otherStructure->id);
 var_dump($sameStructure);
-echo " \n otherStructure->addEntity() => $otherStructure->id \n";
-$sameStructure->description=" otherStructure->addEntity() => $otherStructure->id";
+echo " \n sameStructure->description => $otherStructure->id \n";
+$sameStructure->description=" => $otherStructure->id";
 var_dump($sameStructure);
 echo " \n sameStructure->getStored \n";
 $sameStructure->getStored();
 var_dump($sameStructure);
 
+
 echo "</pre>";
+*/
 
 /* === */
 
