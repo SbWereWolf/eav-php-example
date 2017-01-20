@@ -11,18 +11,18 @@ namespace Assay\Permission\Privilege {
     use Assay\BusinessLogic\UserInreface;
     use Assay\Communication\Profile\Profile;
     use Assay\Core\Common;
+    use Assay\Core\Entity;
     use Assay\Core\MutableEntity;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
 
-    class Session extends MutableEntity implements ISession
+    class Session extends Entity implements ISession
     {
 
         /** @var string название таблицы */
         const TABLE_NAME = 'session';
         /** @var string колонка дата обновления */
         const UPDATE_DATE = 'update_date';
-        public $cookies;
 
         public $key;
         public $companyFilter;
@@ -38,12 +38,12 @@ namespace Assay\Permission\Privilege {
             //$this->cookies = Common::EMPTY_OBJECT;
             session_start();
             $this->key = session_id();
-            $this->companyFilter = ISession::EMPTY_VALUE;
-            $this->mode = ISession::EMPTY_VALUE;
-            $this->paging = ISession::EMPTY_VALUE;
-            $this->greetingsRole = ISession::EMPTY_VALUE;
+            $this->companyFilter = Common::EMPTY_VALUE;
+            $this->mode = Common::EMPTY_VALUE;
+            $this->paging = Common::EMPTY_VALUE;
+            $this->greetingsRole = Common::EMPTY_VALUE;
 
-            $this->userId = ISession::EMPTY_VALUE;
+            $this->userId = Common::EMPTY_VALUE;
         }
 
         /** Обновляет (изменяет) запись в БД
@@ -69,26 +69,26 @@ namespace Assay\Permission\Privilege {
                 }
             }
             if ($needUpdate) {
-                $id[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-                $id[ISqlHandler::QUERY_VALUE] = $entity[self::ID];
-                $id[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-                $key_field[ISqlHandler::QUERY_PLACEHOLDER] = ':KEY';
-                $key_field[ISqlHandler::QUERY_VALUE] = $entity[self::KEY];
-                $key_field[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-                $user_id[ISqlHandler::QUERY_PLACEHOLDER] = ':USER_ID';
-                $user_id[ISqlHandler::QUERY_VALUE] = $entity[self::USER_ID];
-                $user_id[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-                $is_hidden[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-                $is_hidden[ISqlHandler::QUERY_VALUE] = $entity[self::IS_HIDDEN];
-                $is_hidden[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+                $id[ISqlHandler::PLACEHOLDER] = ':ID';
+                $id[ISqlHandler::VALUE] = $entity[self::ID];
+                $id[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+                $key_field[ISqlHandler::PLACEHOLDER] = ':KEY';
+                $key_field[ISqlHandler::VALUE] = $entity[self::KEY];
+                $key_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+                $user_id[ISqlHandler::PLACEHOLDER] = ':USER_ID';
+                $user_id[ISqlHandler::VALUE] = $entity[self::USER_ID];
+                $user_id[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+                $is_hidden[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+                $is_hidden[ISqlHandler::VALUE] = $entity[self::IS_HIDDEN];
+                $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
                 $arguments[ISqlHandler::QUERY_TEXT] = "
                     UPDATE 
                         ".$this->tablename." 
                     SET 
-                        ".self::KEY."=".$key_field[ISqlHandler::QUERY_PLACEHOLDER].", ".self::USER_ID."=".$user_id[ISqlHandler::QUERY_PLACEHOLDER].",
-                        ".self::IS_HIDDEN."=".$is_hidden[ISqlHandler::QUERY_PLACEHOLDER].",".self::UPDATE_DATE."=now()
+                        ".self::KEY."=".$key_field[ISqlHandler::PLACEHOLDER].", ".self::USER_ID."=".$user_id[ISqlHandler::PLACEHOLDER].",
+                        ".self::IS_HIDDEN."=".$is_hidden[ISqlHandler::PLACEHOLDER].",".self::UPDATE_DATE."=now()
                     WHERE 
-                        ".self::ID."=".$id[ISqlHandler::QUERY_PLACEHOLDER]."
+                        ".self::ID."=".$id[ISqlHandler::PLACEHOLDER]."
                 ";
                 $arguments[ISqlHandler::QUERY_PARAMETER] = [$id,$key_field,$user_id,$is_hidden];
                 $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
@@ -105,7 +105,7 @@ namespace Assay\Permission\Privilege {
         public static function open(string $userId):array
         {
             $result = array();
-            $userId = ($userId == ISession::EMPTY_VALUE)?1:$userId; //Для теста. Если пустое значение, ставим ID гостя
+            $userId = ($userId == Common::EMPTY_VALUE)?1:$userId; //Для теста. Если пустое значение, ставим ID гостя
 
             $userProfile = new Profile();
             $userInterface = new UserInreface();
@@ -119,7 +119,7 @@ namespace Assay\Permission\Privilege {
 
             $session = new Session();
             $id = $session->addEntity();
-            $result[self::ID] = $id;
+            $result[self::ID] = $session->id;
             $result[self::GREETINGS_ROLE] = $userProfile->getGreetingsRole();
             $result[self::MODE] = $bussinessProcess->getMode();
             $result[self::PAGING] = $userInterface->getPagging();
@@ -130,32 +130,34 @@ namespace Assay\Permission\Privilege {
             return $result;
         }
 
-        public function setByNamedValue(array $namedValues)
+        public function setByNamedValue(array $namedValues):bool
         {
+            $result = true;
             $this->key = Common::setIfExists(
-                self::KEY, $namedValues, ISession::EMPTY_VALUE
+                self::KEY, $namedValues, Common::EMPTY_VALUE
             );
             $this->companyFilter = Common::setIfExists(
-                self::COMPANY_FILTER, $namedValues, ISession::EMPTY_VALUE
+                self::COMPANY_FILTER, $namedValues, Common::EMPTY_VALUE
             );
             $this->mode = Common::setIfExists(
-                self::MODE, $namedValues, ISession::EMPTY_VALUE
+                self::MODE, $namedValues, Common::EMPTY_VALUE
             );
             $this->paging = Common::setIfExists(
-                self::PAGING, $namedValues, ISession::EMPTY_VALUE
+                self::PAGING, $namedValues, Common::EMPTY_VALUE
             );
             $this->greetingsRole = Common::setIfExists(
-                self::GREETINGS_ROLE, $namedValues, ISession::EMPTY_VALUE
+                self::GREETINGS_ROLE, $namedValues, Common::EMPTY_VALUE
             );
             $this->isHidden = Common::setIfExists(
                 self::IS_HIDDEN, $namedValues, self::DEFAULT_IS_HIDDEN
             );
             $this->userId = Common::setIfExists(
-                self::USER_ID, $namedValues, ISession::EMPTY_VALUE
+                self::USER_ID, $namedValues, Common::EMPTY_VALUE
             );
             $this->id = Common::setIfExists(
-                self::ID, $namedValues, ISession::EMPTY_VALUE
+                self::ID, $namedValues, Common::EMPTY_VALUE
             );
+            return $result;
         }
 
         public function getStored():bool
@@ -170,12 +172,12 @@ namespace Assay\Permission\Privilege {
          */
         public function readEntity(string $id):bool
         {
-            $id_field[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $id_field[ISqlHandler::QUERY_VALUE] = $id;
-            $id_field[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-            $is_hidden[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden[ISqlHandler::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $id_field[ISqlHandler::PLACEHOLDER] = ':ID';
+            $id_field[ISqlHandler::VALUE] = $id;
+            $id_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+            $is_hidden[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $arguments[ISqlHandler::QUERY_TEXT] ='
                 SELECT 
@@ -183,8 +185,8 @@ namespace Assay\Permission\Privilege {
                 FROM 
                     '.$this->tablename.'
                 WHERE 
-                    '.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::QUERY_PLACEHOLDER].' AND 
-                    '.self::ID.'='.$id_field[ISqlHandler::QUERY_PLACEHOLDER];
+                    '.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::PLACEHOLDER].' AND 
+                    '.self::ID.'='.$id_field[ISqlHandler::PLACEHOLDER];
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$is_hidden,$id_field];
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
             $response = $sqlReader->performQuery($arguments);
@@ -204,20 +206,20 @@ namespace Assay\Permission\Privilege {
         public function loadByKey():array
         {
             $result = array();
-            $key[ISqlHandler::QUERY_PLACEHOLDER] = ':KEY';
-            $key[ISqlHandler::QUERY_VALUE] = $this->key;
-            $key[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-            $is_hidden[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden[ISqlHandler::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $key[ISqlHandler::PLACEHOLDER] = ':KEY';
+            $key[ISqlHandler::VALUE] = $this->key;
+            $key[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+            $is_hidden[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
             $arguments[ISqlHandler::QUERY_TEXT] = "
                 SELECT 
                     *
                 FROM 
                     ".$this->tablename."
                 WHERE 
-                    ".self::IS_HIDDEN."=".$is_hidden[ISqlHandler::QUERY_PLACEHOLDER]." AND 
-                    ".self::KEY."=".$key[ISqlHandler::QUERY_PLACEHOLDER]."
+                    ".self::IS_HIDDEN."=".$is_hidden[ISqlHandler::PLACEHOLDER]." AND 
+                    ".self::KEY."=".$key[ISqlHandler::PLACEHOLDER]."
             ";
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$is_hidden,$key];
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);

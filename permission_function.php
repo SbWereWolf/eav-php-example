@@ -4,32 +4,7 @@
  * @param $className string Class to load
  */
 
-ini_set('error_reporting', E_ALL);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-
-define('CONFIGURATION_ROOT', realpath(__DIR__ . DIRECTORY_SEPARATOR . 'configuration'));
-define('DB_READ_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_read.php');
-define('DB_WRITE_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_write.php');
-
-function autoload($className)
-{
-    $path = __DIR__ . "/lib/vendor/";
-    $path = str_replace('\/',DIRECTORY_SEPARATOR,$path);
-    $className = ltrim($className, '\\');
-    $fileName  = '';
-    if ($lastNsPos = strrpos($className, '\\')) {
-        $namespace = substr($className, 0, $lastNsPos);
-        $className = substr($className, $lastNsPos + 1);
-        $fileName = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
-    }
-    $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
-
-    $classSource = ($path.$fileName);
-    require ($classSource);
-}
-
-spl_autoload_register('autoload');
+include "autoloader.php";
 
 //include('index.php');
 
@@ -40,15 +15,10 @@ use Assay\Core;
 
 function getRequestSession():Assay\Permission\Privilege\Session
 {
-    $emptyData = Privilege\ISession::EMPTY_VALUE;
+    $emptyData = Core\ICommon::EMPTY_VALUE;
     $session = new Assay\Permission\Privilege\Session();
-    var_dump($session);
-    //$cookie = new Assay\Permission\Privilege\Cookie();
-    //$session->setByCookie($cookie);
-    var_dump("session->key",$session->key);
     if ($session->key != $emptyData) {
         $storedSession = $session->loadByKey();
-        var_dump("storedSession",$storedSession);
 
         $session->key = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::KEY, $storedSession, $emptyData);
         $session->userId = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::USER_ID, $storedSession, $emptyData);
@@ -60,7 +30,6 @@ function getRequestSession():Assay\Permission\Privilege\Session
         $session->setByNamedValue($sessionValues);
         $session->setSession();
     }
-    var_dump("_SESSION",$_SESSION);
 
     return $session;
 }
@@ -96,7 +65,6 @@ function logOn(string $login, string $password):array
 
 
         $sessionValues = $session->open($user->id);
-        var_dump("sessionValues",$sessionValues);
         $session->userId = $sessionValues[$session::USER_ID];
         $session->key = $sessionValues[$session::KEY];
         $session->id = $sessionValues[$session::ID];
@@ -138,6 +106,7 @@ function passwordChangeProcess(string $password, string $newPassword, string $pa
     $session = getRequestSession();
 
     $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::CHANGE_PASSWORD, $object);
+    $isAllow = true;
     $isCorrectPassword= false;
     if($isAllow){
         $isCorrectPassword = ($newPassword == $passwordConfirmation && $newPassword != $password);
@@ -209,27 +178,25 @@ var_dump(session_id());*/
 $session = getRequestSession();
 //print phpinfo();
 
-$logonResult = [];
+/*$logonResult = [];
 
 $isAllow = authorizationProcess($session,'user_login','account');
 var_dump("isAllow",$isAllow);
 
 if($isAllow){
-    logOn('sancho', 'qwerty');
+    $logonResult = logOn('sancho', 'qwerty');
 }
 
 
 $authenticationSuccess = Assay\Core\Common::setIfExists(0, $logonResult, false);
-var_dump("authenticationSuccess",$authenticationSuccess);
 if ($authenticationSuccess) {
     $emptySession = new Assay\Permission\Privilege\Session();
     $session = Assay\Core\Common::setIfExists(1, $logonResult, $emptySession);
     $isAllow = authorizationProcess($session,'user_logout','account');
-    var_dump("logout isAllow",$isAllow);
     if($isAllow){
         logOff($session);
     }
-}
+}*/
 
 
 //var_dump($_COOKIE);
@@ -252,9 +219,10 @@ if ($result[Assay\DataAccess\SqlReader::ERROR_INFO][0] == '00000') {
 }*/
 
 //var_dump(registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw','account'));
-//var_dump(testGrantRole(2,2));
-//var_dump(testRevokeRole(2,2));
+//var_dump(testRevokeRole(19,2));
+//var_dump(testGrantRole(19,3));
 
-//var_dump(passwordChangeProcess('1','2','2',''));
+
+var_dump(passwordChangeProcess('qwerty','123456','123456',''));
 //passwordRecoveryProcess('mail@sancho.pw');
 //$isAllow = authorizationProcess($session,'','');

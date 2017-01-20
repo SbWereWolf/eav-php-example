@@ -8,13 +8,18 @@
 namespace Assay\Permission\Privilege {
 
     use Assay\Core\Common;
+    use Assay\Core\Entity;
     use Assay\Core\IHide;
     use Assay\Core\MutableEntity;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
 
-    class User extends MutableEntity implements IUser, IAuthenticateUser
+    class User extends Entity implements IUser, IAuthenticateUser
     {
+        /** @var string название таблицы */
+        const TABLE_NAME = 'account';
+        /** @var string константа "значение не определено" */
+        const EMPTY_VALUE = Common::EMPTY_VALUE;
         /** @var string имя учётной записи */
         public $login;
         /** @var string хэш пароля */
@@ -32,11 +37,11 @@ namespace Assay\Permission\Privilege {
             if ($isCorrectPassword) {
                 $this->activityDate = time();
                 $this->email = $email;
-                $this->isHidden = IHide::DEFAULT_IS_HIDDEN;
+                $this->isHidden = self::DEFAULT_IS_HIDDEN;
                 $this->login = $login;
                 $this->passwordHash = self::calculateHash($password);
 
-                $this->id = $this->addEntity();
+                $this->addEntity();
                 $result = $this->mutateEntity();
             }
 
@@ -83,31 +88,31 @@ namespace Assay\Permission\Privilege {
         private function updateEntity():bool
         {
 
-            $id[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $id[ISqlHandler::QUERY_VALUE] = $this->id;
-            $id[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
-            $login[ISqlHandler::QUERY_PLACEHOLDER] = ':LOGIN';
-            $login[ISqlHandler::QUERY_VALUE] = $this->login;
-            $login[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-            $pass_hash[ISqlHandler::QUERY_PLACEHOLDER] = ':PASSWORD_HASH';
-            $pass_hash[ISqlHandler::QUERY_VALUE] = $this->passwordHash;
-            $pass_hash[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-            $email[ISqlHandler::QUERY_PLACEHOLDER] = ':EMAIL';
-            $email[ISqlHandler::QUERY_VALUE] = $this->email;
-            $email[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-            $is_hidden[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden[ISqlHandler::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $id[ISqlHandler::PLACEHOLDER] = ':ID';
+            $id[ISqlHandler::VALUE] = $this->id;
+            $id[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+            $login[ISqlHandler::PLACEHOLDER] = ':LOGIN';
+            $login[ISqlHandler::VALUE] = $this->login;
+            $login[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+            $pass_hash[ISqlHandler::PLACEHOLDER] = ':PASSWORD_HASH';
+            $pass_hash[ISqlHandler::VALUE] = $this->passwordHash;
+            $pass_hash[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+            $email[ISqlHandler::PLACEHOLDER] = ':EMAIL';
+            $email[ISqlHandler::VALUE] = $this->email;
+            $email[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+            $is_hidden[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $arguments[ISqlHandler::QUERY_TEXT] = '
                 UPDATE 
                     '.$this->tablename.'
                 SET 
-                    '.self::LOGIN.' = '.$login[ISqlHandler::QUERY_PLACEHOLDER].', '.self::PASSWORD_HASH.' = '.$pass_hash[ISqlHandler::QUERY_PLACEHOLDER].', 
-                    '.self::EMAIL.' = '.$email[ISqlHandler::QUERY_PLACEHOLDER].','.IHide::ACTIVITY_DATE.' = now()
+                    '.self::LOGIN.' = '.$login[ISqlHandler::PLACEHOLDER].', '.self::PASSWORD_HASH.' = '.$pass_hash[ISqlHandler::PLACEHOLDER].', 
+                    '.self::EMAIL.' = '.$email[ISqlHandler::PLACEHOLDER].','.\Assay\Permission\Privilege\Common::ACTIVITY_DATE.' = now()
                 WHERE 
-                    '.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::QUERY_PLACEHOLDER].' AND 
-                    '.self::ID.' = '.$id[ISqlHandler::QUERY_PLACEHOLDER];
+                    '.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::PLACEHOLDER].' AND 
+                    '.self::ID.' = '.$id[ISqlHandler::PLACEHOLDER];
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$id,$login,$pass_hash,$email,$is_hidden];
 
             $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
@@ -123,12 +128,12 @@ namespace Assay\Permission\Privilege {
          */
         public function readEntity(string $id):bool
         {
-            $id_field[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $id_field[ISqlHandler::QUERY_VALUE] = $id;
-            $id_field[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
-            $is_hidden[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden[ISqlHandler::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $id_field[ISqlHandler::PLACEHOLDER] = ':ID';
+            $id_field[ISqlHandler::VALUE] = $id;
+            $id_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+            $is_hidden[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $arguments[ISqlHandler::QUERY_TEXT] ='
                 SELECT 
@@ -136,8 +141,8 @@ namespace Assay\Permission\Privilege {
                 FROM 
                     '.$this->tablename.'
                 WHERE 
-                    '.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::QUERY_PLACEHOLDER].' AND 
-                    '.self::ID.'='.$id_field[ISqlHandler::QUERY_PLACEHOLDER].'
+                    '.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::PLACEHOLDER].' AND 
+                    '.self::ID.'='.$id_field[ISqlHandler::PLACEHOLDER].'
             ';
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$is_hidden,$id_field];
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
@@ -165,7 +170,7 @@ namespace Assay\Permission\Privilege {
             $entity[self::IS_HIDDEN] = $this->isHidden;
             $entity[self::LOGIN] = $this->login;
             $entity[self::PASSWORD_HASH] = $this->passwordHash;
-            $entity[self::ACTIVITY_DATE] = $this->activityDate;
+            $entity[\Assay\Permission\Privilege\Common::ACTIVITY_DATE] = $this->activityDate;
             $entity[self::EMAIL] = $this->email;
             return $entity;
         }
@@ -207,34 +212,36 @@ namespace Assay\Permission\Privilege {
         /** Установить свойства объекта в соответствии с массивом
          * @param array $namedValue массив значений
          */
-        public function setByNamedValue(array $namedValue)
+        public function setByNamedValue(array $namedValue):bool
         {
+            $result = true;
             $this->id = Common::setIfExists(self::ID, $namedValue, self::EMPTY_VALUE);
             $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $namedValue, self::EMPTY_VALUE);
             $this->login = Common::setIfExists(self::LOGIN, $namedValue, self::EMPTY_VALUE);
             $this->passwordHash = Common::setIfExists(self::PASSWORD_HASH, $namedValue, self::EMPTY_VALUE);
-            $this->activityDate = Common::setIfExists(self::ACTIVITY_DATE, $namedValue, self::EMPTY_VALUE);
+            $this->activityDate = Common::setIfExists(\Assay\Permission\Privilege\Common::ACTIVITY_DATE, $namedValue, self::EMPTY_VALUE);
             $this->email = Common::setIfExists(self::EMAIL, $namedValue, self::EMPTY_VALUE);
+            return $result;
         }
 
         public function loadByEmail(string $email):bool
         {
             $result = false;
 
-            $email_field[ISqlHandler::QUERY_PLACEHOLDER] = ':EMAIL';
-            $email_field[ISqlHandler::QUERY_VALUE] = $email;
-            $email_field[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-            $is_hidden[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden[ISqlHandler::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $email_field[ISqlHandler::PLACEHOLDER] = ':EMAIL';
+            $email_field[ISqlHandler::VALUE] = $email;
+            $email_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+            $is_hidden[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
             $arguments[ISqlHandler::QUERY_TEXT] = "
                 SELECT 
                     NULL
                 FROM 
                     ".$this->tablename."
                 WHERE
-                    ".self::IS_HIDDEN."=".$is_hidden[ISqlHandler::QUERY_PLACEHOLDER]." AND 
-                    ".self::EMAIL."=".$email_field[ISqlHandler::QUERY_PLACEHOLDER]."
+                    ".self::IS_HIDDEN."=".$is_hidden[ISqlHandler::PLACEHOLDER]." AND 
+                    ".self::EMAIL."=".$email_field[ISqlHandler::PLACEHOLDER]."
             ";
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$email_field,$is_hidden];
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
@@ -250,20 +257,20 @@ namespace Assay\Permission\Privilege {
         public function loadByLogin():array
         {
             $result = [];
-            $login_field[ISqlHandler::QUERY_PLACEHOLDER] = ':LOGIN';
-            $login_field[ISqlHandler::QUERY_VALUE] = $this->login;
-            $login_field[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-            $is_hidden[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden[ISqlHandler::QUERY_VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $login_field[ISqlHandler::PLACEHOLDER] = ':LOGIN';
+            $login_field[ISqlHandler::VALUE] = $this->login;
+            $login_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+            $is_hidden[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+            $is_hidden[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
+            $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
             $arguments[ISqlHandler::QUERY_TEXT] = "
                 SELECT 
                     *
                 FROM 
                     ".$this->tablename."
                 WHERE 
-                    ".self::IS_HIDDEN."=".$is_hidden[ISqlHandler::QUERY_PLACEHOLDER]." AND
-                    ".self::LOGIN."=".$login_field[ISqlHandler::QUERY_PLACEHOLDER]."
+                    ".self::IS_HIDDEN."=".$is_hidden[ISqlHandler::PLACEHOLDER]." AND
+                    ".self::LOGIN."=".$login_field[ISqlHandler::PLACEHOLDER]."
             ";
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$login_field,$is_hidden];
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);

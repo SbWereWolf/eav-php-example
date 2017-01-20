@@ -12,8 +12,6 @@ namespace Assay\Permission\Privilege {
     interface IUser
     {
 
-        /** @var string название таблицы */
-        const TABLE_NAME = 'account';
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'account_id';
 
@@ -24,8 +22,6 @@ namespace Assay\Permission\Privilege {
         /** @var string колонка электронная почта */
         const EMAIL = 'email';
 
-        /** @var string константа "значение не определено" */
-        const EMPTY_VALUE = Common::EMPTY_VALUE;
         /** @var string алгоритм по умолчанию для расчёта хэша */
         const DEFAULT_ALGORITHM = PASSWORD_BCRYPT;
 
@@ -80,6 +76,6 @@ namespace Assay\Permission\Privilege {
          * @return bool успех выполнения
          */
         public function sendRecovery():bool;
-        public function addEntity():string;
+        public function addEntity():bool;
     }
 }

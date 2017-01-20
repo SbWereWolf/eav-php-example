@@ -9,8 +9,6 @@ namespace Assay\Permission\Privilege {
     interface IUserRole
     {
 
-        /** @var string название таблицы */
-        const TABLE_NAME = 'account_role';
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'account_role_id';
 
