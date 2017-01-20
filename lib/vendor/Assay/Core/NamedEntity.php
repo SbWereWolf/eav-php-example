@@ -17,15 +17,17 @@ namespace Assay\Core {
         public $name;
         /** @var string описание */
         public $description;
-        /** Чтение записи из БД по коду
+
+        /** Загрузить по коду записи
          * @param string $code код записи
-         * @return array значения записи
+         * @return bool успех выполнения
          */
         public function loadByCode(string $code):bool
         {
             $result = false;
             return $result;
         }
+
         /** Получить имя и описание записи
          * @param string $code значение ключа для свойства код
          * @param string $name значение ключа для свойства имя
@@ -34,8 +36,9 @@ namespace Assay\Core {
          */
         public function getElementDescription(string $code = INamedEntity::CODE,
                                               string $name = INamedEntity::NAME,
-                                              string $description = INamedEntity::DESCRIPTION):array{
-            
+                                              string $description = INamedEntity::DESCRIPTION):array
+        {
+
         }
     }
 }
