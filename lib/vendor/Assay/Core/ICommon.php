@@ -14,17 +14,6 @@ namespace Assay\Core {
         /** @var array константа индекс не определён */
         const NO_INDEX = -1;
 
-
-        //Данные подключения к БД
-        /** @var string название базы данных */
-        const DB_NAME = "assay_catalog";
-        /** @var string хост подключения */
-        const DB_HOST = "localhost";
-        /** @var string логин */
-        const DB_LOGIN = "assay_manager";
-        /** @var string пароль */
-        const DB_PASSWORD = "df1funi";
-
         /**
          * Используется для инициализации переданным значение, если переданное значение не задано, то выдаётся значение по умолчанию
          * @param mixed $valueIfIsset переданное значение
@@ -41,5 +30,12 @@ namespace Assay\Core {
          * @return mixed
          */
         public static function setIfExists($key, &$array, $valueIfNotIsset);
+
+        /** Проверяет что один массив полностью содержит элементы второго
+         * @param $oneArray array первый массив
+         * @param $otherArray array второй массив
+         * @return bool
+         */
+        public static function isOneArrayContainOther(array $oneArray, array $otherArray):bool;
     }
 }

@@ -8,7 +8,7 @@
 
 namespace Assay\Core;
 
-class Configuration
+class Configuration implements IConfiguration
 {
 
     const DB_HOST = 'DB_HOST';
@@ -32,7 +32,7 @@ class Configuration
         $this->settings = include($path);
     }
 
-    public function getDbCredentials()
+    public function getDbCredentials():array
     {
 
         return array(

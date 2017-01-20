@@ -15,23 +15,22 @@ namespace Assay\InformationsCatalog\StructureInformation {
     /**
      * Древовидная структура
      */
-    class Structure implements IStructure,
-        \Assay\Core\IHide,
-        \Assay\Core\INamedEntity,
-        Core\IMutableEntity,
-        Core\IReadableEntity
+    class Structure extends Core\NamedEntity implements IStructure
+
     {
         /** @var string константа для не пустого значения */
         const EMPTY_VALUE = ICommon::EMPTY_VALUE;
+
+        /** @var string имя таблицы */
+        const TABLE_NAME = 'structure';
+
         /** @var string колонка идентификатора */
         const ID = 'id';
 
         /** @var string идентификатор записи таблицы */
         public $id = self::EMPTY_VALUE;
         /** @var string признак "является скрытым" */
-        public $isHidden = Core\IHide::DEFAULT_IS_HIDDEN;
-        /** @var string дата добавления записи */
-        public $insertDate = self::EMPTY_VALUE;
+        public $isHidden = Core\IEntity::DEFAULT_IS_HIDDEN;
         /** @var string родительский элемент */
         public $parent = self::EMPTY_VALUE;
         /** @var string код записи */
@@ -41,15 +40,17 @@ namespace Assay\InformationsCatalog\StructureInformation {
         /** @var string описание */
         public $description = self::EMPTY_VALUE;
 
+        protected $tablename = self::TABLE_NAME;
+
         /** Прочитать запись из БД
          * @param string $id идентификатор записи
          * @return bool значения колонок
          */
-        public function readEntity(string $id):bool
+        public function loadById(string $id):bool
         {
-            $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $oneParameter[ISqlHandler::QUERY_VALUE] = intval($id);
-            $oneParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $oneParameter[ISqlHandler::PLACEHOLDER] = ':ID';
+            $oneParameter[ISqlHandler::VALUE] = intval($id);
+            $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
@@ -64,21 +65,18 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 . self::DESCRIPTION
                 . ' , '
                 . self::IS_HIDDEN
-                . ' , '
-                . self::INSERT_DATE
                 . ' FROM '
                 . self::TABLE_NAME
                 . ' WHERE '
                 . self::ID
                 . ' = '
-                . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                . $oneParameter[ISqlHandler::PLACEHOLDER]
                 . '
 ;
 ';
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
 
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-
             $response = $sqlReader->performQuery($arguments);
 
             $isSuccessfulRead = SqlHandler::isNoError($response);
@@ -90,7 +88,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
             }
 
             $result = false;
-            if( $record != array() ){
+            if ($record != array()) {
                 $result = true;
             }
 
@@ -102,41 +100,36 @@ namespace Assay\InformationsCatalog\StructureInformation {
          */
         public function getStored():bool
         {
-            $result = $this->readEntity($this->id);
+            $result = $this->loadById($this->id);
             return $result;
         }
 
-        /** Установить свойства экземпляра в соответствии с массивом
+        /** Установить свойства экземпляра в соответствии со значениями
          * @param array $namedValue массив значений
+         * @return bool успех выполнения
          */
-        public function setByNamedValue(array $namedValue)
+        public function setByNamedValue(array $namedValue):bool
         {
             $this->code = Core\Common::setIfExists(self::CODE, $namedValue, Core\Common::EMPTY_VALUE);
             $this->description = Core\Common::setIfExists(self::DESCRIPTION, $namedValue, Core\Common::EMPTY_VALUE);
             $this->id = Core\Common::setIfExists(self::ID, $namedValue, Core\Common::EMPTY_VALUE);
-            $this->insertDate = Core\Common::setIfExists(self::INSERT_DATE, $namedValue, Core\Common::EMPTY_VALUE);
             $this->isHidden = Core\Common::setIfExists(self::IS_HIDDEN, $namedValue, Core\Common::EMPTY_VALUE);
             $this->name = Core\Common::setIfExists(self::NAME, $namedValue, Core\Common::EMPTY_VALUE);
             $this->parent = Core\Common::setIfExists(self::PARENT, $namedValue, Core\Common::EMPTY_VALUE);
+
+            return true;
         }
 
         /** Добавить запись в БД на основе экземпляра
-         * @param array $namedValue значения колонок
+         * @param array $parentKey значения колонок
          * @return bool успех выполнения
          */
-        public function addReadable(array $namedValue):bool
+        public function setParent(array $parentKey):bool
         {
-            $linkToParent = Core\Common::setIfExists(
-                self::TABLE_NAME,
-                $namedValue,
+            $parent = Core\Common::setIfExists(
+                self::PARENT,
+                $parentKey,
                 Core\Common::EMPTY_VALUE);
-            $parent = Core\Common::EMPTY_VALUE;
-            if ($linkToParent != Core\Common::EMPTY_VALUE) {
-                $parent = Core\Common::setIfExists(
-                    self::PARENT,
-                    $linkToParent,
-                    Core\Common::EMPTY_VALUE);
-            }
             if ($parent != Core\Common::EMPTY_VALUE) {
                 $parent = intval($parent);
             }
@@ -144,35 +137,32 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 $parent = null;
             }
 
-            $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':PARENT';
-            $oneParameter[ISqlHandler::QUERY_VALUE] = $parent;
-            $oneParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $parentParameter[ISqlHandler::PLACEHOLDER] = ':PARENT';
+            $parentParameter[ISqlHandler::VALUE] = $parent;
+            $parentParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $idParameter[ISqlHandler::PLACEHOLDER] = ':ID';
+            $idParameter[ISqlHandler::VALUE] = intval($this->id);
+            $idParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $arguments[ISqlHandler::QUERY_TEXT] =
-                'INSERT INTO '
+                '
+UPDATE '
                 . self::TABLE_NAME
-                . ' (' . self::PARENT . ')'
-                . ' VALUES('
-                . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . ')
-                RETURNING ' . Structure::ID
-                . ' , '
-                . self::IS_HIDDEN
-                . ' , '
-                . self::INSERT_DATE
-                . ' , '
-                . self::PARENT
-                . ' , '
-                . self::CODE
-                . ' , '
-                . self::NAME
-                . ' , '
-                . self::DESCRIPTION
-
+                . ' SET ' . self::PARENT . ' = ' . $parentParameter[ISqlHandler::PLACEHOLDER]
+                . '
+ WHERE ' . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER] . '
+ RETURNING ' . self::ID
+                . ' , ' . self::IS_HIDDEN
+                . ' , ' . self::PARENT
+                . ' , ' . self::CODE
+                . ' , ' . self::NAME
+                . ' , ' . self::DESCRIPTION
                 . '
 ;
 ';
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $parentParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
 
             $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
             $response = $sqlWriter->performQuery($arguments);
@@ -194,7 +184,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $result = false;
 
             $stored = new Structure();
-            $wasReadStored = $stored->readEntity($this->id);
+            $wasReadStored = $stored->loadById($this->id);
 
             $storedEntity = array();
             $entity = array();
@@ -204,6 +194,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
             }
 
             $isContain = Core\Common::isOneArrayContainOther($entity, $storedEntity);
+            
             if (!$isContain) {
                 $result = $this->updateEntity();
             }
@@ -214,60 +205,42 @@ namespace Assay\InformationsCatalog\StructureInformation {
         private function updateEntity():bool
         {
 
-            $codeParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':CODE';
-            $codeParameter[ISqlHandler::QUERY_VALUE] = $this->code;
-            $codeParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $codeParameter[ISqlHandler::PLACEHOLDER] = ':CODE';
+            $codeParameter[ISqlHandler::VALUE] = $this->code;
+            $codeParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
 
-            $descriptionParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':DESCRIPTION';
-            $descriptionParameter[ISqlHandler::QUERY_VALUE] = $this->description;
-            $descriptionParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $descriptionParameter[ISqlHandler::PLACEHOLDER] = ':DESCRIPTION';
+            $descriptionParameter[ISqlHandler::VALUE] = $this->description;
+            $descriptionParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
 
-            $idParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $idParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
-            $idParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $idParameter[ISqlHandler::PLACEHOLDER] = ':ID';
+            $idParameter[ISqlHandler::VALUE] = intval($this->id);
+            $idParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
-            $isHiddenParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-            $isHiddenParameter[ISqlHandler::QUERY_VALUE] = intval($this->isHidden);
-            $isHiddenParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $isHiddenParameter[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+            $isHiddenParameter[ISqlHandler::VALUE] = intval($this->isHidden);
+            $isHiddenParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
-            $nameParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':NAME';
-            $nameParameter[ISqlHandler::QUERY_VALUE] = $this->name;
-            $nameParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $nameParameter[ISqlHandler::PLACEHOLDER] = ':NAME';
+            $nameParameter[ISqlHandler::VALUE] = $this->name;
+            $nameParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
 
-            $parentParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':PARENT';
-            $parentParameter[ISqlHandler::QUERY_VALUE] = intval($this->parent);
-            $parentParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $parentParameter[ISqlHandler::PLACEHOLDER] = ':PARENT';
+            $parentParameter[ISqlHandler::VALUE] = intval($this->parent);
+            $parentParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'UPDATE '
                 . self::TABLE_NAME
                 . ' SET '
-                . self::CODE
-                . ' = '
-                . $codeParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . ' , '
-                . self::IS_HIDDEN
-                . ' = '
-                . $isHiddenParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . ' , '
-                . self::PARENT
-                . ' = '
-                . $parentParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . ' , '
-                . self::NAME
-                . ' = '
-                . $nameParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . ' , '
-                . self::DESCRIPTION
-                . ' = '
-                . $descriptionParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                . self::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER]
+                . ' , ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ' , ' . self::PARENT . ' = ' . $parentParameter[ISqlHandler::PLACEHOLDER]
+                . ' , ' . self::NAME . ' = ' . $nameParameter[ISqlHandler::PLACEHOLDER]
+                . ' , ' . self::DESCRIPTION . ' = ' . $descriptionParameter[ISqlHandler::PLACEHOLDER]
                 . ' WHERE '
-                . self::ID
-                . ' = '
-                . $idParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . '
-;
-';
+                . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ';';
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $descriptionParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
@@ -292,7 +265,6 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $result [self::CODE] = $this->code;
             $result [self::DESCRIPTION] = $this->description;
             $result [self::ID] = $this->id;
-            $result [self::INSERT_DATE] = $this->insertDate;
             $result [self::IS_HIDDEN] = $this->isHidden;
             $result [self::NAME] = $this->name;
             $result [self::PARENT] = $this->parent;
@@ -306,35 +278,32 @@ namespace Assay\InformationsCatalog\StructureInformation {
          */
         public function loadByCode(string $code):bool
         {
-            $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':CODE';
-            $oneParameter[ISqlHandler::QUERY_VALUE] = strval($code);
-            $oneParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $codeParameter[ISqlHandler::PLACEHOLDER] = ':CODE';
+            $codeParameter[ISqlHandler::VALUE] = strval($code);
+            $codeParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+
+            $isHiddenParameter[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+            $isHiddenParameter[ISqlHandler::VALUE] = intval(self::DEFINE_AS_NOT_HIDDEN);
+            $isHiddenParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
                 . self::ID
-                . ' , '
-                . self::PARENT
-                . ' , '
-                . self::CODE
-                . ' , '
-                . self::NAME
-                . ' , '
-                . self::DESCRIPTION
-                . ' , '
-                . self::IS_HIDDEN
-                . ' , '
-                . self::INSERT_DATE
+                . ' , ' . self::PARENT
+                . ' , ' . self::CODE
+                . ' , ' . self::NAME
+                . ' , ' . self::DESCRIPTION
+                . ' , ' . self::IS_HIDDEN
                 . ' FROM '
                 . self::TABLE_NAME
                 . ' WHERE '
-                . self::CODE
-                . ' = '
-                . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                . self::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
                 . '
 ;
 ';
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
 
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
 
@@ -369,27 +338,29 @@ namespace Assay\InformationsCatalog\StructureInformation {
         /** Скрыть сущность
          * @return bool успех операции
          */
-        public function hideEntity():bool
-        {
-            $arguments[ISqlHandler::QUERY_TEXT] =
-                'UPDATE '
-                . self::TABLE_NAME
-                . ' SET ' . Core\IHide::IS_HIDDEN . ' ='
-                . Core\IHide::DEFINE_AS_HIDDEN
-                . ' WHERE '
-                . self::ID . ' = '
-                . $this->id
-                . ';';
+        /*
+                public function hideEntity():bool
+                {
+                    $arguments[ISqlHandler::QUERY_TEXT] =
+                        'UPDATE '
+                        . self::TABLE_NAME
+                        . ' SET ' . self::IS_HIDDEN . ' ='
+                        . self::DEFINE_AS_HIDDEN
+                        . ' WHERE '
+                        . self::ID . ' = '
+                        . $this->id
+                        . ';';
 
-            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-            $response = $sqlWriter->performQuery($arguments);
-            $result = SqlHandler::isNoError($response);
+                    $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
+                    $response = $sqlWriter->performQuery($arguments);
+                    $result = SqlHandler::isNoError($response);
 
-            if ($result) {
-                $this->isHidden = true;
-            }
-            return $result;
-        }
+                    if ($result) {
+                        $this->isHidden = true;
+                    }
+                    return $result;
+                }
+        */
 
         /** Добавить дочерний элемент
          * @return string идентификатор добавленого элемента
@@ -400,8 +371,10 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
             $child = new Structure();
 
-            $parentStructure[IStructure::TABLE_NAME][IStructure::PARENT] = $this->id;
-            $isSuccess = $child->addReadable($parentStructure);
+            $child->addEntity();
+
+            $parentStructure[IStructure::PARENT] = $this->id;
+            $isSuccess = $child->setParent($parentStructure);
             if ($isSuccess) {
                 $result = $child->id;
             }
@@ -414,22 +387,27 @@ namespace Assay\InformationsCatalog\StructureInformation {
          */
         public function getChildrenNames(string $nameKey = Core\INamedEntity::NAME):array
         {
-            $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $oneParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
-            $oneParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $idParameter[ISqlHandler::PLACEHOLDER] = ':ID';
+            $idParameter[ISqlHandler::VALUE] = intval($this->id);
+            $idParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $isHiddenParameter[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+            $isHiddenParameter[ISqlHandler::VALUE] = intval(self::DEFINE_AS_NOT_HIDDEN);
+            $isHiddenParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' SELECT 
-                '.self::NAME.' AS '
+                ' . self::NAME . ' AS '
                 . $nameKey
                 . ' FROM '
                 . self::TABLE_NAME
                 . ' WHERE '
-                . self::PARENT . ' = '
-                . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                . self::PARENT . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
                 . ';';
 
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
 
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
             $response = $sqlReader->performQuery($arguments);
@@ -444,22 +422,27 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
         public function getChildrenCodes(string $codeKey = Core\INamedEntity::CODE):array
         {
-            $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $oneParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
-            $oneParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $idParameter[ISqlHandler::PLACEHOLDER] = ':ID';
+            $idParameter[ISqlHandler::VALUE] = intval($this->id);
+            $idParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $isHiddenParameter[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+            $isHiddenParameter[ISqlHandler::VALUE] = intval(self::DEFINE_AS_NOT_HIDDEN);
+            $isHiddenParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' SELECT 
-                '.self::CODE.' AS '
+                ' . self::CODE . ' AS '
                 . $codeKey
                 . ' FROM '
                 . self::TABLE_NAME
                 . ' WHERE '
-                . self::PARENT . ' = '
-                . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . ';';
+                . self::PARENT . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' ANd ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] .
+                ';';
 
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
 
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
             $response = $sqlReader->performQuery($arguments);
@@ -511,9 +494,9 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public function getPath():array
         {
 
-            $idParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $idParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
-            $idParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $idParameter[ISqlHandler::PLACEHOLDER] = ':ID';
+            $idParameter[ISqlHandler::VALUE] = intval($this->id);
+            $idParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $queryText =
                 '
@@ -526,7 +509,7 @@ WITH RECURSIVE children ( id, structure_id, code, name,level ) AS
     SC.' . self::NAME . ',
     0
   FROM ' . self::TABLE_NAME . ' SC
-  WHERE SC.id = ' . $idParameter[ISqlHandler::QUERY_PLACEHOLDER] . '
+  WHERE SC.id = ' . $idParameter[ISqlHandler::PLACEHOLDER] . '
   UNION
   SELECT
     SN.' . self::ID . ',
@@ -539,10 +522,10 @@ WITH RECURSIVE children ( id, structure_id, code, name,level ) AS
       ON (C.' . self::PARENT . ' = SN.' . self::ID . ')
 )
 SELECT '
-    . self::CODE
-    . ', '
-    . self::NAME
-    . '
+                . self::CODE
+                . ', '
+                . self::NAME
+                . '
 FROM children
 ORDER BY level DESC
 ;
@@ -573,12 +556,16 @@ ORDER BY level DESC
          */
         public static function getMap(string $code = ' '):array
         {
-            $codeParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':CODE';
-            $codeParameter[ISqlHandler::QUERY_VALUE] = $code;
-            $codeParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $codeParameter[ISqlHandler::PLACEHOLDER] = ':CODE';
+            $codeParameter[ISqlHandler::VALUE] = $code;
+            $codeParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+
+            $isHiddenParameter[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+            $isHiddenParameter[ISqlHandler::VALUE] = intval(self::DEFINE_AS_NOT_HIDDEN);
+            $isHiddenParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $arguments[ISqlHandler::QUERY_TEXT] =
-'
+                '
 WITH RECURSIVE nodes ( id, structure_id, code, name, path, level ) AS
 (
   SELECT
@@ -589,9 +576,9 @@ WITH RECURSIVE nodes ( id, structure_id, code, name, path, level ) AS
     CAST ( SC.' . self::CODE . ' AS text ),
     0
   FROM ' . self::TABLE_NAME . ' SC
-  WHERE SC.' . self::CODE . ' = '.$codeParameter[ISqlHandler::QUERY_PLACEHOLDER].' 
+  WHERE SC.' . self::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER] . ' 
     OR (
-        '.$codeParameter[ISqlHandler::QUERY_PLACEHOLDER].' = \' \' 
+        ' . $codeParameter[ISqlHandler::PLACEHOLDER] . ' = \' \' 
         AND SC.' . self::PARENT . ' IS NULL
     )
   UNION
@@ -605,6 +592,8 @@ WITH RECURSIVE nodes ( id, structure_id, code, name, path, level ) AS
   FROM ' . self::TABLE_NAME . ' SN
     INNER JOIN nodes N
       ON (N.id = SN.' . self::PARENT . ')
+  WHERE SN.'
+                . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] . '
 )
 SELECT
   ' . self::CODE . ',
@@ -614,21 +603,21 @@ SELECT
 FROM nodes
 ORDER BY path
 ;
-'
-            ;
+';
 
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
 
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
             $response = $sqlReader->performQuery($arguments);
-            
+
             $resultCountChildren = SqlHandler::isNoError($response);
 
-            $record =array();
+            $record = array();
             if ($resultCountChildren) {
                 $record = SqlHandler::getAllRecords($response);
             }
-            return $record ;
+            return $record;
         }
 
         /** Выполнить поиск
@@ -638,18 +627,22 @@ ORDER BY path
          * @param int $paging количество для отображения
          * @return array результаты поиска
          */
-        public static  function search(string $searchString = ICommon::EMPTY_VALUE,
-                               string $structureCode = ICommon::EMPTY_VALUE,
-                               int $start = 0,
-                               int $paging = 0):array
+        public static function search(string $searchString = ICommon::EMPTY_VALUE,
+                                      string $structureCode = ICommon::EMPTY_VALUE,
+                                      int $start = 0,
+                                      int $paging = 0):array
         {
-            $searchStringParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':SEARCH_STRING';
-            $searchStringParameter[ISqlHandler::QUERY_VALUE] = $searchString;
-            $searchStringParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $searchStringParameter[ISqlHandler::PLACEHOLDER] = ':SEARCH_STRING';
+            $searchStringParameter[ISqlHandler::VALUE] = $searchString;
+            $searchStringParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
 
-            $structureCodeParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':CODE';
-            $structureCodeParameter[ISqlHandler::QUERY_VALUE] = $structureCode;
-            $structureCodeParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $structureCodeParameter[ISqlHandler::PLACEHOLDER] = ':CODE';
+            $structureCodeParameter[ISqlHandler::VALUE] = $structureCode;
+            $structureCodeParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+
+            $isHiddenParameter[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+            $isHiddenParameter[ISqlHandler::VALUE] = intval(self::DEFINE_AS_NOT_HIDDEN);
+            $isHiddenParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $queryText =
                 'SELECT '
@@ -663,30 +656,32 @@ ORDER BY path
                 . ' AS SO '
                 . ' WHERE SO.'
                 . self::IS_HIDDEN
-                . ' = 0';
+                . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER];
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
 
             $queryWithString = '';
-            if ($searchStringParameter[ISqlHandler::QUERY_VALUE] != ICommon::EMPTY_VALUE) {
+            if ($searchStringParameter[ISqlHandler::VALUE] != ICommon::EMPTY_VALUE) {
 
                 $queryWithString =
                     ' AND ( SO.'
                     . self::NAME
                     . ' LIKE '
                     . '\'%\'||'
-                    . $searchStringParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                    . $searchStringParameter[ISqlHandler::PLACEHOLDER]
                     . '||\'%\''
                     . ' OR SO.'
                     . self::DESCRIPTION
                     . ' LIKE '
                     . '\'%\'||'
-                    . $searchStringParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                    . $searchStringParameter[ISqlHandler::PLACEHOLDER]
                     . '||\'%\' )';
                 $arguments[ISqlHandler::QUERY_PARAMETER][] = $searchStringParameter;
             }
             $queryText .= $queryWithString;
 
             $queryWithCode = '';
-            if ($structureCodeParameter[ISqlHandler::QUERY_VALUE] != ICommon::EMPTY_VALUE) {
+            if ($structureCodeParameter[ISqlHandler::VALUE] != ICommon::EMPTY_VALUE) {
 
                 $queryWithCode =
 
@@ -721,7 +716,7 @@ AND EXISTS
         LIMIT 1
       ) AS R
     WHERE R.code = '
-                    . $structureCodeParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                    . $structureCodeParameter[ISqlHandler::PLACEHOLDER]
                     . ')';
 
                 $arguments[ISqlHandler::QUERY_PARAMETER][] = $structureCodeParameter;
@@ -742,7 +737,6 @@ AND EXISTS
 
             $arguments[ISqlHandler::QUERY_TEXT] = $queryText;
 
-
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
 
             $response = $sqlReader->performQuery($arguments);
@@ -757,16 +751,20 @@ AND EXISTS
             return $record;
         }
 
-        /**
-         * @return int
+        /** Сосчитать дочерние элементы
+         * @return int количество дочерних элементов
          */
         private function calculateChildren():int
         {
             $resultColumnName = 'result';
 
-            $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $oneParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
-            $oneParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $idParameter[ISqlHandler::PLACEHOLDER] = ':ID';
+            $idParameter[ISqlHandler::VALUE] = intval($this->id);
+            $idParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $isHiddenParameter[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
+            $isHiddenParameter[ISqlHandler::VALUE] = intval(self::DEFINE_AS_NOT_HIDDEN);
+            $isHiddenParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' SELECT 
@@ -776,10 +774,12 @@ AND EXISTS
                 . self::TABLE_NAME
                 . ' WHERE '
                 . self::PARENT . ' = '
-                . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
                 . ';';
 
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
 
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
             $response = $sqlReader->performQuery($arguments);

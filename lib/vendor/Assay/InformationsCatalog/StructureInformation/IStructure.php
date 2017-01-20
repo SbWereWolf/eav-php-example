@@ -15,8 +15,6 @@ namespace Assay\InformationsCatalog\StructureInformation {
      */
     interface IStructure
     {
-        /** @var string имя таблицы */
-        const TABLE_NAME = 'structure';
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'structure_id';
 
@@ -73,5 +71,10 @@ namespace Assay\InformationsCatalog\StructureInformation {
          * @return array
          */
         public function getChildrenCodes(string $codeKey = INamedEntity::CODE):array;
+        /** Добавить запись в БД на основе экземпляра
+         * @param array $parentKey значения колонок
+         * @return bool успех выполнения
+         */
+        public function setParent(array $parentKey):bool;
     }
 }
