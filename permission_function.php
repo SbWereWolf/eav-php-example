@@ -83,7 +83,7 @@ function registrationProcess(string $login, string $password, string $passwordCo
 
     $session = getRequestSession();
 
-    $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::USER_REGISTRATION,$object);
+    $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::PROCESS_USER_REGISTRATION,$object);
 
     $registrationResult = false;
     if($isAllow){
@@ -105,7 +105,7 @@ function passwordChangeProcess(string $password, string $newPassword, string $pa
 
     $session = getRequestSession();
 
-    $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::CHANGE_PASSWORD, $object);
+    $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::PROCESS_CHANGE_PASSWORD, $object);
     $isAllow = true;
     $isCorrectPassword= false;
     if($isAllow){

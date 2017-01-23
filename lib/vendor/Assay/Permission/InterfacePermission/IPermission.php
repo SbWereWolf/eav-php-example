@@ -9,10 +9,15 @@
 namespace Assay\Permission\InterfacePermission {
     interface IPermission
     {
+        const OBJECT = 'object';
+        const ACTION = 'action';
+        const SESSION_ID = 'session_id';
+        const IS_ALLOW = 'is_allow';
+
         public function checkPrivilege(array $args):array;
 
-        public function set(array $args):array;
+        public function getAllow(array $args): string;
 
-        public function get(string $key,array $args):string;
+        public function set(string $object,string $action,string $sessionId): array;
     }
 }
