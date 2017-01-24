@@ -37,6 +37,7 @@ INSERT INTO business_process (code, discription) VALUES ('add_review','доба�
 INSERT INTO business_process (code, discription) VALUES ('edit_permission','изменение разрешений для пользователей');
 INSERT INTO business_process (code, discription) VALUES ('user_registration','регистрация');
 INSERT INTO business_process (code, discription) VALUES ('user_profile_edit','изменить профиль');
+INSERT INTO business_process (code, discription) VALUES ('user_profile_view','просмотр профиль');
 INSERT INTO business_process (code, discription) VALUES ('user_logon','Вход');
 INSERT INTO business_process (code, discription) VALUES ('password_reset','Восстановить пароль');
 INSERT INTO business_process (code, discription) VALUES ('edit_password','Изменить пароль');
@@ -121,7 +122,7 @@ CREATE UNIQUE INDEX ux_privilege_business_process_id_business_object_id ON publi
 INSERT INTO privilege (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
-  WHERE bo.code='account' AND bp.code IN ('mode_user','mode_company','mode_operator','mode_redactor','mode_administrator','edit_permission','user_registration','user_profile_edit','user_logon','password_reset','edit_password');
+  WHERE bo.code='account' AND bp.code IN ('mode_user','mode_company','mode_operator','mode_redactor','mode_administrator','edit_permission','user_registration','user_profile_edit','user_profile_view','user_logon','password_reset','edit_password');
 INSERT INTO privilege (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
