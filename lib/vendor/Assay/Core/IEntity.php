@@ -23,9 +23,6 @@ namespace Assay\Core {
         /** @var string значение по умолчанию для признака "является скрытым" */
         const DEFAULT_IS_HIDDEN = self::DEFINE_AS_NOT_HIDDEN ;
 
-        const EMPTY_VALUE = Common::EMPTY_VALUE;
-
-
         /** Добавить запись сущности в БД
          * @return bool успех выполнения
          */
