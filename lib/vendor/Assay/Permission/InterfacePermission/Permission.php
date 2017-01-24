@@ -16,6 +16,7 @@ namespace Assay\Permission\InterfacePermission {
     use Assay\Permission\Privilege\BusinessObject;
     use Assay\Permission\Privilege\BusinessProcess;
     use Assay\Permission\Privilege\BusinessRole;
+    use Assay\Permission\Privilege\ISession;
     use Assay\Permission\Privilege\ObjectPrivilege;
     use Assay\Permission\Privilege\RoleDetail;
     use Assay\Permission\Privilege\Session;
@@ -87,6 +88,26 @@ namespace Assay\Permission\InterfacePermission {
         public function getAllow(array $args): string
         {
             $result = Common::setIfExists(self::IS_ALLOW,$args,ICommon::EMPTY_VALUE);
+            return $result;
+        }
+
+        public function getGreetingsRole(): string
+        {
+            $session = new Session();
+            $storedSession = $session->loadByKey();
+            $session->id = $storedSession[IEntity::ID];
+            $session->getStored();
+            $result = $session->greetingsRole;
+            return $result;
+        }
+
+        public function getMode(): string
+        {
+            $session = new Session();
+            $storedSession = $session->loadByKey();
+            $session->id = $storedSession[IEntity::ID];
+            $session->getStored();
+            $result = $session->mode;
             return $result;
         }
 

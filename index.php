@@ -1,30 +1,41 @@
 <?php
 
+include "autoloader.php";
 
-use Assay\DataAccess\SqlHandler;
-use Assay\InformationsCatalog\StructureInformation\Structure;
-
-define('CONFIGURATION_ROOT', realpath(__DIR__ . DIRECTORY_SEPARATOR . 'configuration'));
-define('DB_READ_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_read.php');
-define('DB_WRITE_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_write.php');
-
-/**
- * @param $className string Class to load
- */
-function autoload($className)
+function getRequestSession()
 {
-    $path = __DIR__ . "/lib/vendor/";
-    $className = ltrim($className, '\\');
-    $fileName = '';
-    if ($lastNsPos = strrpos($className, '\\')) {
-        $namespace = substr($className, 0, $lastNsPos);
-        $className = substr($className, $lastNsPos + 1);
-        $fileName = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
+    $emptyData = \Assay\Core\ICommon::EMPTY_VALUE;
+    $session = new Assay\Permission\Privilege\Session();
+    if ($session->key != $emptyData) {
+        $storedSession = $session->loadByKey();
+
+        $session->key = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::KEY, $storedSession, $emptyData);
+        $session->userId = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::USER_ID, $storedSession, $emptyData);
+        $session->id = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::ID, $storedSession, $emptyData);
     }
-    $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
 
-    $classSource = ($path . $fileName);
-    require($classSource);
-}
+    if ($session->key == $emptyData) {
+        $sessionValues = Assay\Permission\Privilege\Session::open($session->userId);
+        $session->setByNamedValue($sessionValues);
+        $session->setSession();
+    }
+};
 
-spl_autoload_register('autoload');
+getRequestSession();
+
+?>
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Глагне</title>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body>
+<h3>
+    Привет, <div id="greetings_role">никто</div>
+</h3>
+</body>
+</html>

@@ -12,6 +12,7 @@ namespace Assay\Permission\Privilege {
     use Assay\Communication\Profile\Profile;
     use Assay\Core\Common;
     use Assay\Core\Entity;
+    use Assay\Core\INamedEntity;
     use Assay\Core\MutableEntity;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
@@ -35,7 +36,6 @@ namespace Assay\Permission\Privilege {
 
         public function __construct()
         {
-            //$this->cookies = Common::EMPTY_OBJECT;
             session_start();
             $this->key = session_id();
             $this->companyFilter = Common::EMPTY_VALUE;
@@ -110,10 +110,8 @@ namespace Assay\Permission\Privilege {
             $userProfile = new Profile();
             $userInterface = new UserInreface();
             $bussinessProcess = new BussinessProcess();
-            var_dump("Открываю сессию");
             session_start();
             $result[self::USER_ID] = $userId;
-            var_dump("Генерирует новый ID сессии");
             $key = session_id();
             $result[self::KEY] = $key;
 
@@ -140,7 +138,7 @@ namespace Assay\Permission\Privilege {
                 self::COMPANY_FILTER, $namedValues, Common::EMPTY_VALUE
             );
             $this->mode = Common::setIfExists(
-                self::MODE, $namedValues, Common::EMPTY_VALUE
+                INamedEntity::CODE, $namedValues, Common::EMPTY_VALUE
             );
             $this->paging = Common::setIfExists(
                 self::PAGING, $namedValues, Common::EMPTY_VALUE
@@ -183,10 +181,14 @@ namespace Assay\Permission\Privilege {
                 SELECT 
                     *
                 FROM 
-                    '.$this->tablename.'
+                    '.$this->tablename.' as S,'.UserRole::TABLE_NAME.' as AR,'.User::TABLE_NAME.' as A,'.BusinessRole::TABLE_NAME.' AS R
                 WHERE 
-                    '.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::PLACEHOLDER].' AND 
-                    '.self::ID.'='.$id_field[ISqlHandler::PLACEHOLDER];
+                    S.'.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::PLACEHOLDER].' AND 
+                    S.'.self::ID.'='.$id_field[ISqlHandler::PLACEHOLDER].' AND 
+                    S.'.self::USER_ID.'=A.'.self::ID.' AND 
+                    A.'.self::ID.'=AR.'.User::EXTERNAL_ID.' AND 
+                    R.'.self::ID.'=AR.'.BusinessRole::EXTERNAL_ID.'
+                    ';
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$is_hidden,$id_field];
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
             $response = $sqlReader->performQuery($arguments);
@@ -250,7 +252,6 @@ namespace Assay\Permission\Privilege {
 
         public function setSession(): bool
         {
-            var_dump($this);
             $result = true;
             $_SESSION[self::GREETINGS_ROLE] = $this->greetingsRole;
             $_SESSION[self::COMPANY_FILTER] = $this->companyFilter;
@@ -259,20 +260,8 @@ namespace Assay\Permission\Privilege {
             return $result;
         }
 
-        public function setByCookie(Cookie $cookies)
-        {
-            $this->cookies = $cookies;
-
-            $this->key = $this->cookies->key;
-            $this->companyFilter = $this->cookies->companyFilter;
-            $this->mode = $this->cookies->mode;
-            $this->paging = $this->cookies->paging;
-            $this->greetingsRole = $this->cookies->userName;
-        }
-
         public function close():bool
         {
-            var_dump("ЗАКРЫЛ СЕССИЮ");
             $this->isHidden = true;
             $result = $this->hideEntity();
             if ($result) {
