@@ -13,31 +13,39 @@ namespace Assay\Core {
     /**
      * реализация интерфейса для работы с именнуемыми сущностями
      */
-    class Entity implements IEntity
+    class Entity extends Record implements IEntity
     {
+        /** @var string константа значение не задано для значимых типов */
+        const EMPTY_VALUE = ICommon::EMPTY_VALUE;
+        /** @var null константа значение не задано для ссылочных типов */
+        const EMPTY_OBJECT = ICommon::EMPTY_OBJECT;
+        /** @var array константа значение не задано для массивов */
+        const EMPTY_ARRAY = ICommon::EMPTY_ARRAY;
+
+        /** @var string имя таблицы БД для хранения сущности */
         const TABLE_NAME = 'entity_table';
+        
         /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
-        /** @var string идентификатор записи таблицы */
-        public $id;
-        /** @var string признак "является скрытым" */
-        public $isHidden;
+
+        /** @var string флаг "является скрытым" */
+        public $isHidden = self::EMPTY_VALUE ;
 
         public function addEntity():bool
         {
-            $arguments[ISqlHandler::QUERY_TEXT] = '
-            INSERT INTO ' . $this->tablename
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' INSERT INTO ' . $this->tablename
                 . ' DEFAULT VALUES RETURNING '
                 . self::ID
                 .' , '.self::IS_HIDDEN 
                 .' ; '
                 ;
 
-            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
+            $sqlWriter = new SqlHandler(ISqlHandler::DATA_WRITER);
             $response = $sqlWriter->performQuery($arguments);
 
             $isSuccessfulRead = SqlHandler::isNoError($response);
-            $record = array();
+            $record = self::EMPTY_ARRAY;
             if ($isSuccessfulRead) {
                 $record = SqlHandler::getFirstRecord($response);
             }
@@ -74,7 +82,7 @@ namespace Assay\Core {
             $response = $sqlWriter->performQuery($arguments);
 
             $isSuccessfulRead = SqlHandler::isNoError($response);
-            $record = array();
+            $record = self::EMPTY_ARRAY;
             if ($isSuccessfulRead) {
                 $record = SqlHandler::getFirstRecord($response);
             }
@@ -95,11 +103,12 @@ namespace Assay\Core {
             return $result;
         }
 
-        /** Загрузить данные сохранённые в БД
+        /** Прочитать данные экземпляра из БД
          * @return bool успех выполнения
          */
-        public function getStored():bool{
-            $result = false;
+        public function getStored():bool
+        {
+            $result = $this->loadById($this->id);
             return $result;
         }
 
@@ -107,7 +116,7 @@ namespace Assay\Core {
          * @return array массив свойств экземпляра
          */
         public function toEntity():array{
-            $result =array();
+            $result =self::EMPTY_ARRAY;
             return $result;
         }
         /** Обновляет (изменяет) запись в БД

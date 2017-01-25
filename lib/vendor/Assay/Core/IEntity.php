@@ -11,8 +11,6 @@ namespace Assay\Core {
      */
     interface IEntity
     {
-        /** @var string колонка для айди */
-        const ID = 'id';
         /** @var string колонка признака "является скрытым" */
         const IS_HIDDEN = 'is_hidden';
         
@@ -22,9 +20,6 @@ namespace Assay\Core {
         const DEFINE_AS_NOT_HIDDEN = false;
         /** @var string значение по умолчанию для признака "является скрытым" */
         const DEFAULT_IS_HIDDEN = self::DEFINE_AS_NOT_HIDDEN ;
-
-        const EMPTY_VALUE = Common::EMPTY_VALUE;
-
 
         /** Добавить запись сущности в БД
          * @return bool успех выполнения

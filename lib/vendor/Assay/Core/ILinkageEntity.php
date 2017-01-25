@@ -12,15 +12,15 @@ namespace Assay\Core {
     interface ILinkageEntity
     {
         /** Удалить связь
-         * @param array $foreignKey значение внешнего ключа
+         * @param array $foreignKeys значение внешнего ключа
          * @return bool значения колонок
          */
-        public function dropLinkage(array $foreignKey):bool;
+        public function dropLinkage(array $foreignKeys):bool;
 
         /** Добавить запись в БД на основе экземпляра
-         * @param array $foreignKey значение внешнего ключа
+         * @param array $foreignKeys значение внешнего ключа
          * @return bool успех выполнения
          */
-        public function addLinkage(array $foreignKey):bool;
+        public function addLinkage(array $foreignKeys):bool;
     }
 }
