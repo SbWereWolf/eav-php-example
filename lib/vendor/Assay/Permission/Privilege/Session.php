@@ -14,6 +14,7 @@ namespace Assay\Permission\Privilege {
     use Assay\Core\Entity;
     use Assay\Core\INamedEntity;
     use Assay\Core\MutableEntity;
+    use Assay\Core\NamedEntity;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
 
@@ -179,7 +180,7 @@ namespace Assay\Permission\Privilege {
 
             $arguments[ISqlHandler::QUERY_TEXT] ='
                 SELECT 
-                    *
+                    S.*,R.'.NamedEntity::CODE.'
                 FROM 
                     '.$this->tablename.' as S,'.AccountRole::TABLE_NAME.' as AR,'.Account::TABLE_NAME.' as A,'.BusinessRole::TABLE_NAME.' AS R
                 WHERE 

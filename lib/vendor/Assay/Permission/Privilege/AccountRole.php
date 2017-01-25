@@ -123,7 +123,6 @@ namespace Assay\Permission\Privilege {
                     R.".self::IS_HIDDEN." = ".$is_hidden_field[ISqlHandler::PLACEHOLDER]." AND
                     S.".self::IS_HIDDEN." = ".$is_hidden_field[ISqlHandler::PLACEHOLDER]."
             ";
-            var_dump("SQL",$arguments[ISqlHandler::QUERY_TEXT]);
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$process_field,$object_field,$sid_field,$is_hidden_field];
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
             $response = $sqlReader->performQuery($arguments);

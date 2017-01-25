@@ -41,6 +41,7 @@ function getRequestSession():\Assay\Permission\Privilege\Session
         $storedSession = $session->loadByKey();
 
         $session->id = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::ID, $storedSession, $emptyData);
+        $session->key = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::KEY, $storedSession, $emptyData);
         $session->getStored();
     }
 

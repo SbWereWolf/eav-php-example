@@ -38,6 +38,14 @@ function logOn(string $login, string $password):array
     return $result;
 }
 
+function authorizationProcess(Assay\Permission\Privilege\Session $session, string $process, string $object):bool{
+
+    $sessId = $session->id;
+    $userRole = new Assay\Permission\Privilege\AccountRole($sessId);
+    $result = $userRole->userAuthorization($process, $object,$sessId);
+    return $result;
+}
+
 function registrationProcess(string $login, string $password, string $passwordConfirmation, string $email, string $object):bool{
 
     $result = false;
@@ -47,12 +55,14 @@ function registrationProcess(string $login, string $password, string $passwordCo
     $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::PROCESS_USER_REGISTRATION,$object);
 
     $registrationResult = false;
+    $user = new Assay\Permission\Privilege\Account();
     if($isAllow){
-        $user = new Assay\Permission\Privilege\Account();
         $registrationResult = $user->registration($login,$password,$passwordConfirmation,$email);
     }
 
     if($registrationResult){
+        $accountRole = new \Assay\Permission\Privilege\AccountRole($user->id);
+        $accountRole->grantRole("user");
         $logonResult = logOn($login,$password);
         $result = Assay\Core\Common::setIfExists(0, $logonResult, false);
     }
