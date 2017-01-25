@@ -6,18 +6,18 @@
  * Time: 10:38
  */
 namespace Assay\Communication\Profile {
-    interface IProfile
+    interface ICompany
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */
+        /*
         const GREETINGS_ROLE = 'greetings_role';
 
         public function getCommentEnableArea():bool;
 
         public function getGreetingsRole():string;
 
-        /** Будет браться из учетной записи Пользователя
-         * @return string
-         */
         public function getUserEmail():bool;
+        */
+
     }
 }

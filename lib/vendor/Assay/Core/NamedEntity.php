@@ -137,6 +137,7 @@ namespace Assay\Core {
 
             return $result;
         }
+
         public function setByNamedValue(array $namedValue):bool
         {
             $this->code = Common::setIfExists(self::CODE, $namedValue, self::EMPTY_VALUE);

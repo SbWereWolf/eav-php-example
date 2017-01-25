@@ -81,7 +81,7 @@ namespace Assay\Permission\Privilege {
             if (!$isContain) {
                 $result = $this->updateEntity();
             }
-
+//print_r($result);
             return $result;
         }
 
@@ -146,7 +146,7 @@ namespace Assay\Permission\Privilege {
             ';
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$is_hidden,$id_field];
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments);
+            $response = $sqlReader->performQuery($arguments); //print_r($response); exit;
             $isSuccessfulRead = SqlHandler::isNoError($response);
 
             $record = array();

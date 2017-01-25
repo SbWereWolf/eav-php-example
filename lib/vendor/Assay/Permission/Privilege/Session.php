@@ -36,7 +36,7 @@ namespace Assay\Permission\Privilege {
         public function __construct()
         {
             //$this->cookies = Common::EMPTY_OBJECT;
-            session_start();
+ //           session_start();
             $this->key = session_id();
             $this->companyFilter = Common::EMPTY_VALUE;
             $this->mode = Common::EMPTY_VALUE;
@@ -111,7 +111,7 @@ namespace Assay\Permission\Privilege {
             $userInterface = new UserInreface();
             $bussinessProcess = new BussinessProcess();
             var_dump("Открываю сессию");
-            session_start();
+            //session_start();
             $result[self::USER_ID] = $userId;
             var_dump("Генерирует новый ID сессии");
             $key = session_id();
