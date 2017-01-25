@@ -13,7 +13,7 @@ namespace Assay\Permission\Privilege {
         const EXTERNAL_ID = 'account_role_id';
 
         /** @var string колонка ссылки на учётную запись пользователя */
-        const USER = IAccount::EXTERNAL_ID;
+        const ACCOUNT = IAccount::EXTERNAL_ID;
         /** @var string колонка ссылки на бизнес роль */
         const ROLE = BusinessRole::EXTERNAL_ID;
 
