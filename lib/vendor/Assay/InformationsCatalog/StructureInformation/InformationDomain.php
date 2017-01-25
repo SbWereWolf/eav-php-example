@@ -33,13 +33,9 @@ namespace Assay\InformationsCatalog\StructureInformation {
          */
         public function loadByCode(string $code):bool
         {
-            $codeParameter[ISqlHandler::PLACEHOLDER] = ':CODE';
-            $codeParameter[ISqlHandler::VALUE] = strval($code);
-            $codeParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
 
-            $isHiddenParameter[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
-            $isHiddenParameter[ISqlHandler::VALUE] = intval(self::DEFINE_AS_NOT_HIDDEN);
-            $isHiddenParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+            $codeParameter = SqlHandler::setBindParameter(':CODE',$code,\PDO::PARAM_STR);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN',self::DEFINE_AS_NOT_HIDDEN,\PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
@@ -93,9 +89,8 @@ namespace Assay\InformationsCatalog\StructureInformation {
          */
         public function loadById(string $id):bool
         {
-            $oneParameter[ISqlHandler::PLACEHOLDER] = ':ID';
-            $oneParameter[ISqlHandler::VALUE] = intval($id);
-            $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $oneParameter = SqlHandler::setBindParameter(':ID',$id,\PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
@@ -181,37 +176,14 @@ namespace Assay\InformationsCatalog\StructureInformation {
         protected function updateEntity():bool
         {
 
-            $codeParameter[ISqlHandler::PLACEHOLDER] = ':CODE';
-            $codeParameter[ISqlHandler::VALUE] = $this->code;
-            $codeParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-
-            $descriptionParameter[ISqlHandler::PLACEHOLDER] = ':DESCRIPTION';
-            $descriptionParameter[ISqlHandler::VALUE] = $this->description;
-            $descriptionParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-
-            $idParameter[ISqlHandler::PLACEHOLDER] = ':ID';
-            $idParameter[ISqlHandler::VALUE] = intval($this->id);
-            $idParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-
-            $isHiddenParameter[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
-            $isHiddenParameter[ISqlHandler::VALUE] = intval($this->isHidden);
-            $isHiddenParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-
-            $nameParameter[ISqlHandler::PLACEHOLDER] = ':NAME';
-            $nameParameter[ISqlHandler::VALUE] = $this->name;
-            $nameParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-
-            $searchTypeParameter[ISqlHandler::PLACEHOLDER] = ':SEARCH_TYPE';
-            $searchTypeParameter[ISqlHandler::VALUE] = intval($this->searchType);
-            $searchTypeParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-
-            $typeEditParameter[ISqlHandler::PLACEHOLDER] = ':TYPE_EDIT';
-            $typeEditParameter[ISqlHandler::VALUE] = intval($this->typeEdit);
-            $typeEditParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-
-            $dataTypeParameter[ISqlHandler::PLACEHOLDER] = ':DATA_TYPE';
-            $dataTypeParameter[ISqlHandler::VALUE] = intval($this->dataType);
-            $dataTypeParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+            $codeParameter = SqlHandler::setBindParameter(':CODE',$this->code,\PDO::PARAM_STR);
+            $descriptionParameter = SqlHandler::setBindParameter(':DESCRIPTION',$this->description,\PDO::PARAM_STR);
+            $idParameter = SqlHandler::setBindParameter(':ID',$this->id,\PDO::PARAM_INT);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN',$this->isHidden,\PDO::PARAM_INT);
+            $nameParameter = SqlHandler::setBindParameter(':NAME',$this->name,\PDO::PARAM_STR);
+            $searchTypeParameter = SqlHandler::setBindParameter(':SEARCH_TYPE',$this->searchType,\PDO::PARAM_INT);
+            $typeEditParameter = SqlHandler::setBindParameter(':TYPE_EDIT',$this->typeEdit,\PDO::PARAM_INT);
+            $dataTypeParameter = SqlHandler::setBindParameter(':DATA_TYPE',$this->dataType,\PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'UPDATE '

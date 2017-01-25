@@ -14,6 +14,9 @@ namespace Assay\InformationsCatalog\DataInformation {
     {
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'information_instance_id';
+
+        /** @var string имя таблдицы */
+        const TABLE_NAME = 'information_instance';
         
         /** @var string колонка для ссылки на рубрику */
         const RUBRIC = 'rubric_id';
@@ -22,7 +25,7 @@ namespace Assay\InformationsCatalog\DataInformation {
          * @param array $type типы отображения
          * @return array результат вычисления
          */
-        public function getPositionByPrivileges($type = array()):array;
+        public function getPositionByMode($type = array()):array;
 
         /** Выполнить поиск
          * @param array $filterProperties параметры поиска

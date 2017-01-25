@@ -11,6 +11,9 @@ namespace Assay\Core;
 
 class Record
 {
+    /** @var string константа значение не задано для значимых типов */
+    const EMPTY_VALUE = ICommon::EMPTY_VALUE;
+
     /** @var string колонка для идентификатора */
     const ID = 'id';
 
@@ -20,5 +23,5 @@ class Record
     protected $tablename = self::TABLE_NAME;
 
     /** @var string идентификатор записи */
-    public $id;
+    public $id = self::EMPTY_VALUE;
 }

@@ -21,9 +21,6 @@ namespace Assay\InformationsCatalog\StructureInformation {
         const EXTERNAL_ID = 'information_property_id';
 
         /** @var string имя таблицы БД для хранения сущности */
-        const TABLE_NAME = 'information_property';
-
-        /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
 
         private $informationDomain = self::EMPTY_VALUE;
@@ -100,8 +97,8 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
             $presentDomain = Common::setIfExists(self::INFORMATION_DOMAIN, $entity, self::EMPTY_VALUE);
             $storedDomain = Common::setIfExists(self::INFORMATION_DOMAIN, $storedEntity, self::EMPTY_VALUE);
-            $letSaveDomain = $presentDomain != $storedDomain
-                || $storedDomain == self::EMPTY_VALUE;
+            $letSaveDomain = $presentDomain != $storedDomain;
+
             $saveResult = true;
             if($letSaveDomain){
                 $saveResult = $this->saveInformationDomain();
@@ -137,10 +134,8 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
         private function loadInformationDomain():bool
         {
-
-            $oneParameter[ISqlHandler::PLACEHOLDER] = ':ID';
-            $oneParameter[ISqlHandler::VALUE] = intval($this->id);
-            $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+            
+            $oneParameter = SqlHandler::setBindParameter(':ID',$this->id,\PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '

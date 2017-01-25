@@ -9,7 +9,7 @@ namespace Assay\Permission\Privilege {
 
     use Assay\Core\Common;
     use Assay\Core\Entity;
-    use Assay\Core\IHide;
+    use Assay\Core\IPrimitiveData;
     use Assay\Core\MutableEntity;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
