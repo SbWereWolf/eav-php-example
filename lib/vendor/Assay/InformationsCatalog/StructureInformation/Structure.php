@@ -24,9 +24,6 @@ namespace Assay\InformationsCatalog\StructureInformation {
         /** @var string имя таблицы */
         const TABLE_NAME = 'structure';
 
-        /** @var string колонка идентификатора */
-        const ID = 'id';
-
         /** @var string идентификатор записи таблицы */
         public $id = self::EMPTY_VALUE;
         /** @var string признак "является скрытым" */
@@ -40,6 +37,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         /** @var string описание */
         public $description = self::EMPTY_VALUE;
 
+        /** @var string имя таблицы */
         protected $tablename = self::TABLE_NAME;
 
         /** Прочитать запись из БД
@@ -211,7 +209,7 @@ UPDATE '
         /** Обновить данные в БД
          * @return bool успех выполнения
          */
-        private function updateEntity():bool
+        protected function updateEntity():bool
         {
 
             $codeParameter[ISqlHandler::PLACEHOLDER] = ':CODE';

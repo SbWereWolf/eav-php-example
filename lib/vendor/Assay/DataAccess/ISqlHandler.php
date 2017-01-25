@@ -23,6 +23,9 @@ interface ISqlHandler
     const EXEC_ERROR_CODE_INDEX = 0;
     const EXEC_ERROR_NUMBER_INDEX = 1;
     const EXEC_ERROR_MESSAGE_INDEX = 2;
+
+    const DATA_READER = 1;
+    const DATA_WRITER = 2;
     
     public function performQuery(array $arguments):array;
     public static function getFirstRecord(array $response):array;

@@ -9,22 +9,22 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
     use Assay\Core\NamedEntity;
 
-    class SearchType extends NamedEntity
+    class DataType extends NamedEntity
     {
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
-        const EXTERNAL_ID = 'search_type_id';
+        const EXTERNAL_ID = 'data_type_id';
 
         /** @var string имя таблицы */
-        const TABLE_NAME = 'search_type';
+        const TABLE_NAME = 'data_type';
 
         /** @var string значение не определено */
         const UNDEFINED = 'UNDEFINED';
-        /** @var string поиск подобия */
-        const LIKE = 'LIKE';
-        /** @var string поиск в диапазоне */
-        const BETWEEN = 'BETWEEN';
-        /** @var string поиск перечисления */
-        const ENUMERATION = 'ENUMERATION';
+        /** @var string целочисленный тип */
+        const INTEGER = 'INTEGER';
+        /** @var string числовой тип */
+        const FLOAT = 'FLOAT';
+        /** @var string символьный тип */
+        const STRING = 'STRING';
 
         /** @var string имя таблицы */
         protected $tablename = self::TABLE_NAME;
