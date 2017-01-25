@@ -14,7 +14,7 @@ namespace Assay\Permission\Privilege {
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
 
-    class User extends Entity implements IUser, IAuthenticateUser
+    class Account extends Entity implements IAccount, IAuthenticateAccount
     {
         /** @var string название таблицы */
         const TABLE_NAME = 'account';
@@ -67,7 +67,7 @@ namespace Assay\Permission\Privilege {
         {
             $result = false;
 
-            $stored = new User();
+            $stored = new Account();
             $wasReadStored = $stored->readEntity($this->id);
 
             $storedEntity = array();

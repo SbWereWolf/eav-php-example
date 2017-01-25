@@ -9,7 +9,7 @@ namespace Assay\Permission\Privilege {
 
     use Assay\Core\Common;
 
-    interface IUser
+    interface IAccount
     {
 
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */

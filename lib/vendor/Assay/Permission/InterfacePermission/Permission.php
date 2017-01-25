@@ -16,11 +16,12 @@ namespace Assay\Permission\InterfacePermission {
     use Assay\Permission\Privilege\BusinessObject;
     use Assay\Permission\Privilege\BusinessProcess;
     use Assay\Permission\Privilege\BusinessRole;
+    use Assay\Permission\Privilege\ISession;
     use Assay\Permission\Privilege\ObjectPrivilege;
     use Assay\Permission\Privilege\RoleDetail;
     use Assay\Permission\Privilege\Session;
-    use Assay\Permission\Privilege\User;
-    use Assay\Permission\Privilege\UserRole;
+    use Assay\Permission\Privilege\Account;
+    use Assay\Permission\Privilege\AccountRole;
 
     Class Permission implements IPermission {
         public function checkPrivilege(array $args): array
@@ -48,9 +49,9 @@ namespace Assay\Permission\InterfacePermission {
                 FROM 
                     ".Session::TABLE_NAME." S 
                 JOIN 
-                    ".User::TABLE_NAME." U ON S.".User::EXTERNAL_ID." = U.".IEntity::ID."
+                    ".Account::TABLE_NAME." U ON S.".Account::EXTERNAL_ID." = U.".IEntity::ID."
                 JOIN 
-                    ".UserRole::TABLE_NAME." UR ON U.".IEntity::ID." = UR.".User::EXTERNAL_ID."
+                    ".AccountRole::TABLE_NAME." UR ON U.".IEntity::ID." = UR.".Account::EXTERNAL_ID."
                 JOIN 
                     ".BusinessRole::TABLE_NAME." R ON R.".IEntity::ID." = UR.".BusinessRole::EXTERNAL_ID."
                 JOIN 
@@ -71,7 +72,6 @@ namespace Assay\Permission\InterfacePermission {
                     R.".IEntity::IS_HIDDEN." = ".$is_hidden_field[ISqlHandler::PLACEHOLDER]." AND
                     S.".IEntity::IS_HIDDEN." = ".$is_hidden_field[ISqlHandler::PLACEHOLDER]."
             ";
-            var_dump("SQL",$arguments[ISqlHandler::QUERY_TEXT]);
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$process_field,$object_field,$sid_field,$is_hidden_field];
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
             $response = $sqlReader->performQuery($arguments);
@@ -87,6 +87,36 @@ namespace Assay\Permission\InterfacePermission {
         public function getAllow(array $args): string
         {
             $result = Common::setIfExists(self::IS_ALLOW,$args,ICommon::EMPTY_VALUE);
+            return $result;
+        }
+
+        public function getGreetingsRole(): string
+        {
+            $session = new Session();
+            $storedSession = $session->loadByKey();
+            $session->id = $storedSession[IEntity::ID];
+            $session->getStored();
+            $result = $session->greetingsRole;
+            return $result;
+        }
+
+        public function getMode(): string
+        {
+            $session = new Session();
+            $storedSession = $session->loadByKey();
+            $session->id = $storedSession[IEntity::ID];
+            $session->getStored();
+            $result = $session->mode;
+            return $result;
+        }
+
+        public function getPaging(): string
+        {
+            $session = new Session();
+            $storedSession = $session->loadByKey();
+            $session->id = $storedSession[IEntity::ID];
+            $session->getStored();
+            $result = $session->paging;
             return $result;
         }
 

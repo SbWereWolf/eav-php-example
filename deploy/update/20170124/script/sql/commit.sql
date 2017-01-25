@@ -39,6 +39,7 @@ INSERT INTO business_process (code, discription) VALUES ('user_registration','р
 INSERT INTO business_process (code, discription) VALUES ('user_profile_edit','изменить профиль');
 INSERT INTO business_process (code, discription) VALUES ('user_profile_view','просмотр профиль');
 INSERT INTO business_process (code, discription) VALUES ('user_logon','Вход');
+INSERT INTO business_process (code, discription) VALUES ('user_logout','Выход');
 INSERT INTO business_process (code, discription) VALUES ('password_reset','Восстановить пароль');
 INSERT INTO business_process (code, discription) VALUES ('edit_password','Изменить пароль');
 INSERT INTO business_process (code, discription) VALUES ('catalog_search','Поиск в каталоге');
@@ -122,7 +123,7 @@ CREATE UNIQUE INDEX ux_privilege_business_process_id_business_object_id ON publi
 INSERT INTO privilege (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
-  WHERE bo.code='account' AND bp.code IN ('mode_user','mode_company','mode_operator','mode_redactor','mode_administrator','edit_permission','user_registration','user_profile_edit','user_profile_view','user_logon','password_reset','edit_password');
+  WHERE bo.code='account' AND bp.code IN ('mode_user','mode_company','mode_operator','mode_redactor','mode_administrator','edit_permission','user_registration','user_profile_edit','user_profile_view','user_logon','user_logout','password_reset','edit_password');
 INSERT INTO privilege (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
@@ -171,7 +172,103 @@ CREATE TABLE public.role_detail
   CONSTRAINT "fk_role_detail_role_id" FOREIGN KEY (role_id) REFERENCES public.role (id) ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 CREATE UNIQUE INDEX ux_role_detail_privilege_id_role_id ON public.role_detail (privilege_id,role_id);
-INSERT INTO role_detail (privilege_id,role_id) VALUES (1,1);
+INSERT INTO role_detail (role_id, privilege_id)
+  SELECT r.id,p.id FROM role as r,privilege as p,business_process as bp,business_object as bo
+  WHERE
+    bp.id = p.business_process_id AND
+    bo.id = p.business_object_id AND
+    r.code = 'guest' AND
+    (
+      (bo.code = 'account' AND bp.code in ('user_registration','user_logon','password_reset','mode_user')) OR
+      (bo.code = 'catalog' AND bp.code in ('catalog_search')) OR
+      (bo.code = 'formula' AND bp.code in ('calculate_formula')) OR
+      (bo.code = 'goods' AND bp.code in ('add_order_goods','add_order_shipping')) OR
+      (bo.code = 'comment' AND bp.code in ('comment_view'))
+    );
+
+INSERT INTO role_detail (role_id, privilege_id)
+  SELECT r.id,p.id FROM role as r,privilege as p,business_process as bp,business_object as bo
+  WHERE
+    bp.id = p.business_process_id AND
+    bo.id = p.business_object_id AND
+    r.code = 'user' AND
+    (
+      (bo.code = 'review' AND bp.code in ('add_review')) OR
+      (bo.code = 'account' AND bp.code in ('user_registration','user_logon','user_logout','password_reset','edit_password','user_profile_edit','user_profile_view','mode_user','mode_company','mode_operator','mode_redactor','mode_administrator')) OR
+      (bo.code = 'catalog' AND bp.code in ('catalog_search','structure_view','rubric_search','rubric_view','rubric_add_self','rubric_edit_user_data')) OR
+      (bo.code = 'goods' AND bp.code in ('add_order_goods','add_order_shipping')) OR
+      (bo.code = 'comment' AND bp.code in ('comment_view','comment_add')) OR
+      (bo.code = 'formula' AND bp.code in ('calculate_formula')) OR
+      (bo.code = 'message' AND bp.code in ('message_add','message_view')) OR
+      (bo.code = 'favorite' AND bp.code in ('add_favorite')) OR
+      (bo.code = 'like' AND bp.code in ('add_like')) OR
+      (bo.code = 'ad' AND bp.code in ('add_ad'))
+    );
+
+INSERT INTO role_detail (role_id, privilege_id)
+  SELECT r.id,p.id FROM role as r,privilege as p,business_process as bp,business_object as bo
+  WHERE
+    bp.id = p.business_process_id AND
+    bo.id = p.business_object_id AND
+    r.code = 'company' AND
+    (
+      (bo.code = 'review' AND bp.code in ('add_review')) OR
+      (bo.code = 'account' AND bp.code in ('user_logout','user_profile_view','mode_user','mode_company','mode_operator','mode_redactor','mode_administrator')) OR
+      (bo.code = 'catalog' AND bp.code in ('catalog_search','structure_view','rubric_edit_user_data','rubric_search','rubric_view','structure_edit_system_data','rubric_edit_self_data')) OR
+      (bo.code = 'goods' AND bp.code in ('add_order_goods','add_order_shipping')) OR
+      (bo.code = 'comment' AND bp.code in ('comment_view','comment_add')) OR
+      (bo.code = 'formula' AND bp.code in ('calculate_formula')) OR
+      (bo.code = 'message' AND bp.code in ('message_add','message_view')) OR
+      (bo.code = 'favorite' AND bp.code in ('add_favorite')) OR
+      (bo.code = 'like' AND bp.code in ('add_like')) OR
+      (bo.code = 'ad' AND bp.code in ('add_ad'))
+    );
+
+INSERT INTO role_detail (role_id, privilege_id)
+  SELECT r.id,p.id FROM role as r,privilege as p,business_process as bp,business_object as bo
+  WHERE
+    bp.id = p.business_process_id AND
+    bo.id = p.business_object_id AND
+    r.code = 'operator' AND
+    (
+      (bo.code = 'review' AND bp.code in ('add_review')) OR
+      (bo.code = 'account' AND bp.code in ('user_logout','user_profile_view','mode_user','mode_company','mode_operator','mode_redactor','mode_administrator')) OR
+      (bo.code = 'catalog' AND bp.code in ('catalog_search','structure_view','rubric_search','rubric_add_common','structure_edit_system_data')) OR
+      (bo.code = 'comment' AND bp.code in ('comment_view')) OR
+      (bo.code = 'message' AND bp.code in ('message_add','message_view')) OR
+      (bo.code = 'favorite' AND bp.code in ('add_favorite')) OR
+      (bo.code = 'like' AND bp.code in ('add_like'))
+    );
+
+INSERT INTO role_detail (role_id, privilege_id)
+  SELECT r.id,p.id FROM role as r,privilege as p,business_process as bp,business_object as bo
+  WHERE
+    bp.id = p.business_process_id AND
+    bo.id = p.business_object_id AND
+    r.code = 'redactor' AND
+    (
+      (bo.code = 'review' AND bp.code in ('add_review')) OR
+      (bo.code = 'account' AND bp.code in ('user_logout','user_profile_view','mode_user','mode_company','mode_operator','mode_redactor','mode_administrator')) OR
+      (bo.code = 'catalog' AND bp.code in ('structure_view','structure_add','structure_edit_user_data','structure_edit_system_data')) OR
+      (bo.code = 'comment' AND bp.code in ('comment_view')) OR
+      (bo.code = 'message' AND bp.code in ('message_add','message_view')) OR
+      (bo.code = 'favorite' AND bp.code in ('add_favorite')) OR
+      (bo.code = 'like' AND bp.code in ('add_like'))
+    );
+
+INSERT INTO role_detail (role_id, privilege_id)
+  SELECT r.id,p.id FROM role as r,privilege as p,business_process as bp,business_object as bo
+  WHERE
+    bp.id = p.business_process_id AND
+    bo.id = p.business_object_id AND
+    r.code = 'administrator' AND
+    (
+      (bo.code = 'review' AND bp.code in ('add_review')) OR
+      (bo.code = 'account' AND bp.code in ('user_logout','user_profile_view','mode_user','mode_company','mode_operator','mode_redactor','mode_administrator','edit_permission')) OR
+      (bo.code = 'message' AND bp.code in ('message_add','message_view')) OR
+      (bo.code = 'favorite' AND bp.code in ('add_favorite')) OR
+      (bo.code = 'like' AND bp.code in ('add_like'))
+    );
 
 DROP TABLE public.account_role CASCADE;
 

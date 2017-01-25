@@ -8,7 +8,7 @@
 namespace Assay\InformationsCatalog\Permission {
 
     use Assay\Core\Entity;
-    use Assay\Permission\Privilege\IUser;
+    use Assay\Permission\Privilege\IAccount;
     /**
      * Пользователь информационного каталога
      */
@@ -18,6 +18,6 @@ namespace Assay\InformationsCatalog\Permission {
         const EXTERNAL_ID = 'information_user_id';
 
         /** @var string колонка для ссылки на учётную запись */
-        const USER_ID = IUser::EXTERNAL_ID;
+        const USER_ID = IAccount::EXTERNAL_ID;
     }
 }

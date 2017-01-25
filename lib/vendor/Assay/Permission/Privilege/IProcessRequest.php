@@ -28,13 +28,14 @@ namespace Assay\Permission\Privilege {
         const PROCESS_USER_REGISTRATION = 'user_registration';
         /** @var string изменить профиль */
         const PROCESS_CHANGE_PROFILE = 'user_profile_edit';
-        /** @var string просмотр профиля* /
-         * const VIEW_PROFILE = 'user_profile_view';
-         * /** @var string вход
+        /** @var string просмотр профиля* */
+        const VIEW_PROFILE = 'user_profile_view';
+        /* * /** @var string вход
          */
         const PROCESS_USER_LOGON = 'user_logon';
         // начать сеанс
         // выход
+        const PROCESS_USER_LOGOUT = 'user_logout';
         /** @var string восстановить пароль */
         const PROCESS_PASSWORD_RESET = 'password_reset';
         /** @var string изменить пароль */
