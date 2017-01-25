@@ -11,8 +11,6 @@ namespace Assay\Core {
      */
     interface IEntity
     {
-        /** @var string колонка для айди */
-        const ID = 'id';
         /** @var string колонка признака "является скрытым" */
         const IS_HIDDEN = 'is_hidden';
         

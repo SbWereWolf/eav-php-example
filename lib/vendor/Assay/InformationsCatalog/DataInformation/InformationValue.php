@@ -8,7 +8,7 @@
 namespace Assay\InformationsCatalog\DataInformation {
 
     use Assay\Core\MutableEntity;
-    use Assay\InformationsCatalog\StructureInformation\RubricProperty;
+    use Assay\InformationsCatalog\StructureInformation\InformationProperty;
     /**
      * Значения свойства позиции рубрики
      */
@@ -20,7 +20,7 @@ namespace Assay\InformationsCatalog\DataInformation {
         /** @var string колонка для ссылки на позицию рубрики */
         const INSTANCE = IInformationInstance::EXTERNAL_ID;
         /** @var string колонка для ссылки на рубрику */
-        const PROPERTY = RubricProperty::EXTERNAL_ID;
+        const PROPERTY = InformationProperty::EXTERNAL_ID;
         /** @var string значение свойства */
         const VALUE = 'value';
 

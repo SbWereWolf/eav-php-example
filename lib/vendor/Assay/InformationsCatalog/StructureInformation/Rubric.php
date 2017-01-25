@@ -41,48 +41,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public function getProperties():array
         {
         }
-        /** Загрузить по коду записи
-         * @param string $code код записи
-         * @return bool успех выполнения
-         */
-        /*        
-                public function loadByCode(string $code):bool
-                {
-                    $result = false;
-                    return $result;
-                }
-                
-        */
-        /** Загрузить данные в соответствии с идентификатором
-         * @param string $id идентификатор записи
-         * @return bool успех выполнения
-         */
-        /*
-                public function loadById(string $id):bool{
-                    $result = false;
-                    return $result;
-                }
-        */
 
-        /** Загрузить данные сохранённые в БД
-         * @return bool успех выполнения
-         */
-        /*
-                public function getStored():bool{
-                    $result = false;
-                    return $result;
-                }
-        
-                */
-        /** Формирует массив из свойств экземпляра
-         * @return array массив свойств экземпляра
-         */
-        /*
-                public function toEntity():array{
-                    $result =array();
-                    return $result;
-                }
-                */
         /** Обновляет (изменяет) запись в БД
          * @return bool успешность изменения
          */
@@ -112,7 +71,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         /** Обновить данные в БД
          * @return bool успех выполнения
          */
-        private function updateEntity():bool
+        protected function updateEntity():bool
         {
 
             $codeParameter[ISqlHandler::PLACEHOLDER] = ':CODE';
@@ -137,7 +96,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'UPDATE '
-                . self::TABLE_NAME
+                . $this->tablename
                 . ' SET '
                 . self::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER]
                 . ' , ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
@@ -158,16 +117,5 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $isSuccessfulRequest = SqlHandler::isNoError($response);
             return $isSuccessfulRequest;
         }
-
-        /** Установить свойства экземпляра в соответствии со значениями
-         * @param array $namedValue массив значений
-         * @return bool успех выполнения
-         */
-        /*
-                public function setByNamedValue(array $namedValue):bool{
-                    $result = false;
-                    return $result;
-                }
-                */
     }
 }

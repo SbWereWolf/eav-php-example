@@ -16,13 +16,19 @@ namespace Assay\InformationsCatalog\StructureInformation {
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'type_edit_id';
 
+        /** @var string имя таблицы */
+        const TABLE_NAME = 'type_edit';
+
         /** @var string значение не определено */
-        const UNDEFINED = '0';
-        /** @var string системные свойства */
-        const SYSTEM = '1';
-        /** @var string пользовательские свойства */
-        const USER = '2';
-        /** @var string свойства компании */
-        const COMPANY = '3';
+        const UNDEFINED = 'UNDEFINED';
+        /** @var string системное свойство */
+        const SYSTEM = 'SYSTEM';
+        /** @var string пользовательское свойство */
+        const USER = 'USER';
+        /** @var string свойство компании */
+        const COMPANY = 'COMPANY';
+
+        /** @var string имя таблицы */
+        protected $tablename = self::TABLE_NAME;
     }
 }
