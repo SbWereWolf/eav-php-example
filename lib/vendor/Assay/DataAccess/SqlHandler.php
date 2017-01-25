@@ -17,9 +17,6 @@ class SqlHandler implements ISqlHandler
     const RECORDS = 'fetchAll';
     const ERROR_INFO = 'errorInfo';
 
-    const DATA_READER = 1;
-    const DATA_WRITER = 2;
-
     private $dataSource = Common::EMPTY_VALUE;
     private $dbLogin = Common::EMPTY_VALUE;
     private $dbPassword = Common::EMPTY_VALUE;
