@@ -22,6 +22,8 @@ namespace Assay\Permission\InterfacePermission {
 
         public function getMode(): string;
 
+        public function getPaging(): string;
+
         public function set(string $object,string $action,string $sessionId): array;
     }
 }

@@ -181,12 +181,12 @@ namespace Assay\Permission\Privilege {
                 SELECT 
                     *
                 FROM 
-                    '.$this->tablename.' as S,'.UserRole::TABLE_NAME.' as AR,'.User::TABLE_NAME.' as A,'.BusinessRole::TABLE_NAME.' AS R
+                    '.$this->tablename.' as S,'.AccountRole::TABLE_NAME.' as AR,'.Account::TABLE_NAME.' as A,'.BusinessRole::TABLE_NAME.' AS R
                 WHERE 
                     S.'.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::PLACEHOLDER].' AND 
                     S.'.self::ID.'='.$id_field[ISqlHandler::PLACEHOLDER].' AND 
                     S.'.self::USER_ID.'=A.'.self::ID.' AND 
-                    A.'.self::ID.'=AR.'.User::EXTERNAL_ID.' AND 
+                    A.'.self::ID.'=AR.'.Account::EXTERNAL_ID.' AND 
                     R.'.self::ID.'=AR.'.BusinessRole::EXTERNAL_ID.'
                     ';
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$is_hidden,$id_field];

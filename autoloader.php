@@ -32,3 +32,24 @@ function autoload($className)
 }
 
 spl_autoload_register('autoload');
+
+function getRequestSession():\Assay\Permission\Privilege\Session
+{
+    $emptyData = \Assay\Core\ICommon::EMPTY_VALUE;
+    $session = new Assay\Permission\Privilege\Session();
+    if ($session->key != $emptyData) {
+        $storedSession = $session->loadByKey();
+
+        $session->id = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::ID, $storedSession, $emptyData);
+        $session->getStored();
+    }
+
+    if ($session->key == $emptyData) {
+        $sessionValues = Assay\Permission\Privilege\Session::open($session->userId);
+        $session->setByNamedValue($sessionValues);
+        $session->setSession();
+    }
+    return $session;
+};
+
+getRequestSession();

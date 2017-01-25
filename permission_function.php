@@ -39,7 +39,7 @@ function logOff(Assay\Permission\Privilege\Session $session):Assay\Permission\Pr
 {
     $session->close();
     $defaultSession = new Assay\Permission\Privilege\Session();
-    $sessionValues = Assay\Permission\Privilege\Session::open(Assay\Permission\Privilege\User::EMPTY_VALUE);
+    $sessionValues = Assay\Permission\Privilege\Session::open(Assay\Permission\Privilege\Account::EMPTY_VALUE);
     $session->setSession();
     $defaultSession->setByNamedValue($sessionValues);
 
@@ -48,7 +48,7 @@ function logOff(Assay\Permission\Privilege\Session $session):Assay\Permission\Pr
 
 function logOn(string $login, string $password):array
 {
-    $user = new Privilege\User();
+    $user = new Privilege\Account();
     $user->login = $login;
     $storedUser = $user->loadByLogin();
 
@@ -87,7 +87,7 @@ function registrationProcess(string $login, string $password, string $passwordCo
 
     $registrationResult = false;
     if($isAllow){
-        $user = new Assay\Permission\Privilege\User();
+        $user = new Assay\Permission\Privilege\Account();
         $registrationResult = $user->registration($login,$password,$passwordConfirmation,$email);
     }
 
@@ -112,7 +112,7 @@ function passwordChangeProcess(string $password, string $newPassword, string $pa
         $isCorrectPassword = ($newPassword == $passwordConfirmation && $newPassword != $password);
     }
 
-    $user = new Privilege\User();
+    $user = new Privilege\Account();
     $authenticationSuccess = false;
     if($isCorrectPassword){
         $user->id = $session->userId;
@@ -136,7 +136,7 @@ function passwordRecoveryProcess(string $email):bool{
 
     $result = false;
 
-    $user = new Assay\Permission\Privilege\User();
+    $user = new Assay\Permission\Privilege\Account();
     $isSuccess = $user->loadByEmail($email);
 
     if($isSuccess){
@@ -150,21 +150,21 @@ function passwordRecoveryProcess(string $email):bool{
 function authorizationProcess(Assay\Permission\Privilege\Session $session, string $process, string $object):bool{
 
     $sessId = $session->id;
-    $userRole = new Assay\Permission\Privilege\UserRole($sessId);
+    $userRole = new Assay\Permission\Privilege\AccountRole($sessId);
     $result = $userRole->userAuthorization($process, $object,$sessId);
     return $result;
 }
 
 function testGrantRole(string $user_id,string $user_role_id):bool {
     $result = false;
-    $userRole = new Privilege\UserRole($user_id);
+    $userRole = new Privilege\AccountRole($user_id);
     $result = $userRole->grantRole($user_role_id);
     return $result;
 }
 
 function testRevokeRole(string $user_id,string $user_role_id):bool {
     $result = false;
-    $userRole = new Privilege\UserRole($user_id);
+    $userRole = new Privilege\AccountRole($user_id);
     $result = $userRole->revokeRole($user_role_id);
     return $result;
 }

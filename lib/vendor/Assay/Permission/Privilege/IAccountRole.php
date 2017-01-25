@@ -6,14 +6,14 @@
  * Time: 10:07
  */
 namespace Assay\Permission\Privilege {
-    interface IUserRole
+    interface IAccountRole
     {
 
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'account_role_id';
 
         /** @var string колонка ссылки на учётную запись пользователя */
-        const USER = IUser::EXTERNAL_ID;
+        const USER = IAccount::EXTERNAL_ID;
         /** @var string колонка ссылки на бизнес роль */
         const ROLE = BusinessRole::EXTERNAL_ID;
 

@@ -13,7 +13,7 @@ namespace Assay\Permission\Privilege {
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
 
-    class UserRole extends Entity implements IUserRole, IAuthorizeProcess
+    class AccountRole extends Entity implements IAccountRole, IAuthorizeProcess
     {
         /** @var string название таблицы */
         const TABLE_NAME = 'account_role';
@@ -41,7 +41,7 @@ namespace Assay\Permission\Privilege {
                 INSERT INTO 
                     ".$this->tablename."
                 (
-                    ".IUser::EXTERNAL_ID.", ".IUserRole::ROLE."
+                    ".IAccount::EXTERNAL_ID.", ".IAccountRole::ROLE."
                 ) 
                 VALUES 
                     (
@@ -59,17 +59,17 @@ namespace Assay\Permission\Privilege {
         public function revokeRole(string $role):bool
         {
             $result = false;
-            $user_id[ISqlHandler::PLACEHOLDER] = ':USER_ID';
+            $user_id[ISqlHandler::PLACEHOLDER] = ':ACCOUNT_ID';
             $user_id[ISqlHandler::VALUE] = $this->userId;
             $user_id[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-            $role_field[ISqlHandler::PLACEHOLDER] = ':USER_ROLE_ID';
+            $role_field[ISqlHandler::PLACEHOLDER] = ':ACCOUNT_ROLE_ID';
             $role_field[ISqlHandler::VALUE] = $role;
             $role_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
             $arguments[ISqlHandler::QUERY_TEXT] = "
                 DELETE FROM
                         ".$this->tablename."
                     WHERE 
-                        ".IUser::EXTERNAL_ID." = ".$user_id[ISqlHandler::PLACEHOLDER]." AND ".IUserRole::ROLE." = ".$role_field[ISqlHandler::PLACEHOLDER]."
+                        ".IAccount::EXTERNAL_ID." = ".$user_id[ISqlHandler::PLACEHOLDER]." AND ".IAccountRole::ROLE." = ".$role_field[ISqlHandler::PLACEHOLDER]."
             ";
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$user_id,$role_field];
             $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
@@ -100,9 +100,9 @@ namespace Assay\Permission\Privilege {
                 FROM 
                     ".Session::TABLE_NAME." S 
                 JOIN 
-                    ".User::TABLE_NAME." U ON S.".User::EXTERNAL_ID." = U.".self::ID."
+                    ".Account::TABLE_NAME." U ON S.".Account::EXTERNAL_ID." = U.".self::ID."
                 JOIN 
-                    ".self::TABLE_NAME." UR ON U.".self::ID." = UR.".User::EXTERNAL_ID."
+                    ".self::TABLE_NAME." UR ON U.".self::ID." = UR.".Account::EXTERNAL_ID."
                 JOIN 
                     ".BusinessRole::TABLE_NAME." R ON R.".self::ID." = UR.".BusinessRole::EXTERNAL_ID."
                 JOIN 

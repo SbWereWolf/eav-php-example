@@ -8,7 +8,7 @@
 namespace Assay\Communication\Permission {
 
     use Assay\Core\Entity;
-    use Assay\Permission\Privilege\IUser;
+    use Assay\Permission\Privilege\IAccount;
     /**
      * Пользователь общения
      */
@@ -18,6 +18,6 @@ namespace Assay\Communication\Permission {
         const EXTERNAL_ID = 'communication_user_id';
 
         /** @var string колонка ссылки на учётную запись пользователя */
-        const USER_ID = IUser::EXTERNAL_ID;
+        const USER_ID = IAccount::EXTERNAL_ID;
     }
 }
