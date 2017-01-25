@@ -93,7 +93,7 @@ CREATE TABLE public.account_role
   id SERIAL PRIMARY KEY NOT NULL,
   role_id INTEGER NOT NULL,
   account_id INTEGER NOT NULL,
-  CONSTRAINT "fk_account_role_role_id" FOREIGN KEY (role_id) REFERENCES public.account_role (id) ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT "fk_account_role_role_id" FOREIGN KEY (role_id) REFERENCES public.role (id) ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT "fk_account_role_account_id" FOREIGN KEY (account_id) REFERENCES public.account (id) ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 CREATE UNIQUE INDEX ux_account_role_role_id_account_id ON public.account_role (role_id,account_id);

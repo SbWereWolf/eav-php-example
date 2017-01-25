@@ -3,22 +3,111 @@
 /**
  * @param $className string Class to load
  */
+/*
+function autoload($className)
+{
+    $path = __DIR__ . "/lib/vendor/";
+    $path = str_replace('\/',DIRECTORY_SEPARATOR,$path);
+    $className = ltrim($className, '\\');
+    $fileName  = '';
+    if ($lastNsPos = strrpos($className, '\\')) {
+        $namespace = substr($className, 0, $lastNsPos);
+        $className = substr($className, $lastNsPos + 1);
+        $fileName = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
+    }
+    $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
+
+    $classSource = ($path.$fileName);
+    require ($classSource);
+}
+*/
+
+/*
+spl_autoload_register('autoload');
+
+define('CONFIGURATION_ROOT', realpath(__DIR__.DIRECTORY_SEPARATOR.'configuration'));
+define('DB_READ_CONFIGURATION', CONFIGURATION_ROOT.DIRECTORY_SEPARATOR.'db_read.ini');
+*/
+//include('index.php');
+
+//include('index.php');
+//use Assay\Permission\Privilege;
 
 include "autoloader.php";
 
 //include('index.php');
 
 //include('index.php');
-use Assay\Permission\Privilege;
+//use Assay\Permission\Privilege;
 use Assay\Core;
+use Assay\Communication\Profile\Profile;
+use Assay\Communication\Profile\Company;
+
+function getProfileData()
+{
+  $profile = new Profile();
+  $profile->id = 1; //для тестов
+  $profile->getCurrentUserProfileData();
+  $profile->getUserEmail();
+  return $profile;
+}
+
+$var = getProfileData();
+var_dump($var);
+
+function setProfileData()
+{
+    $profile = new Profile();
+    $profile->id = 1; //для тестов
+    $name = 'Вася Пупкин';
+    $description = 'Охрененный просто!!!';
+    $city = 'Ёбург';
+    $country = 'Рассея!';
+    $code = null;
+    $profile->setCurrentUserProfileData($name, 0, $code, $description, $city, $country);
+ //   $profile->getUserEmail();
+    return $profile;
+}
+
+//setProfileData();
+
+function getProfileCompany()
+{
+    $profile = new Profile();
+    $profile->id = 1; //для тестов
+    $profile->getProfileCompany();
+    //   $profile->getUserEmail();
+    return $profile;
+}
+
+//$var = getProfileCompany();
+//var_dump($var);
+
+function getCurrentCompanyProfile()
+{
+    $company = new Company();
+    $company->id = 1;
+    $company->getCurrentCompanyProfileData();
+    return $company;
+
+}
+
+$var = getCurrentCompanyProfile();
+var_dump($var);
 
 
+/*
 function getRequestSession():Assay\Permission\Privilege\Session
 {
-    $emptyData = Core\ICommon::EMPTY_VALUE;
+    $emptyData = Privilege\ISession::EMPTY_VALUE;
     $session = new Assay\Permission\Privilege\Session();
+    var_dump($session);
+    //$cookie = new Assay\Permission\Privilege\Cookie();
+    //$session->setByCookie($cookie);
+    var_dump("session->key",$session->key);
     if ($session->key != $emptyData) {
         $storedSession = $session->loadByKey();
+        var_dump("storedSession",$storedSession);
 
         $session->key = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::KEY, $storedSession, $emptyData);
         $session->userId = Assay\Core\Common::setIfExists(Assay\Permission\Privilege\Session::USER_ID, $storedSession, $emptyData);
@@ -30,6 +119,7 @@ function getRequestSession():Assay\Permission\Privilege\Session
         $session->setByNamedValue($sessionValues);
         $session->setSession();
     }
+    var_dump("_SESSION",$_SESSION);
 
     return $session;
 }
@@ -39,7 +129,7 @@ function logOff(Assay\Permission\Privilege\Session $session):Assay\Permission\Pr
 {
     $session->close();
     $defaultSession = new Assay\Permission\Privilege\Session();
-    $sessionValues = Assay\Permission\Privilege\Session::open(Assay\Permission\Privilege\Account::EMPTY_VALUE);
+    $sessionValues = Assay\Permission\Privilege\Session::open(Assay\Permission\Privilege\User::EMPTY_VALUE);
     $session->setSession();
     $defaultSession->setByNamedValue($sessionValues);
 
@@ -48,7 +138,7 @@ function logOff(Assay\Permission\Privilege\Session $session):Assay\Permission\Pr
 
 function logOn(string $login, string $password):array
 {
-    $user = new Privilege\Account();
+    $user = new Privilege\User();
     $user->login = $login;
     $storedUser = $user->loadByLogin();
 
@@ -65,6 +155,7 @@ function logOn(string $login, string $password):array
 
 
         $sessionValues = $session->open($user->id);
+        var_dump("sessionValues",$sessionValues);
         $session->userId = $sessionValues[$session::USER_ID];
         $session->key = $sessionValues[$session::KEY];
         $session->id = $sessionValues[$session::ID];
@@ -83,11 +174,11 @@ function registrationProcess(string $login, string $password, string $passwordCo
 
     $session = getRequestSession();
 
-    $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::PROCESS_USER_REGISTRATION,$object);
+    $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::USER_REGISTRATION,$object);
 
     $registrationResult = false;
     if($isAllow){
-        $user = new Assay\Permission\Privilege\Account();
+        $user = new Assay\Permission\Privilege\User();
         $registrationResult = $user->registration($login,$password,$passwordConfirmation,$email);
     }
 
@@ -105,22 +196,21 @@ function passwordChangeProcess(string $password, string $newPassword, string $pa
 
     $session = getRequestSession();
 
-    $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::PROCESS_CHANGE_PASSWORD, $object);
-    $isAllow = true;
+    $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::CHANGE_PASSWORD, $object);
     $isCorrectPassword= false;
     if($isAllow){
         $isCorrectPassword = ($newPassword == $passwordConfirmation && $newPassword != $password);
     }
 
-    $user = new Privilege\Account();
+    $user = new Privilege\User();
     $authenticationSuccess = false;
     if($isCorrectPassword){
         $user->id = $session->userId;
-        $user->id = 1;
+        $user->id = 2;
 
         $entityUser = $user->readEntity($user->id);
 
-       // $user->setByNamedValue($entityUser );
+        $user->setByNamedValue($entityUser );
         $authenticationSuccess = $user->authentication($password);
     }
 
@@ -136,7 +226,7 @@ function passwordRecoveryProcess(string $email):bool{
 
     $result = false;
 
-    $user = new Assay\Permission\Privilege\Account();
+    $user = new Assay\Permission\Privilege\User();
     $isSuccess = $user->loadByEmail($email);
 
     if($isSuccess){
@@ -150,54 +240,57 @@ function passwordRecoveryProcess(string $email):bool{
 function authorizationProcess(Assay\Permission\Privilege\Session $session, string $process, string $object):bool{
 
     $sessId = $session->id;
-    $userRole = new Assay\Permission\Privilege\AccountRole($sessId);
+    $userRole = new Assay\Permission\Privilege\UserRole($sessId);
     $result = $userRole->userAuthorization($process, $object,$sessId);
     return $result;
 }
 
 function testGrantRole(string $user_id,string $user_role_id):bool {
     $result = false;
-    $userRole = new Privilege\AccountRole($user_id);
+    $userRole = new Privilege\UserRole($user_id);
     $result = $userRole->grantRole($user_role_id);
     return $result;
 }
 
 function testRevokeRole(string $user_id,string $user_role_id):bool {
     $result = false;
-    $userRole = new Privilege\AccountRole($user_id);
+    $userRole = new Privilege\UserRole($user_id);
     $result = $userRole->revokeRole($user_role_id);
     return $result;
 }
+*/
 /*session_start();
 session_regenerate_id();
 var_dump(session_id());
 session_unset();
 session_destroy();
 var_dump(session_id());*/
-
+/*
 $session = getRequestSession();
 //print phpinfo();
 
-/*$logonResult = [];
+$logonResult = [];
 
 $isAllow = authorizationProcess($session,'user_login','account');
-var_dump("isAllow",$isAllow);
 
 if($isAllow){
-    $logonResult = logOn('sancho', 'qwerty');
+    logOn('sancho', 'qwerty');
 }
+*/
 
-
+/*
 $authenticationSuccess = Assay\Core\Common::setIfExists(0, $logonResult, false);
+var_dump("authenticationSuccess",$authenticationSuccess);
 if ($authenticationSuccess) {
     $emptySession = new Assay\Permission\Privilege\Session();
     $session = Assay\Core\Common::setIfExists(1, $logonResult, $emptySession);
     $isAllow = authorizationProcess($session,'user_logout','account');
+    var_dump("logout isAllow",$isAllow);
     if($isAllow){
         logOff($session);
     }
-}*/
-
+}
+*/
 
 //var_dump($_COOKIE);
 /*$sqlReader = new Assay\DataAccess\SqlReader();
@@ -219,10 +312,9 @@ if ($result[Assay\DataAccess\SqlReader::ERROR_INFO][0] == '00000') {
 }*/
 
 //var_dump(registrationProcess('sancho','qwerty','qwerty','mail@sancho.pw','account'));
-//var_dump(testRevokeRole(19,2));
-//var_dump(testGrantRole(19,3));
+//var_dump(testGrantRole(2,2));
+//var_dump(testRevokeRole(2,2));
 
-
-var_dump(passwordChangeProcess('qwerty','123456','123456',''));
+//var_dump(passwordChangeProcess('1','2','2',''));
 //passwordRecoveryProcess('mail@sancho.pw');
 //$isAllow = authorizationProcess($session,'','');

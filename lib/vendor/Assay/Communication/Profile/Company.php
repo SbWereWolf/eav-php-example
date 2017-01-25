@@ -13,19 +13,36 @@ namespace Assay\Communication\Profile {
     use \Assay\DataAccess\SqlHandler;
     use Assay\Permission\Privilege;
 
-    class Profile extends \Assay\Core\NamedEntity implements IProfile
+    class Company extends \Assay\Core\Entity implements ICompany
     {
         /** @var string константа для не пустого значения */
         const EMPTY_VALUE = NULL;
 
         /** @var string имя таблицы */
-        const TABLE_NAME = 'profile';
+        const TABLE_NAME = 'company';
+
+        /** @var string разделитель слов в названиях */
+        const WORD_DIVIDER = '-';
 
         /** @var string колонка идентификатора */
         const ID = 'id';
+        const NAME = 'name';
+        const DESCRIPTION = 'description';
+        const EMPLOYERS_COUNT = 'employers_count';
+        const SPHERE = 'sphere';
+        const OTHER_CRITERIA = 'other_criteria';
+        const IS_SUPPLIER = 'is_supplier';
+        const IS_TRANSPORT = 'is_transport';
+        const ADDRESS = 'address';
+        const WEBSITE = 'website';
+        const EMAIL = 'email';
+        const PHONE = 'phone';
+        const WORKTIME = 'worktime';
 
-        const COUNTRY = 'country';
-        const CITY = 'city';
+        const INN = 'inn';
+        const REGISTRATION_DATE = 'registration_date';
+        const TAX_REGISTRATION_DATE = 'tax_registration_date';
+        const CONFIRM_REGISTRATION_DATE = 'confirm_registration_date';
 
         /** @var string идентификатор записи таблицы */
         public $id = self::EMPTY_VALUE;
@@ -33,73 +50,88 @@ namespace Assay\Communication\Profile {
         public $isHidden = Core\IEntity::DEFAULT_IS_HIDDEN;
         /** @var string родительский элемент */
       //  public $parent = self::EMPTY_VALUE;
-        /** @var string код записи */
-        public $code = self::EMPTY_VALUE;
         /** @var string наименование */
         public $name = self::EMPTY_VALUE;
         /** @var string описание */
         public $description = self::EMPTY_VALUE;
+        public $sphere = self::EMPTY_VALUE;
+        public $otherCriteria = self::EMPTY_VALUE;
+        public $isSupplier = self::EMPTY_VALUE;
+        public $isTransport = self::EMPTY_VALUE;
+        public $address = self::EMPTY_VALUE;
+        public $website = self::EMPTY_VALUE;
         public $email = self::EMPTY_VALUE;
-        public $country = self::EMPTY_VALUE;
-        public $city = self::EMPTY_VALUE;
-        public $company = [];
-        public $advert = [];
+        public $phone = self::EMPTY_VALUE;
+        public $worktime = self::EMPTY_VALUE;
+        public $inn = self::EMPTY_VALUE;
+        public $registrationDate = self::EMPTY_VALUE;
+        public $taxRegistrationDate = self::EMPTY_VALUE;
+        public $confirmRegistrationDate = self::EMPTY_VALUE;
 
         protected $tablename = self::TABLE_NAME;
 
        // public $profile; //- это id
 
-        /** для капчи
-         * @return bool
-         */
-        public function getCommentEnableArea():bool
+        //проверяем, привязана ли эта компания к пользователю и может ли он ее редактировать
+        public function isUserCompany():bool
         {
+
         }
 
-        /** Имя для приветствия - показывается в форме отображения Профиля. И, наверное, в приветствии при заходе.
-         * задается пользователем в настройках.
-         * @return string
-         */
-        public function getGreetingsRole(): string
+        //получаем список полей таблицы
+        public function getFieldsList():array
         {
-            $result = Common::EMPTY_VALUE;
-            return $result;
+            $refl = new \ReflectionClass('Assay\Communication\Profile\Company');
+            $params = $refl->getConstants();
+            $strangeParams = [];
+            foreach ($params as $key => $value)
+            {
+                $stringKey = (string) $key;
+                $strangeParams[$value] = $stringKey;
+            }
+           // $strangeParams = array_flip($params);
+            /*
+            unset($params["TABLE_NAME"]);
+            unset($params["EMPTY_VALUE"]);
+            unset($params["DEFINE_AS_HIDDEN"]);
+            unset($params["DEFINE_AS_NOT_HIDDEN"]);
+            unset($params["DEFAULT_IS_HIDDEN"]);
+            unset($params["WORD_DIVIDER"]);
+
+            return $params;
+            */
+            unset($strangeParams[self::TABLE_NAME]);
+            unset($strangeParams[self::EMPTY_VALUE]);
+            unset($strangeParams[self::DEFINE_AS_HIDDEN]);
+            unset($strangeParams[self::DEFINE_AS_NOT_HIDDEN]);
+            unset($strangeParams[self::DEFAULT_IS_HIDDEN]);
+            unset($strangeParams[self::WORD_DIVIDER]);
+            //print_r($strangeParams);
+
+            return $strangeParams;
         }
 
-/*
-        public function getEditPossibility():bool
+        //camelCase
+        public static function camelCase($str, array $noStrip = [])
         {
-            //смотрим, какие у нашего пользователя вообще есть права, мб его вообще надо слать лесом
+            // non-alpha and non-numeric characters become spaces
+          //  $str = preg_replace('/[^a-z0-9' . implode("", $noStrip) . ']+/i', ' ', $str);
+            $str = trim($str);
+            // uppercase the first character of each word
+            $str = ucwords($str, self::WORD_DIVIDER);
+            $str = str_replace(" ", "", $str);
+            $str = lcfirst($str);
+
+            return $str;
         }
-*/
 
-        public function getUserEmail():bool
+
+        //получаем профиль компании
+        public function getCurrentCompanyProfileData():bool
         {
-            //интересно, откуда здесь брать мыло, если нам в сессии дадут только id профиля?
-            //в общем, что-то тут делаем и получаем мыло
-            $this->email = 'account@email';
-            return true;
-        }
-
-        //получаем профиль текущего пользователя
-        public function getCurrentUserProfileData():bool
-        {
-            //$session = new Assay\Permission\Privilege\Session();
-
-            //  $profileId = $session->profile;
-              $profileId = $this->id;
-            //$profileId = 1; //для тестов
+            $profileId = $this->id;
             $result = false;
-           // if($this->loadById($profileId)) $result = true;
-             return $this->loadById($profileId);
-        }
-
-        //проверяем, гостевой профиль у пользователя или нет
-        public function checkIsUserGuest():bool
-        {
-           $isGuest = false;
-           if($this->code == 'guest') $isGuest = true;
-           return $isGuest;
+            return $this->loadById($profileId);
         }
 
         public function loadById(string $id):bool
@@ -108,27 +140,15 @@ namespace Assay\Communication\Profile {
             $oneParameter[ISqlHandler::VALUE] = intval($id);
             $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
+            $params = $this->getFieldsList();
+
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
-                . self::ID
-                . ' , '
-                . self::CODE
-                . ' , '
-                . self::NAME
-                . ' , '
-                . self::DESCRIPTION
-                . ' , '
-                . self::IS_HIDDEN
-                . ' , '
-                . self::COUNTRY
-                . ' , '
-                . self::CITY
+                . implode(',', array_keys($params))
                 . ' FROM '
                 . $this->tablename
                 . ' WHERE '
-                . self::ID
-                . ' = '
-                . $oneParameter[ISqlHandler::PLACEHOLDER]
+                . self::ID. ' = '. $oneParameter[ISqlHandler::PLACEHOLDER]
                 . '
 ;
 ';
@@ -161,10 +181,28 @@ namespace Assay\Communication\Profile {
             $this->id = Common::setIfExists(self::ID, $namedValue, self::EMPTY_VALUE);
             $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $namedValue, self::EMPTY_VALUE);
             $this->name = Common::setIfExists(self::NAME, $namedValue, self::EMPTY_VALUE);
-            */
+
             parent::setByNamedValue($namedValue);
             $this->city = Common::setIfExists(self::CITY, $namedValue, self::EMPTY_VALUE);
             $this->country = Common::setIfExists(self::COUNTRY, $namedValue, self::EMPTY_VALUE);
+            */
+
+            $params = $this->getFieldsList();
+
+            foreach($params as $key => $value)
+            {
+                /*
+                $value = self::camelCase($value);
+                $k = 'Assay\Communication\Profile\Company::'.$key;
+                $v = constant($k);
+                $this->{$value} = Common::setIfExists($v, $namedValue, self::EMPTY_VALUE);
+                */
+                $key = self::camelCase($key);
+                $k = 'Assay\Communication\Profile\Company::'.$value;
+                $v = constant($k);
+                $this->{$key} = Common::setIfExists($v, $namedValue, self::EMPTY_VALUE);
+
+            }
 
             return true;
         }
@@ -299,63 +337,7 @@ namespace Assay\Communication\Profile {
 
         public function getProfileCompany():bool
         {
-            $oneParameter[ISqlHandler::PLACEHOLDER] = ':ID';
-            $oneParameter[ISqlHandler::VALUE] = $this->id;
-            $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
-            $arguments[ISqlHandler::QUERY_TEXT] =
-                'SELECT company_id FROM profile_company'
-                . ' WHERE profile_id '
-                . ' = '
-                . $oneParameter[ISqlHandler::PLACEHOLDER]
-                . ' ORDER BY company_id DESC
-;
-';
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
-
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments); //print_r($response);
-
-            $isSuccessfulRead = SqlHandler::isNoError($response);
-
-            $record = array();
-            if ($isSuccessfulRead) {
-                $record = SqlHandler::getFirstRecord($response);
-                if(count($record) > 0){
-                    //если что-то нашли в таблице связей, ищем название компании
-                    $twoParameter[ISqlHandler::PLACEHOLDER] = ':COMPANY_ID';
-                    $twoParameter[ISqlHandler::VALUE] = $record["company_id"];
-                    $twoParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-                    $arguments = [];
-                    $arguments[ISqlHandler::QUERY_TEXT] =
-                        'SELECT '.Company::NAME.' FROM '.Company::TABLE_NAME
-                        . ' WHERE '.Company::ID
-                        . ' = '
-                        . $twoParameter[ISqlHandler::PLACEHOLDER]
-                        . ' 
-;
-';
-                    $arguments[ISqlHandler::QUERY_PARAMETER][] = $twoParameter;
-
-                    $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-                    $response = $sqlReader->performQuery($arguments); //print_r($response);
-
-                    $isSuccessfulRead = SqlHandler::isNoError($response);
-
-                    $recordCompany = array();
-                    if ($isSuccessfulRead) {
-                        $recordCompany = SqlHandler::getFirstRecord($response); //print_r($record);
-                    }
-                }
-                //$this->setByNamedValue($record);
-            }
-
-            $result = false;
-            if ($recordCompany != array()) {
-                $result = true;
-            }
-
-            return $result;
         }
 
         public function getProfileAdvert():bool

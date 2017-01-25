@@ -16,7 +16,6 @@ namespace Assay\Permission\Privilege {
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */
         const EXTERNAL_ID = 'session_id';
-        const EMPTY_VALUE = Common::EMPTY_VALUE;
 
         /** @var string номер сессии */
         const KEY = 'key';
