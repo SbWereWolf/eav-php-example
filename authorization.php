@@ -13,12 +13,12 @@ include "autoloader.php";
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Глагне</title>
+    <title>Вход</title>
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script src="js/main.js"></script>
 </head>
 <body>
-<form>
+<form onsubmit="page.logOn(); return false;" action="router.php" method="post">
     <label for="login">Логин</label>
     <input type="text" id="login">
     <label for="pass">Пароль</label>

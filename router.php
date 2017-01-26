@@ -69,13 +69,24 @@ function registrationProcess(string $login, string $password, string $passwordCo
     return $result;
 }
 
+function logOff(Assay\Permission\Privilege\Session $session):Assay\Permission\Privilege\Session
+{
+    $session->close();
+    $defaultSession = new Assay\Permission\Privilege\Session();
+    $sessionValues = Assay\Permission\Privilege\Session::open(Assay\Permission\Privilege\Account::EMPTY_VALUE);
+    $session->setSession();
+    $defaultSession->setByNamedValue($sessionValues);
+
+    return $defaultSession;
+}
+
 $html_user_panel = [
     "logon" => "
     <a href='registration.php'>Регистрация</a>
     <a href='authorization.php'>Вход</a>
     ",
     "logout" => "
-    <input type='button' value='Выход'>
+    <input type='button' value='Выход' onclick='page.logout()'>
     "
 ];
 
@@ -120,6 +131,25 @@ if (isset($_POST)):
             $result['error']['isError'] = $result_registration;
             if (!$result_registration):
                 $result['error']['message'] = "Произошла ошибка при регистрации";
+            endif;
+            break;
+        case "logout":
+            $newSession = logOff($session);
+            $result_logout = $newSession == $session;
+            $result['error']['isError'] = $result_logout;
+            if ($result_logout):
+                $result['error']['message'] = "Произошла ошибка при выходе";
+            endif;
+            break;
+        case "logOn":
+            $login = \Assay\Core\Common::setIfExists('login', $_POST, \Assay\Core\ICommon::EMPTY_VALUE);
+            $pass = \Assay\Core\Common::setIfExists('pass', $_POST, \Assay\Core\ICommon::EMPTY_VALUE);
+            $resultLogon = logOn($login,$pass);
+            $result['error']['isError'] = !$resultLogon[0];
+            if (!$resultLogon[0]):
+                $result['error']['message'] = "Произошла ошибка при входе";
+            else:
+                $session = $resultLogon[1];
             endif;
             break;
         default:

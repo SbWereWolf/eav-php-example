@@ -9,6 +9,7 @@ namespace Assay\Permission\Privilege {
 
     use Assay\Core\Common;
     use Assay\Core\Entity;
+    use Assay\Core\INamedEntity;
     use Assay\Core\NamedEntity;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
@@ -37,17 +38,19 @@ namespace Assay\Permission\Privilege {
             $role_field[ISqlHandler::PLACEHOLDER] = ':USER_ROLE_ID';
             $role_field[ISqlHandler::VALUE] = $role;
             $role_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-            $arguments[ISqlHandler::QUERY_TEXT] = "
+            $arguments[ISqlHandler::QUERY_TEXT] = '
                 INSERT INTO 
-                    ".$this->tablename."
+                    '.$this->tablename.'
                 (
-                    ".IAccount::EXTERNAL_ID.", ".IAccountRole::ROLE."
+                    '.IAccount::EXTERNAL_ID.', '.IAccountRole::ROLE.'
                 ) 
-                VALUES 
-                    (
-                        ".$user_id[ISqlHandler::PLACEHOLDER].",".$role_field[ISqlHandler::PLACEHOLDER]."
-                    )
-            ";
+                SELECT
+                    '.$user_id[ISqlHandler::PLACEHOLDER].','.self::ID.'
+                FROM
+                    '.BusinessRole::TABLE_NAME.'
+                WHERE
+                    '.INamedEntity::CODE.' = '.$role_field[ISqlHandler::PLACEHOLDER].'
+            ';
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$user_id,$role_field];
             $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
             $response = $sqlWriter->performQuery($arguments);

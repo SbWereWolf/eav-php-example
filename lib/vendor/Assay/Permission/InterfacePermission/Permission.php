@@ -108,6 +108,26 @@ namespace Assay\Permission\InterfacePermission {
             return $result;
         }
 
+        public function getProfileId(): string
+        {
+            $session = new Session();
+            $storedSession = $session->loadByKey();
+            $session->id = $storedSession[self::ID];
+            $session->getStored();
+            $result = $session->profileId;
+            return $result;
+        }
+
+        public function getUserId(): string
+        {
+            $session = new Session();
+            $storedSession = $session->loadByKey();
+            $session->id = $storedSession[self::ID];
+            $session->getStored();
+            $result = $session->userId;
+            return $result;
+        }
+
         public function getPaging(): string
         {
             $session = new Session();

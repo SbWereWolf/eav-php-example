@@ -53,4 +53,4 @@ function getRequestSession():\Assay\Permission\Privilege\Session
     return $session;
 };
 
-getRequestSession();
+$session = getRequestSession();
