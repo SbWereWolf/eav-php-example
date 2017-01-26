@@ -42,6 +42,7 @@ include "autoloader.php";
 use Assay\Core;
 use Assay\Communication\Profile\Profile;
 use Assay\Communication\Profile\Company;
+use Assay\Communication\Profile\Messages;
 
 function getProfileData()
 {
@@ -53,7 +54,7 @@ function getProfileData()
 }
 
 $var = getProfileData();
-var_dump($var);
+//var_dump($var);
 
 function setProfileData()
 {
@@ -92,9 +93,57 @@ function getCurrentCompanyProfile()
 
 }
 
-$var = getCurrentCompanyProfile();
-var_dump($var);
+//$var = getCurrentCompanyProfile();
+//var_dump($var);
 
+
+function setCompanyData()
+{
+    $company = new Company();
+    $values = [];
+    $company->id = 2; //для тестов
+    $values['id'] = 2;
+   // $values['name'] = 'Крутизна-крутая';
+    //$values['description'] = 'Все еще самая лучшая';
+    $values['name'] = 'Еще круче';
+    $values['description'] = 'Уже нет. Просто жесть.';
+    $values['employersCount'] = 50;
+    $company->setCurrentUserCompanyData($values);
+    //   $profile->getUserEmail();
+    return $company;
+}
+
+//setCompanyData();
+
+function addCompanyData()
+{
+    $company = new Company();
+    $values = [];
+   // $company->id = 1; //для тестов
+  //  $values['id'] = 1;
+    $values['name'] = 'Еще круче';
+    $values['description'] = 'Уже нет';
+    $values['employers_count'] = 50;
+    $company->addCompanyData($values);
+    //   $profile->getUserEmail();
+    print_r($company);
+    return $company;
+}
+
+//addCompanyData();
+
+
+function getMessages()
+{
+    $message = new Messages();
+    $message->author = 1; //для тестов
+    $message->getFieldsList();
+    //   $profile->getUserEmail();
+    return $message;
+}
+
+$var = getMessages();
+var_dump($var);
 
 /*
 function getRequestSession():Assay\Permission\Privilege\Session
