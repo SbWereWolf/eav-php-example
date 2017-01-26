@@ -40,7 +40,10 @@ namespace Assay\Communication\Profile {
         public $messageText = self::EMPTY_VALUE;
         public $date = self::EMPTY_VALUE;
 
-        protected $tablename = self::TABLE_NAME;
+       protected $tablename = self::TABLE_NAME;
+
+        public $messages = [];
+        public $profileId = NULL;
 
         public $fieldTypes = [
             'id' => 'PARAM_INT',
@@ -95,17 +98,77 @@ namespace Assay\Communication\Profile {
             return $propertyName;
         }
 
+
+        /**
+         * узнаем, в собственном профиле мы находимся или в чужом
+         * @return bool
+         */
         public function isOwnProfile()
         {
-
+            if(is_null($this->profileId)) return false;
+            return true; //- для тестов пока что предположим, что в собственном
         }
 
         //получаем список сообщений
         public function getMessagesList():bool
         {
-            $profileId = $this->id;
-            $result = false;
-            return $this->loadById($profileId);
+            $messages = [];
+            if(!$this->isOwnProfile()) return false;
+
+            $oneParameter[ISqlHandler::PLACEHOLDER] = ':RECEIVER';
+            $oneParameter[ISqlHandler::VALUE] = $this->profileId;
+            $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $arguments[ISqlHandler::QUERY_TEXT] = 'SELECT DISTINCT ON (M.'.self::AUTHOR.') M.'.self::AUTHOR.', M.'.self::DATE.', M.'.self::MESSAGE_TEXT
+                .', (SELECT name FROM '.Profile::TABLE_NAME.' WHERE '.Profile::ID.' = M.'.self::AUTHOR.') as Author_name'
+                .'  FROM '.self::TABLE_NAME.' as M '
+                . ' WHERE 
+                 M.'.self::RECEIVER.' = '.$oneParameter[ISqlHandler::PLACEHOLDER]
+                .' ORDER BY  M.'.self::AUTHOR.', M.'.self::DATE.' DESC;';
+
+                /*'
+                SELECT DISTINCT ON (M.'.self::AUTHOR.'), M.'.self::DATE.', M.'.self::MESSAGE_TEXT
+                .', (SELECT name FROM '.Profile::TABLE_NAME.' WHERE '.Profile::ID.' = M.'.self::AUTHOR.') as Author_name'
+                .'  FROM '.self::TABLE_NAME.' as M, '.Profile::TABLE_NAME.' as P '
+                . ' WHERE 
+                P.'.Profile::ID.' = '.$oneParameter[ISqlHandler::PLACEHOLDER].' AND 
+                M.'.self::RECEIVER.' = '.$oneParameter[ISqlHandler::PLACEHOLDER]
+                .' ORDER BY M.'.self::DATE.' DESC;';
+            */
+
+
+            /*
+             * 
+             *                 WHERE 
+                    S.'.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::PLACEHOLDER].' AND 
+                    S.'.self::ID.'='.$id_field[ISqlHandler::PLACEHOLDER].' AND 
+                    S.'.self::USER_ID.'=A.'.self::ID.' AND 
+                    A.'.self::ID.'=AR.'.Account::EXTERNAL_ID.' AND 
+                    R.'.self::ID.'=AR.'.BusinessRole::EXTERNAL_ID.'
+             * 
+             */
+
+    //        print_r($arguments[ISqlHandler::QUERY_TEXT]);
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+            $response = $sqlReader->performQuery($arguments); print_r($response);
+
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+
+            $record = [];
+            if ($isSuccessfulRead) {
+                $record = SqlHandler::getAllRecords($response);
+            }
+           // print_r($record);
+
+            if ($isSuccessfulRead) {
+                $record = SqlHandler::getAllRecords($response);
+                if(count($record) > 0) $result = true;
+                //$this->setByNamedValue($record);
+            }
+
+            return $result;
         }
 
         public function loadById(string $id):bool

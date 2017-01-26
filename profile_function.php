@@ -136,8 +136,8 @@ function addCompanyData()
 function getMessages()
 {
     $message = new Messages();
-    $message->author = 1; //для тестов
-    $message->getFieldsList();
+    $message->profileId = 1; //для тестов
+    $message->getMessagesList();
     //   $profile->getUserEmail();
     return $message;
 }
