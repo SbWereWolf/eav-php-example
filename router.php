@@ -128,7 +128,7 @@ if (isset($_POST)):
             $rep_pass = \Assay\Core\Common::setIfExists('rep_pass', $_POST, \Assay\Core\ICommon::EMPTY_VALUE);
             $email = \Assay\Core\Common::setIfExists('email', $_POST, \Assay\Core\ICommon::EMPTY_VALUE);
             $result_registration = registrationProcess($login,$pass,$rep_pass,$email,$object);
-            $result['error']['isError'] = $result_registration;
+            $result['error']['isError'] = !$result_registration;
             if (!$result_registration):
                 $result['error']['message'] = "Произошла ошибка при регистрации";
             endif;
