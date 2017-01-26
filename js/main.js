@@ -8,6 +8,7 @@ var Page_object = function () {
     var user_auth_panel_id = "[id='user_auth_panel']";
     var login_id = "[id='login']";
     var pass_id = "[id='pass']";
+    var old_pass_id = "[id='old_pass']";
     var rep_pass_id = "[id='rep_pass']";
     var email_id = "[id='email']";
     var action = "";
@@ -111,6 +112,33 @@ var Page_object = function () {
 
         });
     };
+
+    this.changePassword = function () {
+        var old_pass = $(old_pass_id).val();
+        var pass = $(pass_id).val();
+        var rep_pass = $(rep_pass_id).val();
+        action = "change_password";
+        if (pass == rep_pass) {
+            $.post(
+                url, {
+                    action: action,
+                    old_pass: old_pass,
+                    pass: pass,
+                    rep_pass:rep_pass
+                },
+                function (data) {
+                    data = JSON.parse(data);
+                    var error = data.error;
+                    if (!error.isError) {
+                        window.location.href = "/";
+                    } else
+                        console.log(error.message);
+                }
+            ).always(function () {
+
+            });
+        } else alert("Пароли не совпадают");
+    }
 };
 
 var page = new Page_object();

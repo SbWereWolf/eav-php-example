@@ -106,7 +106,6 @@ function passwordChangeProcess(string $password, string $newPassword, string $pa
     $session = getRequestSession();
 
     $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::PROCESS_CHANGE_PASSWORD, $object);
-    $isAllow = true;
     $isCorrectPassword= false;
     if($isAllow){
         $isCorrectPassword = ($newPassword == $passwordConfirmation && $newPassword != $password);
@@ -116,7 +115,6 @@ function passwordChangeProcess(string $password, string $newPassword, string $pa
     $authenticationSuccess = false;
     if($isCorrectPassword){
         $user->id = $session->userId;
-        $user->id = 2;
 
         $entityUser = $user->readEntity($user->id);
 

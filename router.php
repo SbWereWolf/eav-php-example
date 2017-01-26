@@ -80,12 +80,42 @@ function logOff(Assay\Permission\Privilege\Session $session):Assay\Permission\Pr
     return $defaultSession;
 }
 
+function passwordChangeProcess(string $password, string $newPassword, string $passwordConfirmation, string $object):bool{
+
+    $result = false;
+
+    $session = getRequestSession();
+
+    $isAllow = authorizationProcess($session,Assay\Permission\Privilege\IProcessRequest::PROCESS_CHANGE_PASSWORD, $object);
+    $isCorrectPassword= false;
+    if($isAllow){
+        $isCorrectPassword = ($newPassword == $passwordConfirmation && $newPassword != $password);
+    }
+
+    $user = new \Assay\Permission\Privilege\Account();
+    $authenticationSuccess = false;
+    if($isCorrectPassword){
+        $user->id = $session->userId;
+
+        $user->readEntity($user->id);
+
+        $authenticationSuccess = $user->authentication($password);
+    }
+
+    if($authenticationSuccess){
+        $result = $user->changePassword($newPassword);
+    }
+
+    return $result;
+}
+
 $html_user_panel = [
     "logon" => "
     <a href='registration.php'>Регистрация</a>
     <a href='authorization.php'>Вход</a>
     ",
     "logout" => "
+    <a href='change_password.php'>Сменить пароль</a>
     <input type='button' value='Выход' onclick='page.logout()'>
     "
 ];
@@ -150,6 +180,17 @@ if (isset($_POST)):
                 $result['error']['message'] = "Произошла ошибка при входе";
             else:
                 $session = $resultLogon[1];
+            endif;
+            break;
+        case "change_password":
+            $object = \Assay\Permission\Privilege\IProcessRequest::OBJECT_ACCOUNT;
+            $old_pass = \Assay\Core\Common::setIfExists('old_pass', $_POST, \Assay\Core\ICommon::EMPTY_VALUE);
+            $pass = \Assay\Core\Common::setIfExists('pass', $_POST, \Assay\Core\ICommon::EMPTY_VALUE);
+            $rep_pass = \Assay\Core\Common::setIfExists('rep_pass', $_POST, \Assay\Core\ICommon::EMPTY_VALUE);
+            $result_change_password = passwordChangeProcess($old_pass,$pass,$rep_pass,$object);
+            $result['error']['isError'] = !$result_change_password;
+            if (!$result_change_password):
+                $result['error']['message'] = "Произошла ошибка при регистрации";
             endif;
             break;
         default:

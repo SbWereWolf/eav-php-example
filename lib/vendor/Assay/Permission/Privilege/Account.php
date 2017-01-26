@@ -41,8 +41,11 @@ namespace Assay\Permission\Privilege {
                 $this->login = $login;
                 $this->passwordHash = self::calculateHash($password);
 
-                $this->addEntity();
-                $result = $this->mutateEntity();
+                $isNotExistAccount = $this->checkExistAccount();
+                if ($isNotExistAccount) {
+                    $this->addEntity();
+                    $result = $this->mutateEntity();
+                }
             }
 
             return $result;
@@ -289,6 +292,39 @@ namespace Assay\Permission\Privilege {
         public function sendRecovery():bool
         {
             $result = true;
+            return $result;
+        }
+
+        private function checkExistAccount():bool
+        {
+            $result = false;
+
+            $login_field[ISqlHandler::PLACEHOLDER] = ':LOGIN';
+            $login_field[ISqlHandler::VALUE] = $this->login;
+            $login_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+
+            $email_field[ISqlHandler::PLACEHOLDER] = ':EMAIL';
+            $email_field[ISqlHandler::VALUE] = $this->email;
+            $email_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+            $arguments[ISqlHandler::QUERY_TEXT] = '
+                SELECT 
+                    NULL
+                FROM 
+                    '.$this->tablename.'
+                WHERE 
+                    '.self::LOGIN.' = '.$login_field[ISqlHandler::PLACEHOLDER].' OR 
+                    '.self::EMAIL.' = '.$email_field[ISqlHandler::PLACEHOLDER].'
+            ';
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $login_field;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $email_field;
+
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+            $response = $sqlReader->performQuery($arguments);
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+            if ($isSuccessfulRead) {
+                $record = SqlHandler::getFirstRecord($response);
+                $result = $record == Common::EMPTY_ARRAY;
+            }
             return $result;
         }
     }
