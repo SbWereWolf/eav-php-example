@@ -19,7 +19,7 @@ namespace Assay\Communication\Profile {
         const EMPTY_VALUE = '';
 
         /** @var string имя таблицы */
-        const TABLE_NAME = 'messages';
+        const TABLE_NAME = 'message';
 
         /** @var string разделитель слов в названиях */
         const WORD_DIVIDER = '_';
@@ -30,6 +30,7 @@ namespace Assay\Communication\Profile {
         const RECEIVER = 'receiver';
         const MESSAGE_TEXT = 'message_text';
         const DATE = 'date';
+      //  const IS_HIDDEN = 'is_hidden';
 
         /** @var string идентификатор записи таблицы */
         public $id = self::EMPTY_VALUE;
@@ -42,15 +43,19 @@ namespace Assay\Communication\Profile {
 
        protected $tablename = self::TABLE_NAME;
 
-        public $messages = [];
+        public $messagesSelectAuthor = [];
+        public $messageList = [];
         public $profileId = NULL;
+        public $authorId = NULL;
+        public $isHidden = Core\IEntity::DEFAULT_IS_HIDDEN;
 
         public $fieldTypes = [
             'id' => 'PARAM_INT',
             'author' => 'PARAM_INT',
             'receiver' => 'PARAM_INT',
             'message_text' => 'PARAM_STR',
-            'date' => 'PARAM_STR'
+            'date' => 'PARAM_STR',
+            'is_hidden' => 'PARAM_INT'
              ];
 
        // public $profile; //- это id
@@ -77,8 +82,7 @@ namespace Assay\Communication\Profile {
             unset($strangeParams[self::DEFINE_AS_NOT_HIDDEN]);
             unset($strangeParams[self::DEFAULT_IS_HIDDEN]);
             unset($strangeParams[self::WORD_DIVIDER]);
-            unset($strangeParams[self::IS_HIDDEN]);
-            print_r($strangeParams);
+          //  print_r($strangeParams);
 
             return $strangeParams;
         }
@@ -98,6 +102,11 @@ namespace Assay\Communication\Profile {
             return $propertyName;
         }
 
+
+        public function __construct($profileId)
+        {
+            $this->profileId = $profileId;
+        }
 
         /**
          * узнаем, в собственном профиле мы находимся или в чужом
@@ -120,56 +129,112 @@ namespace Assay\Communication\Profile {
             $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
             $arguments[ISqlHandler::QUERY_TEXT] = 'SELECT DISTINCT ON (M.'.self::AUTHOR.') M.'.self::AUTHOR.', M.'.self::DATE.', M.'.self::MESSAGE_TEXT
-                .', (SELECT name FROM '.Profile::TABLE_NAME.' WHERE '.Profile::ID.' = M.'.self::AUTHOR.') as Author_name'
+                .', (SELECT name FROM '.Profile::TABLE_NAME.' WHERE '.Profile::ID.' = M.'.self::AUTHOR.') as author_name'
                 .'  FROM '.self::TABLE_NAME.' as M '
                 . ' WHERE 
                  M.'.self::RECEIVER.' = '.$oneParameter[ISqlHandler::PLACEHOLDER]
                 .' ORDER BY  M.'.self::AUTHOR.', M.'.self::DATE.' DESC;';
 
-                /*'
-                SELECT DISTINCT ON (M.'.self::AUTHOR.'), M.'.self::DATE.', M.'.self::MESSAGE_TEXT
-                .', (SELECT name FROM '.Profile::TABLE_NAME.' WHERE '.Profile::ID.' = M.'.self::AUTHOR.') as Author_name'
-                .'  FROM '.self::TABLE_NAME.' as M, '.Profile::TABLE_NAME.' as P '
-                . ' WHERE 
-                P.'.Profile::ID.' = '.$oneParameter[ISqlHandler::PLACEHOLDER].' AND 
-                M.'.self::RECEIVER.' = '.$oneParameter[ISqlHandler::PLACEHOLDER]
-                .' ORDER BY M.'.self::DATE.' DESC;';
-            */
-
-
-            /*
-             * 
-             *                 WHERE 
-                    S.'.self::IS_HIDDEN.'='.$is_hidden[ISqlHandler::PLACEHOLDER].' AND 
-                    S.'.self::ID.'='.$id_field[ISqlHandler::PLACEHOLDER].' AND 
-                    S.'.self::USER_ID.'=A.'.self::ID.' AND 
-                    A.'.self::ID.'=AR.'.Account::EXTERNAL_ID.' AND 
-                    R.'.self::ID.'=AR.'.BusinessRole::EXTERNAL_ID.'
-             * 
-             */
-
-    //        print_r($arguments[ISqlHandler::QUERY_TEXT]);
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
 
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments); print_r($response);
+            $response = $sqlReader->performQuery($arguments); //print_r($response);
 
             $isSuccessfulRead = SqlHandler::isNoError($response);
 
             $record = [];
+            $result = false;
             if ($isSuccessfulRead) {
                 $record = SqlHandler::getAllRecords($response);
+                if(count($record) > 0) {
+                    $result = true;
+                    $this->messageList = $record;
+                }
             }
-           // print_r($record);
-
-            if ($isSuccessfulRead) {
-                $record = SqlHandler::getAllRecords($response);
-                if(count($record) > 0) $result = true;
-                //$this->setByNamedValue($record);
-            }
-
             return $result;
         }
+
+        //получаем список сообщений конкретного автора
+        public function getMessagesSelectAuthor($authorId):bool
+        {
+            $messages = [];
+            $this->authorId = $authorId;
+            if(!$this->isOwnProfile()) return false;
+
+            //проверяем, есть ли у нас вообще сообщения от этого автора, если нет, то шлем лесом
+
+            $oneParameter[ISqlHandler::PLACEHOLDER] = ':AUTHOR';
+            $oneParameter[ISqlHandler::VALUE] = $this->authorId;
+            $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $twoParameter[ISqlHandler::PLACEHOLDER] = ':RECEIVER';
+            $twoParameter[ISqlHandler::VALUE] = $this->profileId;
+            $twoParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                'SELECT count(*) FROM message'
+                . ' WHERE '.self::RECEIVER . ' = ' . $twoParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND '.self::AUTHOR . ' = ' . $oneParameter[ISqlHandler::PLACEHOLDER];
+
+            $arguments[ISqlHandler::QUERY_PARAMETER] = [$oneParameter, $twoParameter];
+
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+            $response = $sqlReader->performQuery($arguments); //print_r($response);
+
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+
+            $record = array();
+            if ($isSuccessfulRead) {
+                $record = SqlHandler::getFirstRecord($response); //print_r($record);
+                if(count($record) == 0){
+                    return false;
+                }
+            }
+
+            $oneParameter[ISqlHandler::PLACEHOLDER] = ':RECEIVER';
+            $oneParameter[ISqlHandler::VALUE] = $this->profileId;
+            $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $twoParameter[ISqlHandler::PLACEHOLDER] = ':AUTHOR';
+            $twoParameter[ISqlHandler::VALUE] = $this->authorId;
+            $twoParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $arguments[ISqlHandler::QUERY_TEXT] = 'SELECT M.'.self::DATE.', M.'.self::MESSAGE_TEXT
+                .', (SELECT name FROM '.Profile::TABLE_NAME.' WHERE '.Profile::ID.' = M.'.self::AUTHOR.') as Author_name'
+                .', (SELECT name FROM '.Profile::TABLE_NAME.' WHERE '.Profile::ID.' = M.'.self::RECEIVER.') as Receiver_name'
+                .'  FROM '.self::TABLE_NAME.' as M '
+                . ' WHERE ('
+                . ' M.'.self::RECEIVER.' = '.$oneParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND M.'.self::AUTHOR.' = '.$twoParameter[ISqlHandler::PLACEHOLDER]
+                .')'
+                . ' OR
+                ('
+                . ' M.'.self::RECEIVER.' = '.$twoParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND M.'.self::AUTHOR.' = '.$oneParameter[ISqlHandler::PLACEHOLDER]
+                .')
+                 ORDER BY M.'.self::DATE.' DESC;';
+
+           // print_r($arguments[ISqlHandler::QUERY_TEXT]);
+            $arguments[ISqlHandler::QUERY_PARAMETER] = [$oneParameter, $twoParameter]; //print_r($arguments[ISqlHandler::QUERY_PARAMETER]);
+
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);// print_r($sqlReader);
+            $response = $sqlReader->performQuery($arguments); //print_r($response);
+
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+
+            $record = [];
+            $result = false;
+            if ($isSuccessfulRead) {
+                $record = SqlHandler::getAllRecords($response); //print_r($record);
+                if(count($record) > 0) {
+                    $result = true;
+                    $this->messagesSelectAuthor = $record;
+                }
+            }
+            return $result;
+        }
+
+
 
         public function loadById(string $id):bool
         {
@@ -244,17 +309,12 @@ namespace Assay\Communication\Profile {
             return true;
         }
 
-        //создаем профиль компании
-        public function addCompanyData(array $values):bool
+        //создаем обычное сообщение
+        public function addMessage(array $values):bool
         {
-            //$session = new Assay\Permission\Privilege\Session();
-
-            //  $profileId = $session->profile;
-            //$profileId = 1; //для тестов
-            //$profileId = $this->id;
-            $result = false;
 
             $result = false;
+            if(!$this->isOwnProfile()) return false;
 
 
             $params = $this->getFieldsList();
@@ -262,15 +322,17 @@ namespace Assay\Communication\Profile {
             foreach($params as $key => $value)
             {
                 //print_r($key);
-                $key = self::camelCase($key);
+                $keyCamel = self::camelCase($key);
                 $k = __CLASS__.'::'.$value;
                 $v = constant($k);
                 if(isset($values[$key]))
-                    $this->{$key} = $values[$key];
-                else $this->{$key} = self::EMPTY_VALUE;//Common::setIfExists($v, $values[$key], self::EMPTY_VALUE);
-                // print_r($key);
-            }
+                    $this->{$keyCamel} = $values[$key];
+                else {
+                    if($this->fieldTypes[$key] == 'PARAM_INT')  $this->{$keyCamel} = 0;//self::EMPTY_VALUE;
+                    else $this->{$keyCamel} = self::EMPTY_VALUE;
 
+                }                // print_r($key);
+            }
             $this->addEntity();
             $result = $this->mutateEntity();
 
@@ -283,61 +345,32 @@ namespace Assay\Communication\Profile {
             // return $this->loadById($profileId);
         }
 
-        //обновляем профиль компании
-        public function setCurrentUserCompanyData(array $values):bool
+        /** Добавляет запись в БД
+         * @return bool успешность изменения
+         */
+        public function addEntity():bool
         {
-            //$session = new Assay\Permission\Privilege\Session();
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' INSERT INTO ' . $this->tablename
+                . ' DEFAULT VALUES RETURNING '
+                . self::ID
+                .' ; '
+            ;
+            $sqlWriter = new SqlHandler(ISqlHandler::DATA_WRITER);
+            $response = $sqlWriter->performQuery($arguments);
 
-            //  $profileId = $session->profile;
-            //$profileId = 1; //для тестов
-            //$profileId = $this->id;
-            $result = false;
-
-
-            $params = $this->getFieldsList();
-
-            foreach($params as $key => $value)
-            {
-                //print_r($key);
-                $keyCamel = self::camelCase($key);
-                $k = __CLASS__.'::'.$value;
-                $v = constant($k);
-                if(isset($values[$keyCamel]) && !empty($values[$keyCamel]))
-                    $this->{$keyCamel} = $values[$keyCamel];
-                else {
-                    if($this->fieldTypes[$key] == 'PARAM_INT')  $this->{$keyCamel} = self::EMPTY_VALUE;
-                    else $this->{$keyCamel} = self::EMPTY_VALUE;
-
-                }//self::EMPTY_VALUE;//Common::setIfExists($v, $values[$key], self::EMPTY_VALUE);
-               // print_r($key);
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+            $record = self::EMPTY_ARRAY;
+            if ($isSuccessfulRead) {
+                $record = SqlHandler::getFirstRecord($response);
             }
-//print_r($this); $a = NULL; echo("sdfdsfsdf".$a);
-            /*
-            $this->update_date = time();
-            $this->name = $name;
-            $this->isHidden = $isHidden;
-            $this->code = $code;
-            $this->description = $description;
-            $this->city = $city;
-            $this->country = $country;
-            */
 
-           // $this->addEntity();
-            //$result = $this->mutateEntity();
+            $this->id = Common::setIfExists(self::ID, $record, self::EMPTY_VALUE);
+//            $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $record, self::EMPTY_VALUE);
 
-          //  print_r($this); return true;
+            $result = $this->id != self::EMPTY_VALUE;
 
-            if($this->mutateEntity() && $this->loadById($this->id))
-                $result = true;
- //           print_r($result);
             return $result;
-
-            // if($this->loadById($profileId)) $result = true;
-
-
-
-
-           // return $this->loadById($profileId);
         }
 
         /** Обновляет (изменяет) запись в БД
@@ -346,8 +379,7 @@ namespace Assay\Communication\Profile {
         public function mutateEntity():bool
         {
             $result = false;
-
-            $stored = new Company();
+            $stored = new Messages();
            // $this->id = 1;
             $wasReadStored = $stored->loadById($this->id);
 
@@ -402,37 +434,6 @@ namespace Assay\Communication\Profile {
 
         private function updateEntity():bool
         {
-            /*
-            $id[ISqlHandler::PLACEHOLDER] = ':ID';
-            $id[ISqlHandler::VALUE] = $this->id;
-            $id[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-
-            $name[ISqlHandler::PLACEHOLDER] = ':NAME';
-            $name[ISqlHandler::VALUE] = $this->name;
-            $name[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-
-            $description[ISqlHandler::PLACEHOLDER] = ':DESCRIPTION';
-            $description[ISqlHandler::VALUE] = $this->description;
-            $description[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-
-            $employersCount[ISqlHandler::PLACEHOLDER] = ':EMPLOYERS_COUNT';
-            $employersCount[ISqlHandler::VALUE] = $this->employersCount;
-            $employersCount[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-*/
-            /*
-            $city[ISqlHandler::PLACEHOLDER] = ':CITY';
-            $city[ISqlHandler::VALUE] = $this->city;
-            $city[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-
-            $country[ISqlHandler::PLACEHOLDER] = ':COUNTRY';
-            $country[ISqlHandler::VALUE] = $this->country;
-            $country[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-*/
-            /*
-            $is_hidden[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-            */
 
             $sqlText = '';
             $params = $this->getFieldsList();
@@ -441,42 +442,17 @@ namespace Assay\Communication\Profile {
             foreach($params as $key => $value)
             {
                 $propertyName = self::camelCase($key);
-                //$varName = $key;
-/*
-                if($key == 'id'){
-                    $id[ISqlHandler::PLACEHOLDER] = ':' . $value;
-                    $id[ISqlHandler::VALUE] = $this->{$propertyName};
-                    $id[ISqlHandler::DATA_TYPE] = constant('\PDO::' . $this->fieldTypes[$key]);//$this->{$propertyName};
-                }
-                else {
-                    */
+
                     $$key[ISqlHandler::PLACEHOLDER] = ':' . $value;
                     $$key[ISqlHandler::VALUE] = $this->{$propertyName};
                     $$key[ISqlHandler::DATA_TYPE] = constant('\PDO::' . $this->fieldTypes[$key]);//$this->{$propertyName};
 
                     $sqlText .= constant('self::' . $value) . " = " . $$key[ISqlHandler::PLACEHOLDER] . ", ";
-               // }
 
                 $arguments[ISqlHandler::QUERY_PARAMETER][] = $$key;
             }
             //убираем запятую после последнего элемента
             $sqlText = mb_substr(rtrim($sqlText), 0, -1).' ';
-
-
-//print_r($arguments); echo($sqlText); return;
-   //         echo($sqlText); return;
-/*
-            $arguments[ISqlHandler::QUERY_TEXT] = '
-                UPDATE 
-                    '.$this->tablename.'
-                SET
-                    '.self::NAME.' = '.$name[ISqlHandler::PLACEHOLDER].', '.self::DESCRIPTION.' = '.$description[ISqlHandler::PLACEHOLDER].', 
-                    update_date = now(), '.self::IS_HIDDEN.' = '.$is_hidden[ISqlHandler::PLACEHOLDER].', '.self::EMPLOYERS_COUNT.' = '.$employersCount[ISqlHandler::PLACEHOLDER].'
-                WHERE 
-                '.self::ID.' = '.$id[ISqlHandler::PLACEHOLDER];
-            */
-           // $arguments[ISqlHandler::QUERY_PARAMETER] = [$id,$name,$description,$is_hidden, $employersCount];
-         //   print_r($arguments);
 
             $arguments[ISqlHandler::QUERY_TEXT] = '
                UPDATE 
@@ -486,7 +462,7 @@ namespace Assay\Communication\Profile {
                  WHERE
                     '.self::ID.' = '.$id[ISqlHandler::PLACEHOLDER];
 
-         //   print_r($arguments[ISqlHandler::QUERY_TEXT]);
+//            print_r($arguments);
          //   return;
 
 
@@ -497,15 +473,21 @@ namespace Assay\Communication\Profile {
             return $isSuccessfulRequest;
         }
 
-        //проверяем, существуют ли для этого пользователя компания и объявления, если существуют, то выводим их
-        //если не существуют, то возвращаем false
 
-        public function getProfileCompany():bool
+        /**
+         * сохраняем заказ, если сообщение содержит на него ссылку
+         * @return bool
+         */
+        public function saveOrder():bool
         {
 
         }
 
-        public function getProfileAdvert():bool
+        /**
+         * отклоняем заказ, если он по каким-то причинам не подходит
+         * @return bool
+         */
+        public function disclameOrder():bool
         {
 
         }

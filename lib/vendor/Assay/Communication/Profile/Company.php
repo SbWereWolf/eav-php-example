@@ -65,6 +65,7 @@ namespace Assay\Communication\Profile {
         public $phone = self::EMPTY_VALUE;
         public $worktime = self::EMPTY_VALUE;
         public $inn = self::EMPTY_VALUE;
+        public $profileId = self::EMPTY_VALUE;
      //   public $registrationDate = self::EMPTY_VALUE;
     //    public $taxRegistrationDate = self::EMPTY_VALUE;
      //   public $confirmRegistrationDate = self::EMPTY_VALUE;
@@ -94,10 +95,42 @@ namespace Assay\Communication\Profile {
 
        // public $profile; //- это id
 
+        public function __construct($id, $profileId)
+        {
+            $this->id = $id;
+            $this->profileId = $id;
+            $this->getCurrentCompanyProfileData();
+        }
+
         //проверяем, привязана ли эта компания к пользователю и может ли он ее редактировать
         public function isUserCompany():bool
         {
+            $oneParameter[ISqlHandler::PLACEHOLDER] = ':ID';
+            $oneParameter[ISqlHandler::VALUE] = $this->profileId;
+            $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                'SELECT company_id FROM profile_company'
+                . ' WHERE profile_id '
+                . ' = '
+                . $oneParameter[ISqlHandler::PLACEHOLDER]
+                . ' ORDER BY company_id DESC
+;
+';
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+            $response = $sqlReader->performQuery($arguments); //print_r($response);
+
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+
+            $record = array();
+            if ($isSuccessfulRead) {
+                $record = SqlHandler::getFirstRecord($response);
+                if (count($record) > 0) return true;
+            }
+
+            return false;
         }
 
         //получаем список полей таблицы
@@ -155,7 +188,7 @@ namespace Assay\Communication\Profile {
         //получаем профиль компании
         public function getCurrentCompanyProfileData():bool
         {
-            $profileId = $this->id;
+            $profileId = $this->profileId;
             $result = false;
             return $this->loadById($profileId);
         }
@@ -251,12 +284,12 @@ namespace Assay\Communication\Profile {
             foreach($params as $key => $value)
             {
                 //print_r($key);
-                $key = self::camelCase($key);
+                $keyCamel = self::camelCase($key);
                 $k = __CLASS__.'::'.$value;
                 $v = constant($k);
                 if(isset($values[$key]))
-                    $this->{$key} = $values[$key];
-                else $this->{$key} = self::EMPTY_VALUE;//Common::setIfExists($v, $values[$key], self::EMPTY_VALUE);
+                    $this->{$keyCamel} = $values[$key];
+                else $this->{$keyCamel} = self::EMPTY_VALUE;//Common::setIfExists($v, $values[$key], self::EMPTY_VALUE);
                 // print_r($key);
             }
 
@@ -422,7 +455,6 @@ namespace Assay\Communication\Profile {
             $is_hidden[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
             $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
             */
-
             $sqlText = '';
             $params = $this->getFieldsList();
         //    $end_element = array_pop($params); //потому что после последнего элемента нам не надо ставить запятую
@@ -499,6 +531,34 @@ namespace Assay\Communication\Profile {
 
         }
 
+        /** Добавляет запись в БД
+         * @return bool успешность изменения
+         */
+        public function addEntity():bool
+        {
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' INSERT INTO ' . $this->tablename
+                . ' DEFAULT VALUES RETURNING '
+                . self::ID
+                .' ; '
+            ;
+            $sqlWriter = new SqlHandler(ISqlHandler::DATA_WRITER);
+            $response = $sqlWriter->performQuery($arguments);
+
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+            $record = self::EMPTY_ARRAY;
+            if ($isSuccessfulRead) {
+                $record = SqlHandler::getFirstRecord($response);
+            }
+
+            $this->id = Common::setIfExists(self::ID, $record, self::EMPTY_VALUE);
+//            $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $record, self::EMPTY_VALUE);
+
+            $result = $this->id != self::EMPTY_VALUE;
+
+            return $result;
+        }
+
         /*
             public function readEntity(string $id):bool
         {
@@ -536,4 +596,6 @@ namespace Assay\Communication\Profile {
         */
 
         }
+
+
 }

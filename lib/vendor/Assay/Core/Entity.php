@@ -40,7 +40,6 @@ namespace Assay\Core {
                 .' , '.self::IS_HIDDEN 
                 .' ; '
                 ;
-
             $sqlWriter = new SqlHandler(ISqlHandler::DATA_WRITER);
             $response = $sqlWriter->performQuery($arguments);
 

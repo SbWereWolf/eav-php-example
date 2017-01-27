@@ -53,7 +53,7 @@ function getProfileData()
   return $profile;
 }
 
-$var = getProfileData();
+//$var = getProfileData();
 //var_dump($var);
 
 function setProfileData()
@@ -121,13 +121,12 @@ function addCompanyData()
     $values = [];
    // $company->id = 1; //для тестов
   //  $values['id'] = 1;
-    $values['name'] = 'Еще круче';
-    $values['description'] = 'Уже нет';
+    $values['name'] = 'Фирма моей мечты';
+    $values['description'] = 'Мне так хочется';
     $values['employers_count'] = 50;
     $company->addCompanyData($values);
     //   $profile->getUserEmail();
-    print_r($company);
-    return $company;
+     return $company;
 }
 
 //addCompanyData();
@@ -137,13 +136,36 @@ function getMessages()
 {
     $message = new Messages();
     $message->profileId = 1; //для тестов
-    $message->getMessagesList();
+    $message->authorId = 3; //для тестов
+    //$message->getMessagesSelectAuthor();
+    //if(!$message->getMessagesList()) die('nikuya');
+    if(!$message->getMessagesSelectAuthor()) die('nikuya');
+    //print_r($message);
     //   $profile->getUserEmail();
     return $message;
 }
 
-$var = getMessages();
-var_dump($var);
+//$var = getMessages();
+//var_dump($var);
+
+
+function addMessage()
+{
+    $message = new Messages();
+    $message->profileId = 1; //для тестов
+    $values = [];
+    // $company->id = 1; //для тестов
+    //  $values['id'] = 1;
+    $values['author'] = '3';
+    $values['receiver'] = '1';
+    $values['message_text'] = 'Что-то сюда пишем. Важное или не очень важное.';
+    $values['date'] = date('Y-m-d H:i:s');
+    $message->addMessage($values);
+    //   $profile->getUserEmail();
+    return $message;
+}
+
+//addMessage();
 
 /*
 function getRequestSession():Assay\Permission\Privilege\Session
@@ -367,3 +389,350 @@ if ($result[Assay\DataAccess\SqlReader::ERROR_INFO][0] == '00000') {
 //var_dump(passwordChangeProcess('1','2','2',''));
 //passwordRecoveryProcess('mail@sancho.pw');
 //$isAllow = authorizationProcess($session,'','');
+
+$disabled = '';
+$profile = new Profile(1);
+//$profile->id = 1; //предположим, что мы залогинились и получили наш айдишник
+//$profile->getCurrentUserProfileData();
+//$profile->getUserEmail();
+//$profile->getProfileCompany();
+//$profile->getMode();
+$ownProfile = $profile->isOwnProfile();
+if(!$ownProfile) $disabled = 'disabled';
+?>
+
+<html>
+<head>
+    <title>Тестовая страница</title>
+</head>
+<body>
+<table>
+    <tr>
+        <td colspan="5">Пользователь: <?php echo($profile->name); ?></td>
+    </tr>
+    <tr>
+        <td>
+            <a href="profile_function.php?messages=all">Сообщения</a>
+        </td>
+        <td>
+            <a href="profile_function.php?favorite=1">Избранное</a>
+        </td>
+        <td>
+            <a href="profile_function.php?myprofile=1">Профиль</a>
+        </td>
+        <td>
+            <a href="profile_function.php?mod=1">Сменить режим</a>
+        </td>
+        <td>
+            <a href="profile_function.php?quit=1">Выйти</a>
+        </td>
+    </tr>
+</table>
+
+<br/><br/>
+
+<?php if(isset($_GET["myprofile"])){ ?>
+
+<br/><br/>
+<form name="profile_data" method="post">
+<table>
+    <tr>
+        <td>
+            Дата регистрации:
+        </td>
+        <td>
+            <?php echo($profile->insertDate); ?>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Имя учетной записи:
+        </td>
+        <td>
+            <input type="text" name="name" value="<?php echo($profile->name); ?>" <?php echo($disabled); ?>"/>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Электронная почта:
+        </td>
+        <td>
+            <?php echo($profile->email); ?>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Страна:
+        </td>
+        <td>
+            <input type="text" name="country" value="<?php echo($profile->country); ?>" <?php echo($disabled); ?>"/>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Город:
+        </td>
+        <td>
+            <input type="text" name="city" value="<?php echo($profile->city); ?>" <?php echo($disabled); ?>"/>
+        </td>
+    </tr>
+    <?php if($ownProfile){ ?>
+    <tr>
+        <td colspan="2"><input type="submit" name="sub_profile" value="Сохранить" /></td>
+    </tr>
+    <?php } ?>
+</table>
+</form>
+<table>
+    <tr>
+        <td>
+            Компания:
+        </td>
+<?php
+if($profile->getProfileCompany()){ ?>
+        <td><a href="profile_function.php?company=<?php echo($profile->company['id']);?>"><?php echo($profile->company['name']);?></a></td>
+        <?php if($ownProfile){ ?>
+            <td><input type="button" name="delete_company" value="Очистить"/></td>
+        <?php } ?>
+<?php
+}
+else{
+?>
+        <td></td>
+        <?php if($ownProfile){ ?>
+            <td><input type="button" name="add_company" value="Добавить"/></td>
+        <?php } ?>
+<?php } ?>
+    </tr>
+</table>
+<table>
+    <tr>
+        <td>
+            Объявление:
+        </td>
+        <?php
+        if($profile->getProfileAdvert()){ ?>
+            <td><a href="profile_function.php?advert=<?php echo($profile->advert['id']);?>"><?php echo($profile->advert['name']);?></a></td>
+        <?php if($ownProfile){ ?>
+            <td><input type="button" name="delete_company" value="Очистить"/></td>
+        <?php } ?>
+            <?php
+        }
+        else{
+            ?>
+            <td></td>
+        <?php if($ownProfile){ ?>
+            <td><input type="button" name="add_advert" value="Добавить"/></td>
+        <?php } ?>
+        <?php } ?>
+    </tr>
+</table>
+
+<?php } ?>
+
+
+<?php if(isset($_GET["messages"])){
+    $messages = new Messages(1);
+    ?>
+    <?php if($_GET["messages"] == 'all'){
+        //выводим список сообщений
+        $messages->getMessagesList();
+    ?>
+
+        <table>
+
+            <?php foreach($messages->messageList as $value){ ?>
+            <tr>
+                <td>
+                    <a href="profile_function.php?messages=<?php echo($value["author"]); ?>">
+                        <?php echo($value['author_name']." от ".$value["date"]); ?>
+                    </a>
+                </td>
+            </tr>
+            <tr>
+                 <td>
+                     <?php echo($value["message_text"]); ?>
+                 </td>
+            </tr>
+            <?php } ?>
+
+        </table>
+
+    <?php } ?>
+
+<?php if(intval($_GET["messages"]) >0){
+    //выводим список сообщений конкретного автора
+    $messages->getMessagesSelectAuthor($_GET["messages"]);
+    ?>
+    <form name="message_data" method="post">
+        <input type="hidden" name ="author" value="<?php echo($messages->profileId); ?>" />
+        <input type="hidden" name ="receiver" value="<?php echo($messages->authorId); ?>" />
+        <table>
+            <tr>
+                <td>
+                    Написать сообщение
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <textarea name="message_text"></textarea>
+                </td>
+            </tr>
+             <tr>
+                <td colspan="2"><input type="submit" name="add_message" value="Отправить" /></td>
+            </tr>
+        </table>
+    </form>
+        <table>
+
+            <?php foreach($messages->messagesSelectAuthor as $value){ ?>
+                <tr>
+                    <td bgcolor="green">
+                              <?php if(isset($value['author_name']) && !empty($value['author_name']))
+                                 echo($value['author_name']." от ".$value["date"]);
+                              else
+                                  echo($value['receiver_name']." от ".$value["date"]);
+
+                              ?>
+                     </td>
+                </tr>
+                <tr>
+                    <td>
+                        <?php echo($value["message_text"]); ?>
+                    </td>
+                </tr>
+            <?php } ?>
+
+        </table>
+
+
+<?php } ?>
+<?php } ?>
+
+<?php if(isset($_GET["company"])){
+    $company = new Company(intval($_GET["company"]), $profile->id);
+    $ownCompany = $company->isUserCompany();
+    if(!$ownCompany) $disabled = 'disabled';
+    ?>
+
+    <br/><br/>
+    <form name="company_data" method="post">
+        <input type="hidden" name="id" value="<?php echo($company->id); ?>"/>
+        <table>
+            <tr>
+                <td>
+                    Название:
+                </td>
+                <td>
+                    <input type="text" name="name" value="<?php echo($company->name); ?>" <?php echo($disabled); ?>"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Количество сотрудников:
+                </td>
+                <td>
+                    <input type="text" name="employers_count" value="<?php echo($company->employersCount); ?>" <?php echo($disabled); ?>"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Сферы деятельности:
+                </td>
+                <td>
+                    <input type="text" name="sphere" value="<?php echo($company->sphere); ?>" <?php echo($disabled); ?>"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Другой параметр отбора:
+                </td>
+                <td>
+                    <input type="text" name="other_criteria" value="<?php echo($company->otherCriteria); ?>" <?php echo($disabled); ?>"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Поставщик:
+                </td>
+                <td>
+                    <input type="checkbox" name="is_supplier" value="<?php echo($company->isSupplier); ?>" <?php echo($disabled); ?>"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Транспортная компания:
+                </td>
+                <td>
+                    <input type="checkbox" name="is_transport" value="<?php echo($company->isTransport); ?>" <?php echo($disabled); ?>"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Описание:
+                </td>
+                <td>
+                    <input type="text" name="description" value="<?php echo($company->description); ?>" <?php echo($disabled); ?>"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Адрес:
+                </td>
+                <td>
+                    <input type="text" name="address" value="<?php echo($company->address); ?>" <?php echo($disabled); ?>"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Сайт:
+                </td>
+                <td>
+                    <input type="text" name="website" value="<?php echo($company->website); ?>" <?php echo($disabled); ?>"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Почта:
+                </td>
+                <td>
+                    <input type="text" name="email" value="<?php echo($company->email); ?>" <?php echo($disabled); ?>"/>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    Телефон:
+                </td>
+                <td>
+                    <input type="text" name="phone" value="<?php echo($company->phone); ?>" <?php echo($disabled); ?>"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Часы работы:
+                </td>
+                <td>
+                    <input type="text" name="email" value="<?php echo($company->worktime); ?>" <?php echo($disabled); ?>"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    ИНН:
+                </td>
+                <td>
+                    <input type="text" name="inn" value="<?php echo($company->inn); ?>" <?php echo($disabled); ?>"/>
+                </td>
+            </tr>
+
+            <?php if($ownCompany){ ?>
+            <tr>
+                <td colspan="2"><input type="submit" name="sub_profile" value="Сохранить" /></td>
+            </tr>
+            <?php } ?>
+        </table>
+    </form>
+<?php } ?>
+
+</body>
+</html>

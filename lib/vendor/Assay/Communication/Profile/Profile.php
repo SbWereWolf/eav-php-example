@@ -28,7 +28,7 @@ namespace Assay\Communication\Profile {
         const CITY = 'city';
 
         /** @var string идентификатор записи таблицы */
-        public $id = self::EMPTY_VALUE;
+       public $id = self::EMPTY_VALUE;
         /** @var string признак "является скрытым" */
         public $isHidden = Core\IEntity::DEFAULT_IS_HIDDEN;
         /** @var string родительский элемент */
@@ -44,8 +44,19 @@ namespace Assay\Communication\Profile {
         public $city = self::EMPTY_VALUE;
         public $company = [];
         public $advert = [];
+        public $insertDate = self::EMPTY_VALUE;
 
         protected $tablename = self::TABLE_NAME;
+
+
+        public function __construct($id)
+        {
+            $this->id = $id;
+            $this->getMode();
+            $this->getCurrentUserProfileData();
+            $this->getUserEmail();
+            $this->getProfileCompany();
+        }
 
        // public $profile; //- это id
 
@@ -66,12 +77,25 @@ namespace Assay\Communication\Profile {
             return $result;
         }
 
-/*
-        public function getEditPossibility():bool
+        /**
+         * определяем роль - пользователь или компания
+         * @return string
+         */
+        public function getMode(): bool
         {
+            $this->mode = "user";
+            return true;
+        }
+
+
+        public function isOwnProfile():bool
+        {
+            $ownProfile = 1;
+            if($this->id != $ownProfile) return false;
+            return true;
             //смотрим, какие у нашего пользователя вообще есть права, мб его вообще надо слать лесом
         }
-*/
+
 
         public function getUserEmail():bool
         {
@@ -162,7 +186,7 @@ namespace Assay\Communication\Profile {
             $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $namedValue, self::EMPTY_VALUE);
             $this->name = Common::setIfExists(self::NAME, $namedValue, self::EMPTY_VALUE);
             */
-            parent::setByNamedValue($namedValue); print_r($namedValue);
+            parent::setByNamedValue($namedValue); //print_r($namedValue);
             $this->city = Common::setIfExists(self::CITY, $namedValue, self::EMPTY_VALUE);
             $this->country = Common::setIfExists(self::COUNTRY, $namedValue, self::EMPTY_VALUE);
 
@@ -362,7 +386,7 @@ namespace Assay\Communication\Profile {
                     $twoParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
                     $arguments = [];
                     $arguments[ISqlHandler::QUERY_TEXT] =
-                        'SELECT '.Company::NAME.' FROM '.Company::TABLE_NAME
+                        'SELECT '.Company::ID.','.Company::NAME.' FROM '.Company::TABLE_NAME
                         . ' WHERE '.Company::ID
                         . ' = '
                         . $twoParameter[ISqlHandler::PLACEHOLDER]
@@ -376,9 +400,10 @@ namespace Assay\Communication\Profile {
 
                     $isSuccessfulRead = SqlHandler::isNoError($response);
 
-                    $recordCompany = array();
+                    $recordCompany = [];
                     if ($isSuccessfulRead) {
                         $recordCompany = SqlHandler::getFirstRecord($response); //print_r($record);
+                        $this->company = $recordCompany;
                     }
                 }
                 //$this->setByNamedValue($record);
@@ -394,7 +419,7 @@ namespace Assay\Communication\Profile {
 
         public function getProfileAdvert():bool
         {
-
+            return false;
         }
 
         /*
