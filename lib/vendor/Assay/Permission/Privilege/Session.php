@@ -110,7 +110,6 @@ namespace Assay\Permission\Privilege {
 
             $userProfile = new Profile();
             $userInterface = new UserInreface();
-            $bussinessProcess = new BussinessProcess();
             session_start();
             $result[self::USER_ID] = $userId;
             $key = session_id();
@@ -120,8 +119,8 @@ namespace Assay\Permission\Privilege {
             $id = $session->addEntity();
             $result[self::ID] = $session->id;
             $result[self::GREETINGS_ROLE] = $userProfile->getGreetingsRole();
-            $result[self::MODE] = $bussinessProcess->getMode();
-            $result[self::PAGING] = $userInterface->getPagging();
+            $result[self::MODE] = $userInterface->getMode();
+            $result[self::PAGING] = $userInterface->getPaging();
             $result[self::COMPANY_FILTER] = $userInterface->getCompanyFilter();
 
             $session->setByNamedValue($result);

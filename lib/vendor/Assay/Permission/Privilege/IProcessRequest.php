@@ -109,6 +109,20 @@ namespace Assay\Permission\Privilege {
         /** @var string объявления */
         const OBJECT_AD = 'ad';
 
+        //Режимы
+        /** @var string объявления */
+        const MODE_GUEST = 'guest';
+        /** @var string объявления */
+        const MODE_USER = 'user';
+        /** @var string объявления */
+        const MODE_COMPANY = 'company';
+        /** @var string объявления */
+        const MODE_OPERATOR = 'operator';
+        /** @var string объявления */
+        const MODE_REDACTOR = 'redactor';
+        /** @var string объявления */
+        const MODE_ADMINISTRATOR = 'administrator';
+
         /** Проверить привелегию на выполнение процесса
          * @return bool успех проверки
          */

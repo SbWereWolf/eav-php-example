@@ -222,5 +222,5 @@ if ($result[Assay\DataAccess\SqlReader::ERROR_INFO][0] == '00000') {
 
 
 var_dump(passwordChangeProcess('qwerty','123456','123456',''));
-//passwordRecoveryProcess('mail@sancho.pw');
+passwordRecoveryProcess('mail@sancho.pw');
 //$isAllow = authorizationProcess($session,'','');

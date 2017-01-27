@@ -16,13 +16,19 @@ namespace Assay\Permission\InterfacePermission {
 
         public function checkPrivilege(array $args):array;
 
-        public function getAllow(array $args): string;
+        public function getAllow(array $args);
 
         public function getGreetingsRole(): string;
 
         public function getMode(): string;
 
         public function getPaging(): string;
+
+        public function getUserId(): string;
+
+        public function getProfileId(): string;
+
+        public function getCompanyFilter(): string;
 
         public function set(string $object,string $action,string $sessionId): array;
     }

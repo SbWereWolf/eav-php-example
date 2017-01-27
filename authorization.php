@@ -24,6 +24,7 @@ include "autoloader.php";
     <label for="pass">Пароль</label>
     <input type="password" id="pass">
     <button type="submit">Вход</button>
+    <a href='recoveryPassword.php'>Восстановить пароль</a>
 </form>
 </body>
 </html>

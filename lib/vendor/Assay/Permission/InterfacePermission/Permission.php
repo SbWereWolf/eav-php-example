@@ -82,7 +82,7 @@ namespace Assay\Permission\InterfacePermission {
             return $result;
         }
 
-        public function getAllow(array $args): string
+        public function getAllow(array $args)
         {
             $result = Common::setIfExists(self::IS_ALLOW,$args,self::EMPTY_VALUE);
             return $result;
@@ -135,6 +135,16 @@ namespace Assay\Permission\InterfacePermission {
             $session->id = $storedSession[self::ID];
             $session->getStored();
             $result = $session->paging;
+            return $result;
+        }
+
+        public function getCompanyFilter(): string
+        {
+            $session = new Session();
+            $storedSession = $session->loadByKey();
+            $session->id = $storedSession[self::ID];
+            $session->getStored();
+            $result = $session->companyFilter;
             return $result;
         }
 

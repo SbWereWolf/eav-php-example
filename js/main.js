@@ -138,6 +138,28 @@ var Page_object = function () {
 
             });
         } else alert("Пароли не совпадают");
+    };
+    
+    this.recoveryPassword = function () {
+        action = "recoveryPassword";
+        var email = $(email_id).val();
+
+        $.post(
+            url, {
+                action: action,
+                email: email
+            },
+            function (data) {
+                data = JSON.parse(data);
+                var error = data.error;
+                if (!error.isError) {
+                    window.location.href = "/";
+                } else
+                    console.log(error.message);
+            }
+        ).always(function () {
+
+        });
     }
 };
 
