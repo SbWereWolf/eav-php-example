@@ -28,14 +28,11 @@ class PrimitiveData extends Record implements IPrimitiveData
     /** @var string имя таблицы БД для хранения сущности */
     protected $tablename = self::TABLE_NAME;
 
-
-
     public $isHidden = self::EMPTY_VALUE;
 
     public function mutateEntity():bool{
         $result = false;
         return $result;
-
     }
     /** Скрыть сущность
      * @return bool успех выполнения
@@ -56,14 +53,7 @@ class PrimitiveData extends Record implements IPrimitiveData
         $arguments[ISqlHandler::QUERY_PARAMETER][] = $id;
         $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHidden;
 
-        $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-        $response = $sqlWriter->performQuery($arguments);
-
-        $isSuccessfulRead = SqlHandler::isNoError($response);
-        $record = self::EMPTY_ARRAY;
-        if ($isSuccessfulRead) {
-            $record = SqlHandler::getFirstRecord($response);
-        }
+        $record = SqlHandler::readOneRecord($arguments);
 
         $this->id = Common::setIfExists(self::ID, $record, self::EMPTY_VALUE);
         $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $record, self::EMPTY_VALUE);

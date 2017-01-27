@@ -33,11 +33,21 @@ namespace Assay\Core {
         /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
 
-        /** Удалить связь
+        /** Удалить связь по внешней ссылке
          * @param array $foreignKeys значение внешнего ключа
          * @return bool значения колонок
          */
-        public function dropLinkage(array $foreignKeys):bool
+        public function dropOuterLinkage(array $foreignKeys):bool
+        {
+            $result= false;
+            return $result;
+        }
+
+        /** Удалить связь по внутрейней ссылке
+         * @param array $foreignKeys значение внешнего ключа
+         * @return bool значения колонок
+         */
+        public function dropInnerLinkage(array $foreignKeys):bool
         {
             $conditionString = Common::getColumnValuePairByUnionString($foreignKeys,self::UNION_BY_AND);
 

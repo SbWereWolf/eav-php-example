@@ -58,16 +58,9 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
 
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+            $record = SqlHandler::readOneRecord($arguments);
 
-            $response = $sqlReader->performQuery($arguments);
-
-            $isSuccessfulRead = SqlHandler::isNoError($response);
-
-            if ($isSuccessfulRead) {
-                $record = SqlHandler::getFirstRecord($response);
-                $this->setByNamedValue($record);
-            }
+            $isSuccessfulRead = $record != ISqlHandler::EMPTY_ARRAY;
 
             return $isSuccessfulRead;
         }
@@ -113,21 +106,8 @@ namespace Assay\InformationsCatalog\StructureInformation {
 ';
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
 
-            $sqlReader = new SqlHandler(ISqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments);
-
-            $isSuccessfulRead = SqlHandler::isNoError($response);
-
-            $record = self::EMPTY_ARRAY;
-            if ($isSuccessfulRead) {
-                $record = SqlHandler::getFirstRecord($response);
-                $this->setByNamedValue($record);
-            }
-
-            $result = false;
-            if ($record != self::EMPTY_ARRAY) {
-                $result = true;
-            }
+            $record = SqlHandler::readOneRecord($arguments);
+            $result = $record != ISqlHandler::EMPTY_ARRAY;
 
             return $result;
         }
@@ -217,22 +197,13 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $typeEditParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $dataTypeParameter;
 
+            $record = SqlHandler::readOneRecord($arguments);
+            $result = $record != ISqlHandler::EMPTY_ARRAY;
 
-            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-            $response = $sqlWriter->performQuery($arguments);
-
-            $isSuccessfulRequest = SqlHandler::isNoError($response);
-
-            $record = self::EMPTY_ARRAY;
-            if ($isSuccessfulRequest) {
-                $record = SqlHandler::getFirstRecord($response);
-                $this->setByNamedValue($record);
+            if($result){
+                $result = $this->setByNamedValue($record);
             }
 
-            $result = false;
-            if ($record != self::EMPTY_ARRAY) {
-                $result = true;
-            }
             return $result;
         }
     }

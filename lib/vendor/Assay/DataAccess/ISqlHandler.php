@@ -47,31 +47,13 @@ interface ISqlHandler
     /** @var array режим записи данных */
     const DATA_WRITER = 2;
 
-    /** Выполнить запрос
-     * @param array $arguments
-     * @return array
-     */
-    public function performQuery(array $arguments):array;
-
-    /** Получить первую строку выборки
-     * @param array $response
-     * @return array
-     */
-    public static function getFirstRecord(array $response):array;
-
-    /** Получить все строки выборки
-     * @param array $response
-     * @return array
-     */
-    public static function getAllRecords(array $response):array;
-
     /** Задать параметры связывания для параметризированного запроса
      * @param string $placeholder место заменитель параметра
      * @param string $value значение параметра
      * @param int $dataType тип значения параметра
      * @return array
      */
-    public static function setBindParameter(\string $placeholder, \string $value, \int $dataType):array;
+    public static function setBindParameter(string $placeholder, string $value, int $dataType):array;
 
     /** Прочитать все результаты запроса данных
      * @param $arguments array аргументы выборки данных
@@ -89,4 +71,10 @@ interface ISqlHandler
      * @return array записанные значения
      */
     public static function writeOneRecord($arguments):array;
+
+    /** Записать все строки
+     * @param $arguments array аргументы записи
+     * @return array результат записи
+     */
+    public static function writeAllRecords(array $arguments):array;
 }

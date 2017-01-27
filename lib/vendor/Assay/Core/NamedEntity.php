@@ -22,6 +22,12 @@ namespace Assay\Core {
         /** @var array константа значение не задано для массивов */
         const EMPTY_ARRAY = ICommon::EMPTY_ARRAY;
 
+        /** @var string имя таблицы БД для хранения сущности */
+        const TABLE_NAME = 'named_entity';
+
+        /** @var string имя таблицы БД для хранения сущности */
+        protected $tablename = self::TABLE_NAME;
+
         /** @var string код */
         public $code = self::EMPTY_VALUE;
         /** @var string имя */

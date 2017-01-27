@@ -14,6 +14,7 @@ namespace Assay\InformationsCatalog\DataInformation {
      */
     class InformationValue extends Record
     {
+        
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'information_value_id';
 

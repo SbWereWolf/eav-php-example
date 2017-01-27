@@ -5,30 +5,7 @@ use Assay\DataAccess\SqlHandler;
 use Assay\InformationsCatalog\StructureInformation\Structure;
 use Assay\InformationsCatalog\StructureInformation\Rubric;
 
-define('CONFIGURATION_ROOT', realpath(__DIR__ . DIRECTORY_SEPARATOR . 'configuration'));
-define('DB_READ_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_read.php');
-define('DB_WRITE_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_write.php');
-
-/**
- * @param $className string Class to load
- */
-function autoload($className)
-{
-    $path = __DIR__ . "/lib/vendor/";
-    $className = ltrim($className, '\\');
-    $fileName = '';
-    if ($lastNsPos = strrpos($className, '\\')) {
-        $namespace = substr($className, 0, $lastNsPos);
-        $className = substr($className, $lastNsPos + 1);
-        $fileName = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
-    }
-    $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
-
-    $classSource = ($path . $fileName);
-    require($classSource);
-}
-
-spl_autoload_register('autoload');
+include "autoloader.php";
 
 echo '<pre>';
 
@@ -92,7 +69,6 @@ var_dump($rubricForGetStored);
 
 echo '</pre>';
 
-/*
 $structure = new Structure();
 
 echo "<pre>";
@@ -196,14 +172,12 @@ echo " \n structure->getMap() \n";
 $map = $structureForMap::getMap();
 var_dump($map);
 
-$structureLinkage[Structure::PARENT] = '20';
-
 $structureForParent = new Structure();
 echo " \n structureForParent->addEntity() \n";
 $structureForParent->addEntity();
 var_dump($structureForParent);
 echo " \n structureForParent->setParent \n";
-$structureForParent->setParent($structureLinkage);
+$structureForParent->setParent('20');
 var_dump($structureForParent);
 echo " \n structureForParent->hideEntity() \n";
 $structureForParent->hideEntity();
@@ -213,7 +187,7 @@ echo " \n otherStructure->addEntity() \n";
 $otherStructure->addEntity();
 var_dump($otherStructure);
 echo " \n otherStructure->setParent \n";
-$otherStructure->setParent($structureLinkage);
+$otherStructure->setParent('20');
 var_dump($otherStructure);
 echo " \n otherStructure->code : otherStructure->addEntity() => $otherStructure->id \n";
 $otherStructure->code=" otherStructure->addEntity() => $otherStructure->id";
@@ -222,6 +196,7 @@ echo " \n resultOfMutate = otherStructure->mutateEntity() \n";
 $resultOfMutate = $otherStructure->mutateEntity();
 var_dump($otherStructure);
 var_dump($resultOfMutate );
+echo " \n otherStructure->id =  $otherStructure->id \n";
 $sameStructure = new Structure();
 echo " \n sameStructure->loadById($otherStructure->id) \n";
 $sameStructure->loadById($otherStructure->id);
@@ -235,32 +210,4 @@ var_dump($sameStructure);
 
 
 echo "</pre>";
-*/
 
-/* === */
-
-
-$sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-
-$oneParameter[SqlHandler::PLACEHOLDER] = ':CIFRI';
-$oneParameter[SqlHandler::VALUE] = '1351351';
-$oneParameter[SqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-
-$otherParameter[SqlHandler::PLACEHOLDER] = ':BUKVI';
-$otherParameter[SqlHandler::VALUE] = 'dthgfhh';
-$otherParameter[SqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-
-$arguments[SqlHandler::QUERY_TEXT] =
-    'select 564 AS RESULT, '
-    . $oneParameter[SqlHandler::PLACEHOLDER]
-    . '::int AS CIFRI,'
-    . $otherParameter[SqlHandler::PLACEHOLDER]
-    . '::text AS BUKVI';
-
-$arguments[SqlHandler::QUERY_PARAMETER][] = $oneParameter;
-$arguments[SqlHandler::QUERY_PARAMETER][] = $otherParameter;
-
-$result = $sqlReader->performQuery($arguments);
-echo '<pre>';
-var_dump($result);
-echo '</pre>';

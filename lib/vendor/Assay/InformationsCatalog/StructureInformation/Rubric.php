@@ -58,6 +58,36 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public function getSearchParameters():array
         {
         }
+        /** Считать все идентификаторы свойств рубрики
+         * @param $propertyKey string индекс для идентификатора свойства
+         * @return array идентификаторы свойств рубрики
+         */
+        public function readAllPropertyId( string $propertyKey = InformationProperty::EXTERNAL_ID)
+        {
+            $rubricParameter = SqlHandler::setBindParameter(':RUBRIC', $this->id, \PDO::PARAM_INT);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN',
+                self::DEFINE_AS_NOT_HIDDEN,
+                \PDO::PARAM_INT);
+
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' SELECT '
+                . ' P.' . InformationProperty::ID . ' AS ' . $propertyKey
+                . ' FROM '
+                . RubricInformationProperty::TABLE_NAME . ' AS RP '
+                . ' JOIN ' . IInformationProperty::TABLE_NAME . ' AS P '
+                . ' ON P.' . InformationProperty::ID . ' = RP.' . RubricInformationProperty::PROPERTY
+                . ' WHERE '
+                . ' RP.' . RubricInformationProperty::RUBRIC . ' = ' . $rubricParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND P.' . InformationProperty::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ';';
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $rubricParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
+
+            $result = SqlHandler::readAllRecords($arguments);
+
+            return $result;
+        }
 
         /** Получить свойства рубрики
          * @param string $property индекс для кода рубрики
@@ -77,9 +107,9 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' SELECT '
                 .' P.'.InformationProperty::CODE . ' AS '.$property
-                .' TE.'.TypeEdit::CODE. 'AS type_edit_code'.$typeEdit
-                .' ST.'.SearchType::CODE. 'AS search_type_code'.$searchType
-                .' DT.'.DataType::CODE. 'AS data_type_code'.$dataType
+                .' TE.'.TypeEdit::CODE. 'AS '.$typeEdit
+                .' ST.'.SearchType::CODE. 'AS '.$searchType
+                .' DT.'.DataType::CODE. 'AS '.$dataType
                 
                 . ' FROM '
                 . RubricInformationProperty::TABLE_NAME . ' AS RP '

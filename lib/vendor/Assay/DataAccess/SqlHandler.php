@@ -12,7 +12,9 @@ use Assay\Core\Common;
 
 class SqlHandler implements ISqlHandler
 {
+    /** @var string индекс для массива с данными выборки в ответе СУБД */
     const RECORDS = 'fetchAll';
+    /** @var string индекс для массива с ошибкой выборки в ответе СУБД */
     const ERROR_INFO = 'errorInfo';
 
     private $dataSource = Common::EMPTY_VALUE;
@@ -46,11 +48,11 @@ class SqlHandler implements ISqlHandler
     }
 
 
-    /**
-     * @param $response
-     * @return bool
+    /** Проверить на отсутствие ошибки в ответе сервера
+     * @param array $response ответ сервера на зпрос
+     * @return bool флаг отсутствия ошибки
      */
-    public static function isNoError($response):bool
+    public static function isNoError(array $response):bool
     {
         $errorInfo = Common::setIfExists(self::ERROR_INFO,
             $response,
@@ -73,6 +75,10 @@ class SqlHandler implements ISqlHandler
         return $isSuccessfulRequest;
     }
 
+    /** выполнить запрос к СУБД с использованием PDO
+     * @param array $arguments параметры запроса
+     * @return array ответ сервера
+     */
     public function performQuery(array $arguments):array
     {
         $connection = new \PDO ($this->dataSource,
@@ -91,6 +97,11 @@ class SqlHandler implements ISqlHandler
         return $result;
     }
 
+    /** Получить PDO выражение
+     * @param \PDO $connection
+     * @param array $parameters
+     * @return \PDOStatement
+     */
     private static function getPdoStatement(\PDO $connection, array $parameters):\PDOStatement
     {
         $queryText = Common::setIfExists(self::QUERY_TEXT, $parameters, Common::EMPTY_VALUE);
@@ -130,9 +141,9 @@ class SqlHandler implements ISqlHandler
         }
     }
 
-    /**
-     * @param $response
-     * @return array
+    /** Получить первую строку выборки
+     * @param array $response ответ сервера на запрос
+     * @return array данные первой строки
      */
     public static function getFirstRecord(array $response):array
     {
@@ -150,6 +161,10 @@ class SqlHandler implements ISqlHandler
         return $responseValue;
     }
 
+    /** Получить все строки выборки
+     * @param array $response ответ сервера на запрос
+     * @return array данные выборки
+     */
     public static function getAllRecords(array $response):array
     {
         $records = Common::setIfExists(self::RECORDS,
@@ -159,7 +174,13 @@ class SqlHandler implements ISqlHandler
         return $records;
     }
 
-    public static function setBindParameter(\string $placeholder, \string $value, \int $dataType):array
+    /** Установить настройки параметра для запроса
+     * @param string $placeholder место заменитель
+     * @param string $value значение
+     * @param int $dataType тип данных для значения
+     * @return array настройки параметра для запроса
+     */
+    public static function setBindParameter(string $placeholder, string $value, int $dataType):array
     {
         $bindValue = $value;
         switch ($dataType) {

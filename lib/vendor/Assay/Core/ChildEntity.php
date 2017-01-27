@@ -12,16 +12,11 @@ namespace Assay\Core;
 use Assay\DataAccess\ISqlHandler;
 use Assay\DataAccess\SqlHandler;
 
-class ParentEntity extends PrimitiveData implements INamedEntity
+class ChildEntity extends PrimitiveData implements INamedEntity,IChildEntity
 {
 
-    /** @var null константа значение не задано для ссылочных типов */
-    const EMPTY_OBJECT = ICommon::EMPTY_OBJECT;
-    /** @var array константа значение не задано для массивов */
-    const EMPTY_ARRAY = ICommon::EMPTY_ARRAY;
-
     /** @var string имя таблицы БД для хранения сущности */
-    const TABLE_NAME = 'parent_entity';
+    const TABLE_NAME = 'child_entity';
 
     /** @var string имя таблицы БД для хранения сущности */
     protected $tablename = self::TABLE_NAME;
@@ -138,8 +133,7 @@ class ParentEntity extends PrimitiveData implements INamedEntity
      */
     public function toEntity():array
     {
-        $result = self::EMPTY_ARRAY;
-
+        
         $result [self::CODE] = $this->code;
         $result [self::DESCRIPTION] = $this->description;
         $result [self::ID] = $this->id;
@@ -165,7 +159,7 @@ class ParentEntity extends PrimitiveData implements INamedEntity
     {
         $result = false;
 
-        $stored = new ParentEntity();
+        $stored = new ChildEntity();
         $wasReadStored = $stored->loadById($this->id);
 
         $storedEntity = array();
@@ -247,14 +241,7 @@ class ParentEntity extends PrimitiveData implements INamedEntity
         $arguments[ISqlHandler::QUERY_PARAMETER][] = $id;
         $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHidden;
 
-        $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-        $response = $sqlWriter->performQuery($arguments);
-
-        $isSuccessfulRead = SqlHandler::isNoError($response);
-        $record = self::EMPTY_ARRAY;
-        if ($isSuccessfulRead) {
-            $record = SqlHandler::getFirstRecord($response);
-        }
+        $record = SqlHandler::readOneRecord($arguments);
 
         $this->id = Common::setIfExists(self::ID, $record, self::EMPTY_VALUE);
         $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $record, self::EMPTY_VALUE);
@@ -265,7 +252,7 @@ class ParentEntity extends PrimitiveData implements INamedEntity
     }
 
 
-    public function addParentEntity():bool
+    public function addChildEntity():bool
     {
         $result = false;
         return $result;
