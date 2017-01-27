@@ -10,11 +10,11 @@ namespace Assay\DataAccess;
 
 use Assay\Core\Common;
 
-//include_once(DB_READ_CONFIGURATION);
-
 class SqlHandler implements ISqlHandler
 {
+    /** @var string индекс для массива с данными выборки в ответе СУБД */
     const RECORDS = 'fetchAll';
+    /** @var string индекс для массива с ошибкой выборки в ответе СУБД */
     const ERROR_INFO = 'errorInfo';
 
     private $dataSource = Common::EMPTY_VALUE;
@@ -48,13 +48,13 @@ class SqlHandler implements ISqlHandler
     }
 
 
-    /**
-     * @param $response
-     * @return bool
+    /** Проверить на отсутствие ошибки в ответе сервера
+     * @param array $response ответ сервера на зпрос
+     * @return bool флаг отсутствия ошибки
      */
-    public static function isNoError($response):bool
+    public static function isNoError(array $response):bool
     {
-        $errorInfo = Common::setIfExists(SqlHandler::ERROR_INFO,
+        $errorInfo = Common::setIfExists(self::ERROR_INFO,
             $response,
             Common::EMPTY_VALUE);
 
@@ -62,19 +62,23 @@ class SqlHandler implements ISqlHandler
         $errorNumber = Common::EMPTY_VALUE;
         $errorMessage = Common::EMPTY_VALUE;
         if ($errorInfo != Common::EMPTY_VALUE) {
-            $errorCode = $errorInfo[SqlHandler::EXEC_ERROR_CODE_INDEX];
-            $errorNumber = $errorInfo[SqlHandler::EXEC_ERROR_NUMBER_INDEX];
-            $errorMessage = $errorInfo[SqlHandler::EXEC_ERROR_MESSAGE_INDEX];
+            $errorCode = $errorInfo[self::EXEC_ERROR_CODE_INDEX];
+            $errorNumber = $errorInfo[self::EXEC_ERROR_NUMBER_INDEX];
+            $errorMessage = $errorInfo[self::EXEC_ERROR_MESSAGE_INDEX];
         }
         $isSuccessfulRequest = false;
         if ($errorCode != Common::EMPTY_VALUE) {
-            $isSuccessfulRequest = $errorCode == SqlHandler::EXEC_WITH_SUCCESS_CODE
-                && $errorNumber == SqlHandler::EXEC_WITH_SUCCESS_NUMBER
-                && $errorMessage == SqlHandler::EXEC_WITH_SUCCESS_MESSAGE;
+            $isSuccessfulRequest = $errorCode == self::EXEC_WITH_SUCCESS_CODE
+                && $errorNumber == self::EXEC_WITH_SUCCESS_NUMBER
+                && $errorMessage == self::EXEC_WITH_SUCCESS_MESSAGE;
         }
         return $isSuccessfulRequest;
     }
 
+    /** выполнить запрос к СУБД с использованием PDO
+     * @param array $arguments параметры запроса
+     * @return array ответ сервера
+     */
     public function performQuery(array $arguments):array
     {
         $connection = new \PDO ($this->dataSource,
@@ -93,6 +97,11 @@ class SqlHandler implements ISqlHandler
         return $result;
     }
 
+    /** Получить PDO выражение
+     * @param \PDO $connection
+     * @param array $parameters
+     * @return \PDOStatement
+     */
     private static function getPdoStatement(\PDO $connection, array $parameters):\PDOStatement
     {
         $queryText = Common::setIfExists(self::QUERY_TEXT, $parameters, Common::EMPTY_VALUE);
@@ -132,13 +141,13 @@ class SqlHandler implements ISqlHandler
         }
     }
 
-    /**
-     * @param $response
-     * @return array
+    /** Получить первую строку выборки
+     * @param array $response ответ сервера на запрос
+     * @return array данные первой строки
      */
     public static function getFirstRecord(array $response):array
     {
-        $records = Common::setIfExists(SqlHandler::RECORDS,
+        $records = Common::setIfExists(self::RECORDS,
             $response,
             Common::EMPTY_VALUE);
 
@@ -152,12 +161,116 @@ class SqlHandler implements ISqlHandler
         return $responseValue;
     }
 
+    /** Получить все строки выборки
+     * @param array $response ответ сервера на запрос
+     * @return array данные выборки
+     */
     public static function getAllRecords(array $response):array
     {
-        $records = Common::setIfExists(SqlHandler::RECORDS,
+        $records = Common::setIfExists(self::RECORDS,
             $response,
             array());
 
+        return $records;
+    }
+
+    /** Установить настройки параметра для запроса
+     * @param string $placeholder место заменитель
+     * @param string $value значение
+     * @param int $dataType тип данных для значения
+     * @return array настройки параметра для запроса
+     */
+    public static function setBindParameter(string $placeholder, string $value, int $dataType):array
+    {
+        $bindValue = $value;
+        switch ($dataType) {
+            case \PDO::PARAM_INT :
+                $bindValue = intval($value);
+                break;
+            case \PDO::PARAM_STR:
+                $bindValue = strval($value);
+                break;
+        }
+        $result = [
+            self::PLACEHOLDER => $placeholder,
+            self::VALUE => $bindValue,
+            self::DATA_TYPE => $dataType,
+        ];
+
+        return $result;
+    }
+
+    /** Прочитать все результаты запроса данных
+     * @param $arguments array аргументы выборки данных
+     * @return array данные выборки
+     */
+    public static function readAllRecords(array $arguments):array
+    {
+        $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+        $response = $sqlReader->performQuery($arguments);
+        $resultCountChildren = SqlHandler::isNoError($response);
+
+        $result = array();
+        if ($resultCountChildren) {
+            $result = SqlHandler::getAllRecords($response);
+        }
+        return $result;
+    }
+
+    /** Прочитать одну строку из выборки данных
+     * @param $arguments array аргументы выборки данных
+     * @return array результат чтения данных
+     */
+    public static function readOneRecord(array $arguments):array
+    {
+        $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+        $response = $sqlReader->performQuery($arguments);
+
+        $isSuccessfulRead = SqlHandler::isNoError($response);
+
+        $record = self::EMPTY_ARRAY;
+        if ($isSuccessfulRead) {
+            $record = SqlHandler::getFirstRecord($response);
+        }
+
+        return $record;
+    }
+    /** Сделать одну запись
+     * @param $arguments array параметры записи
+     * @return array записанные значения
+     */
+    public static function writeOneRecord($arguments):array
+    {
+        $sqlWriter = new SqlHandler(ISqlHandler::DATA_WRITER);
+        $response = $sqlWriter->performQuery($arguments);
+
+        $isSuccessfulRequest = SqlHandler::isNoError($response);
+
+        $record = self::EMPTY_ARRAY;
+        if ($isSuccessfulRequest) {
+            $record = SqlHandler::getFirstRecord($response);
+
+        }
+
+        return $record;
+    }
+
+    /** Записать все строки
+     * @param $arguments array аргументы записи
+     * @return array результат записи
+     */
+    public static function writeAllRecords(array $arguments):array
+    {
+        $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
+        $response = $sqlWriter->performQuery($arguments);
+
+        $isSuccessfulDelete = SqlHandler::isNoError($response);
+
+        $records = ISqlHandler::EMPTY_ARRAY;
+        if ($isSuccessfulDelete) {
+            $records = SqlHandler::getAllRecords($response);
+        }
+        
         return $records;
     }
 }

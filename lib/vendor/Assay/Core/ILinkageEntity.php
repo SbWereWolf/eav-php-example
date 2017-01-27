@@ -11,11 +11,16 @@ namespace Assay\Core {
      */
     interface ILinkageEntity
     {
-        /** Удалить связь
+        /** Удалить связь по внутрейней ссылке
          * @param array $foreignKeys значение внешнего ключа
          * @return bool значения колонок
          */
-        public function dropLinkage(array $foreignKeys):bool;
+        public function dropInnerLinkage(array $foreignKeys):bool;
+        /** Удалить связь по внешней ссылке
+         * @param array $foreignKeys значение внешнего ключа
+         * @return bool значения колонок
+         */
+        public function dropOuterLinkage(array $foreignKeys):bool;
 
         /** Добавить запись в БД на основе экземпляра
          * @param array $foreignKeys значение внешнего ключа

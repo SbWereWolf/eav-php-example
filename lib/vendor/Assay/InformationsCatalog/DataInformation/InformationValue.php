@@ -6,14 +6,15 @@
  * Time: 18:48
  */
 namespace Assay\InformationsCatalog\DataInformation {
-
-    use Assay\Core\MutableEntity;
+    
+    use Assay\Core\Record;
     use Assay\InformationsCatalog\StructureInformation\InformationProperty;
     /**
      * Значения свойства позиции рубрики
      */
-    class InformationValue extends MutableEntity
+    class InformationValue extends Record
     {
+        
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'information_value_id';
 

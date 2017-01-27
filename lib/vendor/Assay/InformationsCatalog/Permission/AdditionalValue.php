@@ -11,12 +11,12 @@ namespace Assay\InformationsCatalog\Permission {
     /**
      * Пользовательские данные
      */
-    class UserValue extends InformationValue
+    class AdditionalValue extends InformationValue
     {
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
-        const EXTERNAL_ID = 'user_value_id';
+        const EXTERNAL_ID = 'additional_value_id';
 
         /** @var string колонка для ссылки на пользователя информационного каталога */
-        const USER = InformationUser::EXTERNAL_ID;
+        const USER = Redactor::EXTERNAL_ID;
     }
 }
