@@ -14,15 +14,26 @@ namespace Assay\InformationsCatalog\DataInformation {
     {
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'information_instance_id';
+
+        /** @var string имя таблдицы */
+        const TABLE_NAME = 'information_instance';
         
         /** @var string колонка для ссылки на рубрику */
         const RUBRIC = 'rubric_id';
 
         /** Получить позицию для отображения
-         * @param array $type типы отображения
-         * @return array результат вычисления
+         * @param string $propertyName индекс для Названия свойства
+         * @param string $propertyDescription индекс для описания свойства
+         * @param string $typeEdit индекс для типа редактирования
+         * @param string $dataType индекс для типа данных
+         * @param string $value индекс для значения
+         * @return array массив с набором свойств
          */
-        public function getPositionByPrivileges($type = array()):array;
+        public function getPosition(\string $propertyName = InformationProperty::NAME,
+                                    \string $propertyDescription = InformationProperty::DESCRIPTION,
+                                    \string $typeEdit = TypeEdit::EXTERNAL_ID,
+                                    \string $dataType = DataType::EXTERNAL_ID,
+                                    \string $value = InformationValue::VALUE):array;
 
         /** Выполнить поиск
          * @param array $filterProperties параметры поиска

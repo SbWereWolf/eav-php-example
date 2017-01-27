@@ -1,30 +1,27 @@
 <?php
 
+include "autoloader.php";
 
-use Assay\DataAccess\SqlHandler;
-use Assay\InformationsCatalog\StructureInformation\Structure;
+?>
 
-define('CONFIGURATION_ROOT', realpath(__DIR__ . DIRECTORY_SEPARATOR . 'configuration'));
-define('DB_READ_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_read.php');
-define('DB_WRITE_CONFIGURATION', CONFIGURATION_ROOT . DIRECTORY_SEPARATOR . 'db_write.php');
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Глагне</title>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body>
+<h3>
+    Привет, <div id="greetings_role">никто</div>
+</h3>
+вы
+<div id="mode"></div>
+вывожу на страницу
+<div id="paging">0</div>
+товаров
 
-/**
- * @param $className string Class to load
- */
-function autoload($className)
-{
-    $path = __DIR__ . "/lib/vendor/";
-    $className = ltrim($className, '\\');
-    $fileName = '';
-    if ($lastNsPos = strrpos($className, '\\')) {
-        $namespace = substr($className, 0, $lastNsPos);
-        $className = substr($className, $lastNsPos + 1);
-        $fileName = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
-    }
-    $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
-
-    $classSource = ($path . $fileName);
-    require($classSource);
-}
-
-spl_autoload_register('autoload');
+<div id="user_auth_panel"></div>
+</body>
+</html>

@@ -14,5 +14,10 @@ namespace Assay\Communication\Profile {
         public function getCommentEnableArea():bool;
 
         public function getGreetingsRole():string;
+
+        /** Будет браться из учетной записи Пользователя
+         * @return string
+         */
+        public function getUserEmail():bool;
     }
 }

@@ -6,7 +6,7 @@
  * Time: 10:06
  */
 namespace Assay\Permission\Privilege {
-    interface IAuthenticateUser
+    interface IAuthenticateAccount
     {
         /** Расчитать хэш
          * @param string $password пароль

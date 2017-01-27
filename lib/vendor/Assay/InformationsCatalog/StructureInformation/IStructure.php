@@ -64,17 +64,21 @@ namespace Assay\InformationsCatalog\StructureInformation {
          * @param int $paging количество для отображения
          * @return array результаты поиска
          */
-        public static function search(string $searchString= ICommon::EMPTY_VALUE, string $structureCode = ICommon::EMPTY_VALUE, int $start, int $paging):array;
+        public static function search(string $searchString= ICommon::EMPTY_VALUE
+            , string $structureCode = ICommon::EMPTY_VALUE
+            , int $start
+            , int $paging):array;
 
         /** Получить коды элементов для которых этот родительский
          * @param string $codeKey наименование индекса для кода дочернего элемента структуры
          * @return array
          */
         public function getChildrenCodes(string $codeKey = INamedEntity::CODE):array;
+
         /** Добавить запись в БД на основе экземпляра
-         * @param array $parentKey значения колонок
+         * @param string $parentCode
          * @return bool успех выполнения
          */
-        public function setParent(array $parentKey):bool;
+        public function setParent(string $parentCode):bool;
     }
 }
