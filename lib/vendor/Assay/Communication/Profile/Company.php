@@ -98,7 +98,7 @@ namespace Assay\Communication\Profile {
         public function __construct($id, $profileId)
         {
             $this->id = $id;
-            $this->profileId = $id;
+            $this->profileId = $profileId;
             $this->getCurrentCompanyProfileData();
         }
 
@@ -518,18 +518,6 @@ namespace Assay\Communication\Profile {
             return $isSuccessfulRequest;
         }
 
-        //проверяем, существуют ли для этого пользователя компания и объявления, если существуют, то выводим их
-        //если не существуют, то возвращаем false
-
-        public function getProfileCompany():bool
-        {
-
-        }
-
-        public function getProfileAdvert():bool
-        {
-
-        }
 
         /** Добавляет запись в БД
          * @return bool успешность изменения

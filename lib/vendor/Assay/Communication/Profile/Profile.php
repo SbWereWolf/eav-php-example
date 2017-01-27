@@ -42,8 +42,8 @@ namespace Assay\Communication\Profile {
         public $email = self::EMPTY_VALUE;
         public $country = self::EMPTY_VALUE;
         public $city = self::EMPTY_VALUE;
-        public $company = [];
-        public $advert = [];
+        public $company = []; //empty array
+        public $ad = [];
         public $insertDate = self::EMPTY_VALUE;
 
         protected $tablename = self::TABLE_NAME;
@@ -268,7 +268,7 @@ namespace Assay\Communication\Profile {
         {
             $result = false;
 
-            $stored = new Profile();
+            $stored = new Profile($this->id);
             //$this->id = 1;
             $wasReadStored = $stored->loadById($this->id);
 
@@ -376,6 +376,9 @@ namespace Assay\Communication\Profile {
 
             $isSuccessfulRead = SqlHandler::isNoError($response);
 
+
+            $recordCompany = Core\ICommon::EMPTY_ARRAY;
+
             $record = array();
             if ($isSuccessfulRead) {
                 $record = SqlHandler::getFirstRecord($response);
@@ -390,7 +393,7 @@ namespace Assay\Communication\Profile {
                         . ' WHERE '.Company::ID
                         . ' = '
                         . $twoParameter[ISqlHandler::PLACEHOLDER]
-                        . ' 
+                        . '  LIMIT 1
 ;
 ';
                     $arguments[ISqlHandler::QUERY_PARAMETER][] = $twoParameter;
