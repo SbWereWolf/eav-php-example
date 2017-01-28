@@ -69,9 +69,18 @@ namespace Assay\InformationsCatalog\StructureInformation {
         {
             $result = parent::setByNamedValue($namedValue);
 
-            $this->searchType = Common::setIfExists(self::SEARCH_TYPE, $namedValue, self::EMPTY_VALUE);
-            $this->typeEdit = Common::setIfExists(self::TYPE_EDIT, $namedValue, self::EMPTY_VALUE);
-            $this->dataType = Common::setIfExists(self::DATA_TYPE, $namedValue, self::EMPTY_VALUE);
+            $searchType = Common::setIfExists(self::SEARCH_TYPE, $namedValue, self::EMPTY_VALUE);
+            if($searchType!=self::EMPTY_VALUE){
+                $this->searchType=$searchType;
+            }
+            $typeEdit = Common::setIfExists(self::TYPE_EDIT, $namedValue, self::EMPTY_VALUE);
+            if($typeEdit!=self::EMPTY_VALUE){
+                $this->typeEdit=$typeEdit;
+            }
+            $dataType = Common::setIfExists(self::DATA_TYPE, $namedValue, self::EMPTY_VALUE);
+            if($dataType!=self::EMPTY_VALUE){
+                $this->dataType=$dataType;
+            }
 
             return $result;
         }

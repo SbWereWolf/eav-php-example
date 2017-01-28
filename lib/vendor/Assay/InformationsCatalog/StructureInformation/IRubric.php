@@ -7,7 +7,7 @@
  */
 namespace Assay\InformationsCatalog\StructureInformation {
 
-    use Assay\InformationsCatalog\DataInformation\InformationInstance;
+    use Assay\InformationsCatalog\DataInformation\RubricPosition;
 
     /**
      * Функционал рубрики каталога
@@ -21,7 +21,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
          * @param string $codeKey индекс для элементов массива
          * @return array позиции
          */
-        public function getMap(string $codeKey = InformationInstance::CODE):array;
+        public function getMap(string $codeKey = RubricPosition::CODE):array;
         /** Получить параметры поиска по рубрике
          * @return array параметры поиска
          */
