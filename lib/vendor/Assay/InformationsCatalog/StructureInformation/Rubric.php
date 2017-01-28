@@ -11,8 +11,8 @@ namespace Assay\InformationsCatalog\StructureInformation {
     use Assay\Core\NamedEntity;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
-    use Assay\InformationsCatalog\DataInformation\IInformationInstance;
-    use Assay\InformationsCatalog\DataInformation\InformationInstance;
+    use Assay\InformationsCatalog\DataInformation\IRubricPosition;
+    use Assay\InformationsCatalog\DataInformation\RubricPosition;
 
     /**
      * Рубрика каталога
@@ -29,7 +29,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
          * @param string $codeKey индекс для элементов массива
          * @return array позиции
          */
-        public function getMap(string $codeKey = InformationInstance::CODE):array
+        public function getMap(string $codeKey = RubricPosition::CODE):array
         {
             $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
             $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', self::DEFINE_AS_NOT_HIDDEN, \PDO::PARAM_INT);
@@ -38,10 +38,10 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 ' SELECT 
                 ' . self::CODE . ' AS ' . $codeKey
                 . ' FROM '
-                . IInformationInstance::TABLE_NAME
+                . IRubricPosition::TABLE_NAME
                 . ' WHERE '
                 . self::EXTERNAL_ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
-                . ' AND ' . InformationInstance::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] .
+                . ' AND ' . RubricPosition::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] .
                 ';';
 
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;

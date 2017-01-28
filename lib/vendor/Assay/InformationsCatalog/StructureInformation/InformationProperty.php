@@ -35,7 +35,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $isSuccessfulByCode = parent::loadByCode($code);
             $isSuccessfulLoadDomain = $this->loadInformationDomain();
 
-            $result = $isSuccessfulByCode  && $isSuccessfulLoadDomain  ;
+            $result = $isSuccessfulByCode && $isSuccessfulLoadDomain;
 
             return $result;
         }
@@ -49,7 +49,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $isSuccessfulById = parent::loadById($id);
             $isSuccessfulLoadDomain = $this->loadInformationDomain();
 
-            $result = $isSuccessfulById  && $isSuccessfulLoadDomain  ;
+            $result = $isSuccessfulById && $isSuccessfulLoadDomain;
 
             return $result;
         }
@@ -62,7 +62,10 @@ namespace Assay\InformationsCatalog\StructureInformation {
         {
             parent::setByNamedValue($namedValue);
 
-            $this->informationDomain = Common::setIfExists(self::INFORMATION_DOMAIN, $namedValue, self::EMPTY_VALUE);
+            $informationDomain = Common::setIfExists(self::INFORMATION_DOMAIN, $namedValue, self::EMPTY_VALUE);
+            if ($informationDomain != self::EMPTY_VALUE) {
+                $this->informationDomain = $informationDomain;
+            }
 
             return true;
         }
@@ -108,7 +111,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $letSaveDomain = $presentDomain != $storedDomain;
 
             $saveResult = true;
-            if($letSaveDomain){
+            if ($letSaveDomain) {
                 $saveResult = $this->saveInformationDomain();
             }
 
@@ -135,8 +138,8 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $domain = new InformationDomain();
             $isSuccess = $domain->loadByCode($code);
 
-            if($isSuccess){
-                $this->informationDomain=$domain->id;
+            if ($isSuccess) {
+                $this->informationDomain = $domain->id;
             }
         }
 
@@ -145,8 +148,8 @@ namespace Assay\InformationsCatalog\StructureInformation {
          */
         private function loadInformationDomain():bool
         {
-            
-            $oneParameter = SqlHandler::setBindParameter(':ID',$this->id,\PDO::PARAM_INT);
+
+            $oneParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
@@ -161,9 +164,9 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
 
             $record = SqlHandler::readOneRecord($arguments);
-            
-            if ($record != self::EMPTY_ARRAY) {                
-                $this->informationDomain = Common::setIfExists(InformationDomain::ID, $record,self::EMPTY_VALUE);
+
+            if ($record != self::EMPTY_ARRAY) {
+                $this->informationDomain = Common::setIfExists(InformationDomain::ID, $record, self::EMPTY_VALUE);
             }
 
             $result = $this->informationDomain != self::EMPTY_VALUE;
@@ -176,21 +179,21 @@ namespace Assay\InformationsCatalog\StructureInformation {
         private function saveInformationDomain():bool
         {
 
-           $linkToThis = \Assay\DataAccess\Common::setForeignKeyParameter(self::EXTERNAL_ID, $this->id);
+            $linkToThis = \Assay\DataAccess\Common::setForeignKeyParameter(self::EXTERNAL_ID, $this->id);
             $foreignKeySet[] = $linkToThis;
 
             $linkage = new InformationPropertyDomain();
-            $isSuccess = $linkage->dropInnerLinkage( $foreignKeySet);
+            $isSuccess = $linkage->dropInnerLinkage($foreignKeySet);
 
-            if($isSuccess ){
+            if ($isSuccess) {
                 $linkToDomain = \Assay\DataAccess\Common::setForeignKeyParameter(InformationDomain::EXTERNAL_ID
                     , $this->informationDomain);
                 $foreignKeySet[] = $linkToDomain;
 
-                $isSuccess  = $linkage->addLinkage($foreignKeySet);
+                $isSuccess = $linkage->addLinkage($foreignKeySet);
             }
 
-            return $isSuccess ;
+            return $isSuccess;
 
         }
     }

@@ -73,7 +73,10 @@ namespace Assay\InformationsCatalog\StructureInformation {
         {
 
             $result = parent::setByNamedValue($namedValue);
-            $this->parent = Core\Common::setIfExists(self::PARENT, $namedValue, Core\Common::EMPTY_VALUE);
+            $parent = Core\Common::setIfExists(self::PARENT, $namedValue, self::EMPTY_VALUE);
+            if($parent!=self::EMPTY_VALUE){
+                $this->parent=$parent;
+            }
 
             return $result;
         }
@@ -371,7 +374,6 @@ FROM children
 ORDER BY level DESC
 ;
 ';
-
             $arguments[ISqlHandler::QUERY_TEXT] = $queryText;
 
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
