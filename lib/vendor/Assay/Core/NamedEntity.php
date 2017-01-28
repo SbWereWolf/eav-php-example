@@ -126,13 +126,23 @@ namespace Assay\Core {
 
         public function setByNamedValue(array $namedValue):bool
         {
-            $this->code = Common::setIfExists(self::CODE, $namedValue, self::EMPTY_VALUE);
-            $this->description = Common::setIfExists(self::DESCRIPTION, $namedValue, self::EMPTY_VALUE);
-            $this->id = Common::setIfExists(self::ID, $namedValue, self::EMPTY_VALUE);
-            $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $namedValue, self::EMPTY_VALUE);
-            $this->name = Common::setIfExists(self::NAME, $namedValue, self::EMPTY_VALUE);
 
-            return true;
+            $result = parent::toEntity();
+
+            $code = Common::setIfExists(self::CODE, $namedValue, self::EMPTY_VALUE);
+            if($code!=self::EMPTY_VALUE){
+                $this->code = $code;
+            }
+            $description = Common::setIfExists(self::DESCRIPTION, $namedValue, self::EMPTY_VALUE);
+            if($description!=self::EMPTY_VALUE){
+                $this->description = $description;
+            }
+            $name = Common::setIfExists(self::NAME, $namedValue, self::EMPTY_VALUE);
+            if($name!=self::EMPTY_VALUE){
+                $this->name = $name;
+            }
+
+            return $result;
         }
 
         /** Формирует массив из свойств экземпляра
