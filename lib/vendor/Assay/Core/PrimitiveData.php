@@ -94,7 +94,14 @@ class PrimitiveData extends Record implements IPrimitiveData
 
     public function setByNamedValue(array $namedValue):bool
     {        
-        $this->id = Common::setIfExists(self::ID, $namedValue, self::EMPTY_VALUE);
+        $id = Common::setIfExists(self::ID, $namedValue, self::EMPTY_VALUE);
+        if($id!= self::EMPTY_VALUE){
+            $this->id = $id;
+        }
+        $isHidden = Common::setIfExists(self::IS_HIDDEN, $namedValue, self::EMPTY_VALUE);
+        if($isHidden!= self::EMPTY_VALUE){
+            $this->isHidden = $isHidden;
+        }
         
         return true;
     }
@@ -103,8 +110,9 @@ class PrimitiveData extends Record implements IPrimitiveData
      * @return array массив свойств экземпляра
      */
     public function toEntity():array
-    {   
+    {
         $result [self::ID] = $this->id;
+        $result [self::IS_HIDDEN] = $this->isHidden;
 
         return $result;
     }

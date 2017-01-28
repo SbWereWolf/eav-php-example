@@ -12,75 +12,33 @@ namespace Assay\Core;
 use Assay\DataAccess\ISqlHandler;
 use Assay\DataAccess\SqlHandler;
 
-class ChildEntity extends PrimitiveData implements INamedEntity,IChildEntity
+class ChildEntity extends PrimitiveData implements IChildEntity
 {
+    /** @var string колонка для внешнего ключа ссылки на эту таблицу */
+    const EXTERNAL_ID = 'child_entity_id';
 
     /** @var string имя таблицы БД для хранения сущности */
     const TABLE_NAME = 'child_entity';
+    /** @var string имя родительсклй таблицы */
+    const PARENT_TABLE_NAME = 'child_entity_parent';
+    /** @var string колонка в родительской таблицы для связи с дочерней */
+    const PARENT_ID = 'id';
+    /** @var string имя в дочерней таблице для связи с родительской */
+    const PARENT = 'child_entity_parent_id';
 
     /** @var string имя таблицы БД для хранения сущности */
     protected $tablename = self::TABLE_NAME;
+    /** @var string имя таблицы БД для родительской сущности */
+    protected $parentTablename = self::PARENT_TABLE_NAME;
+    /** @var string колонка в родительской таблицы для связи с дочерней */
+    protected $parentIdColumn = self::PARENT_ID;
+    /** @var string колонка в дочерней таблице для связи с родительской */
+    protected $parentColumn = self::PARENT;
 
-    /** @var string код */
-    public $code = self::EMPTY_VALUE;
-    /** @var string имя */
-    public $name = self::EMPTY_VALUE;
-    /** @var string описание */
-    public $description = self::EMPTY_VALUE;
 
-    /** Загрузить по коду записи
-     * @param string $code код записи
-     * @return bool успех выполнения
-     */
-    public function loadByCode(string $code):bool
-    {
+    /** @var string ссылка на рубрику */
+    public $parentId = self::EMPTY_VALUE;
 
-        $codeParameter = SqlHandler::setBindParameter(':CODE',$code,\PDO::PARAM_STR);
-        $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN',self::DEFINE_AS_NOT_HIDDEN,\PDO::PARAM_INT);
-
-        $arguments[ISqlHandler::QUERY_TEXT] =
-            'SELECT '
-            . self::ID
-            . ' , ' . self::CODE
-            . ' , ' . self::NAME
-            . ' , ' . self::DESCRIPTION
-            . ' , ' . self::IS_HIDDEN
-            . ' FROM '
-            . $this->tablename
-            . ' WHERE '
-            . self::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER]
-            . ' AND ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
-            . '
-;
-';
-        $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
-        $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
-
-        $record = SqlHandler::readOneRecord($arguments);
-
-        $result = false;
-        if ($record != ISqlHandler::EMPTY_ARRAY) {
-            $result = $this->setByNamedValue($record);
-        }
-
-        return $result;
-    }
-
-    /** Получить имя и описание записи
-     * @param string $code значение ключа для свойства код
-     * @param string $name значение ключа для свойства имя
-     * @param string $description значение ключа для свойства описание
-     * @return array массив с именем и описанием
-     */
-    public function getElementDescription(string $code = INamedEntity::CODE,
-                                          string $name = INamedEntity::NAME,
-                                          string $description = INamedEntity::DESCRIPTION):array
-    {
-        $result[$code] = $this->code;
-        $result[$name] = $this->name;
-        $result[$description] = $this->description;
-        return $result;
-    }
 
     /** Прочитать запись из БД
      * @param string $id идентификатор записи
@@ -89,23 +47,19 @@ class ChildEntity extends PrimitiveData implements INamedEntity,IChildEntity
     public function loadById(string $id):bool
     {
 
-        $oneParameter = SqlHandler::setBindParameter(':ID',$id,\PDO::PARAM_INT);
+        $idParameter = SqlHandler::setBindParameter(':ID', $id, \PDO::PARAM_INT);
 
         $arguments[ISqlHandler::QUERY_TEXT] =
             'SELECT '
             . self::ID
-            . ' , ' . self::CODE
-            . ' , ' . self::NAME
-            . ' , ' . self::DESCRIPTION
             . ' , ' . self::IS_HIDDEN
+            . ' , ' . $this->parentColumn
             . ' FROM '
             . $this->tablename
             . ' WHERE '
-            . self::ID
-            . ' = '
-            . $oneParameter[ISqlHandler::PLACEHOLDER]
+            . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
             . ';';
-        $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+        $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
 
         $record = SqlHandler::readOneRecord($arguments);
 
@@ -119,13 +73,15 @@ class ChildEntity extends PrimitiveData implements INamedEntity,IChildEntity
 
     public function setByNamedValue(array $namedValue):bool
     {
-        $this->code = Common::setIfExists(self::CODE, $namedValue, self::EMPTY_VALUE);
-        $this->description = Common::setIfExists(self::DESCRIPTION, $namedValue, self::EMPTY_VALUE);
-        $this->id = Common::setIfExists(self::ID, $namedValue, self::EMPTY_VALUE);
-        $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $namedValue, self::EMPTY_VALUE);
-        $this->name = Common::setIfExists(self::NAME, $namedValue, self::EMPTY_VALUE);
 
-        return true;
+        $result = parent::setByNamedValue($namedValue);
+
+        $parent = Common::setIfExists(self::PARENT, $namedValue, self::EMPTY_VALUE);
+        if ($parent != self::EMPTY_VALUE) {
+            $this->parentId = $parent;
+        }
+
+        return $result;
     }
 
     /** Формирует массив из свойств экземпляра
@@ -133,12 +89,8 @@ class ChildEntity extends PrimitiveData implements INamedEntity,IChildEntity
      */
     public function toEntity():array
     {
-        
-        $result [self::CODE] = $this->code;
-        $result [self::DESCRIPTION] = $this->description;
-        $result [self::ID] = $this->id;
-        $result [self::IS_HIDDEN] = $this->isHidden;
-        $result [self::NAME] = $this->name;
+        $result = parent::toEntity();
+        $result[self::PARENT] = $this->parentId;
 
         return $result;
     }
@@ -184,34 +136,25 @@ class ChildEntity extends PrimitiveData implements INamedEntity,IChildEntity
     protected function updateEntity():bool
     {
 
-        $codeParameter = SqlHandler::setBindParameter(':CODE',$this->code,\PDO::PARAM_STR);
-        $descriptionParameter = SqlHandler::setBindParameter(':DESCRIPTION',$this->description,\PDO::PARAM_STR);
-        $idParameter = SqlHandler::setBindParameter(':ID',$this->id,\PDO::PARAM_INT);
-        $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN',$this->isHidden,\PDO::PARAM_INT);
-        $nameParameter = SqlHandler::setBindParameter(':NAME',$this->name,\PDO::PARAM_STR);
+        $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+        $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', $this->isHidden, \PDO::PARAM_INT);
 
         $arguments[ISqlHandler::QUERY_TEXT] =
             'UPDATE '
             . $this->tablename
             . ' SET '
-            . self::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER]
             . ' , ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
-            . ' , ' . self::NAME . ' = ' . $nameParameter[ISqlHandler::PLACEHOLDER]
-            . ' , ' . self::DESCRIPTION . ' = ' . $descriptionParameter[ISqlHandler::PLACEHOLDER]
             . ' WHERE '
             . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
             . ' RETURNING '
             . self::ID
             . ' , ' . self::IS_HIDDEN
-            . ' , ' . self::CODE
-            . ' , ' . self::NAME
-            . ' , ' . self::DESCRIPTION
+            . ' , ' . $this->parentColumn
             . ';';
-        $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
-        $arguments[ISqlHandler::QUERY_PARAMETER][] = $descriptionParameter;
+
+
         $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
         $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
-        $arguments[ISqlHandler::QUERY_PARAMETER][] = $nameParameter;
 
         $record = SqlHandler::writeOneRecord($arguments);
 
@@ -228,34 +171,71 @@ class ChildEntity extends PrimitiveData implements INamedEntity,IChildEntity
     public function hideEntity():bool
     {
 
-        $id = SqlHandler::setBindParameter(':ID',$this->id,\PDO::PARAM_INT);
-        $isHidden = SqlHandler::setBindParameter(':IS_HIDDEN',self::DEFINE_AS_HIDDEN,\PDO::PARAM_INT);
+        $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+        $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', self::DEFINE_AS_HIDDEN, \PDO::PARAM_INT);
 
         $arguments[SqlHandler::QUERY_TEXT] = '
             UPDATE ' . $this->tablename . '
-            SET ' . self::IS_HIDDEN . ' = ' . $isHidden[ISqlHandler::PLACEHOLDER] .
-            ' WHERE ' . self::ID . ' = ' . $id[ISqlHandler::PLACEHOLDER]
-            .' RETURNING '.self::ID .' , '.self::IS_HIDDEN .' ; '
-        ;
+            SET ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+            . ' WHERE ' . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+            . ' RETURNING '
+            . self::ID
+            . ' , ' . self::IS_HIDDEN
+            . ' , ' . $this->parentColumn
+            . ' ; ';
 
-        $arguments[ISqlHandler::QUERY_PARAMETER][] = $id;
-        $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHidden;
+        $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
+        $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
 
         $record = SqlHandler::readOneRecord($arguments);
 
-        $this->id = Common::setIfExists(self::ID, $record, self::EMPTY_VALUE);
-        $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $record, self::EMPTY_VALUE);
-
-        $result = $this->id != self::EMPTY_VALUE &&  $this->isHidden  != self::EMPTY_VALUE;
+        $result = false;
+        if ($record != self::EMPTY_ARRAY) {
+            $result = $this->setByNamedValue($record);
+        }
 
         return $result;
     }
 
 
+    /** Добавить дочернюю сущность
+     * @return bool успех выполнения
+     */
     public function addChildEntity():bool
     {
-        $result = false;
-        return $result;
+        $isSuccess = $this->insertChild();
+        return $isSuccess;
     }
 
+    /** вставить в таблицу запись дочерней сущности
+     * @return bool успех выполнения
+     */
+    protected function insertChild():bool
+    {
+        $parentParameter = SqlHandler::setBindParameter(':PARENT', $this->parentId, \PDO::PARAM_INT);
+
+        $arguments[ISqlHandler::QUERY_TEXT] =
+            'INSERT INTO  ' . $this->tablename
+            . ' ('
+            . $this->parentColumn
+            . ')'
+            . ' VALUES  ('
+            . $parentParameter[ISqlHandler::PLACEHOLDER]
+            . ')'
+            . ' RETURNING '
+            . self::ID
+            . ' , ' . $this->parentColumn
+            . ';';
+
+        $arguments[ISqlHandler::QUERY_PARAMETER][] = $parentParameter;
+
+        $parent = SqlHandler::writeOneRecord($arguments);
+
+        $isSuccess = $parent != ISqlHandler::EMPTY_ARRAY;
+        if ($isSuccess) {
+            $isSuccess = $this->setByNamedValue($parent);
+        }
+
+        return $isSuccess;
+    }
 }

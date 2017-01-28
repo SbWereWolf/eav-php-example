@@ -14,7 +14,7 @@ namespace Assay\Communication\Profile {
         /** @var string колонка ссылки на профиль пользователя */
         const PROFILE = IPersonProfile::EXTERNAL_ID;
 
-        /** @var string профилоь пользователя */
+        /** @var string профиль пользователя */
         public $profile;
     }
 }

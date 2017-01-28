@@ -15,5 +15,11 @@ namespace Assay\Communication\InformationsCatalog {
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */
         const EXTERNAL_ID = 'communication_object_id';
+
+        /** @var string назнвание таблицы для хранения данных сущности */
+        const TABLE_NAME = 'communication_object';
+
+        /** @var string назнвание таблицы для хранения данных сущности */
+        protected $tablename = self::TABLE_NAME;
     }
 }
