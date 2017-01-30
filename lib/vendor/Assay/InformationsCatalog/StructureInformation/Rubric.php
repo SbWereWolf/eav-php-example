@@ -11,21 +11,45 @@ namespace Assay\InformationsCatalog\StructureInformation {
     use Assay\Core\NamedEntity;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
+    use Assay\InformationsCatalog\DataInformation\IRubricPosition;
+    use Assay\InformationsCatalog\DataInformation\RubricPosition;
 
     /**
      * Рубрика каталога
      */
     class Rubric extends NamedEntity implements IRubric
     {
+        /** @var string имя таблицы для хранения сущности */
         const TABLE_NAME = 'rubric';
 
+        /** @var string имя таблицы для хранения сущности */
         protected $tablename = self::TABLE_NAME;
 
         /** Получить описания позиций рубрики
+         * @param string $codeKey индекс для элементов массива
          * @return array позиции
          */
-        public function getMap():array
+        public function getMap(string $codeKey = RubricPosition::CODE):array
         {
+            $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', self::DEFINE_AS_NOT_HIDDEN, \PDO::PARAM_INT);
+
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' SELECT 
+                ' . self::CODE . ' AS ' . $codeKey
+                . ' FROM '
+                . IRubricPosition::TABLE_NAME
+                . ' WHERE '
+                . self::EXTERNAL_ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND ' . RubricPosition::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] .
+                ';';
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
+
+            $result = SqlHandler::readAllRecords($arguments);
+
+            return $result;
         }
 
         /** Получить параметры поиска по рубрике
@@ -34,12 +58,87 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public function getSearchParameters():array
         {
         }
+        /** Считать все идентификаторы свойств рубрики
+         * @param $propertyKey string индекс для идентификатора свойства
+         * @return array идентификаторы свойств рубрики
+         */
+        public function readAllPropertyId( string $propertyKey = InformationProperty::EXTERNAL_ID)
+        {
+            $rubricParameter = SqlHandler::setBindParameter(':RUBRIC', $this->id, \PDO::PARAM_INT);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN',
+                self::DEFINE_AS_NOT_HIDDEN,
+                \PDO::PARAM_INT);
+
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' SELECT '
+                . ' P.' . InformationProperty::ID . ' AS ' . $propertyKey
+                . ' FROM '
+                . RubricInformationProperty::TABLE_NAME . ' AS RP '
+                . ' JOIN ' . IInformationProperty::TABLE_NAME . ' AS P '
+                . ' ON P.' . InformationProperty::ID . ' = RP.' . RubricInformationProperty::PROPERTY
+                . ' WHERE '
+                . ' RP.' . RubricInformationProperty::RUBRIC . ' = ' . $rubricParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND P.' . InformationProperty::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ';';
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $rubricParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
+
+            $result = SqlHandler::readAllRecords($arguments);
+
+            return $result;
+        }
 
         /** Получить свойства рубрики
+         * @param string $property индекс для кода рубрики
+         * @param string $typeEdit индекс для кода типа редактирования
+         * @param string $searchType индекс для кода типа поиска
+         * @param string $dataType индекс для кода типа данных
          * @return array свойства рубрики
          */
-        public function getProperties():array
+        public function getProperties(string $property = IInformationProperty::TABLE_NAME,
+                                      string $typeEdit= TypeEdit::TABLE_NAME,
+                                      string $searchType= SearchType::TABLE_NAME,
+                                      string $dataType= DataType::TABLE_NAME):array
         {
+            $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', self::DEFINE_AS_NOT_HIDDEN, \PDO::PARAM_INT);
+
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' SELECT '
+                .' P.'.InformationProperty::CODE . ' AS '.$property
+                .' TE.'.TypeEdit::CODE. 'AS '.$typeEdit
+                .' ST.'.SearchType::CODE. 'AS '.$searchType
+                .' DT.'.DataType::CODE. 'AS '.$dataType
+                
+                . ' FROM '
+                . RubricInformationProperty::TABLE_NAME . ' AS RP '
+                . ' JOIN ' . IInformationProperty::TABLE_NAME . ' AS P '
+                . ' ON P.' . InformationProperty::ID . ' = RP.' . RubricInformationProperty::PROPERTY
+                . ' JOIN ' . InformationPropertyDomain::TABLE_NAME . ' AS PD '
+                . ' ON P.' . InformationProperty::ID . ' = PD.' . InformationProperty::EXTERNAL_ID
+                . ' JOIN ' . InformationDomain::TABLE_NAME.' AS D '
+                . ' ON D.' . InformationDomain::ID . ' = PD.' . InformationDomain::EXTERNAL_ID
+
+                . ' JOIN ' . TypeEdit::TABLE_NAME.' AS TE '
+                . ' ON D.' . InformationDomain::TYPE_EDIT . ' = TE.' . TypeEdit::ID
+                . ' JOIN ' . SearchType::TABLE_NAME.' AS ST '
+                . ' ON D.' . InformationDomain::SEARCH_TYPE . ' = ST.' . SearchType::ID
+                . ' JOIN ' . DataType::TABLE_NAME.' AS DT '
+                . ' ON D.' . InformationDomain::DATA_TYPE . ' = DT.' . DataType::ID
+
+                . ' WHERE '
+                . ' RP.' . RubricInformationProperty::RUBRIC . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND P.' . InformationProperty::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND D.' . InformationDomain::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] .
+                ';';
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
+
+            $result = SqlHandler::readAllRecords($arguments);
+
+            return $result;
         }
 
         /** Обновляет (изменяет) запись в БД
@@ -66,56 +165,6 @@ namespace Assay\InformationsCatalog\StructureInformation {
             }
 
             return $result;
-        }
-
-        /** Обновить данные в БД
-         * @return bool успех выполнения
-         */
-        protected function updateEntity():bool
-        {
-
-            $codeParameter[ISqlHandler::PLACEHOLDER] = ':CODE';
-            $codeParameter[ISqlHandler::VALUE] = $this->code;
-            $codeParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-
-            $descriptionParameter[ISqlHandler::PLACEHOLDER] = ':DESCRIPTION';
-            $descriptionParameter[ISqlHandler::VALUE] = $this->description;
-            $descriptionParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-
-            $idParameter[ISqlHandler::PLACEHOLDER] = ':ID';
-            $idParameter[ISqlHandler::VALUE] = intval($this->id);
-            $idParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-
-            $isHiddenParameter[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
-            $isHiddenParameter[ISqlHandler::VALUE] = intval($this->isHidden);
-            $isHiddenParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-
-            $nameParameter[ISqlHandler::PLACEHOLDER] = ':NAME';
-            $nameParameter[ISqlHandler::VALUE] = $this->name;
-            $nameParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-
-            $arguments[ISqlHandler::QUERY_TEXT] =
-                'UPDATE '
-                . $this->tablename
-                . ' SET '
-                . self::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER]
-                . ' , ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
-                . ' , ' . self::NAME . ' = ' . $nameParameter[ISqlHandler::PLACEHOLDER]
-                . ' , ' . self::DESCRIPTION . ' = ' . $descriptionParameter[ISqlHandler::PLACEHOLDER]
-                . ' WHERE '
-                . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
-                . ';';
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $descriptionParameter;
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $nameParameter;
-
-            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-            $response = $sqlWriter->performQuery($arguments);
-
-            $isSuccessfulRequest = SqlHandler::isNoError($response);
-            return $isSuccessfulRequest;
         }
     }
 }
