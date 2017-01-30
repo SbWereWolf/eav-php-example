@@ -334,6 +334,7 @@ namespace Assay\Communication\Profile {
                 }                // print_r($key);
             }
             $this->addEntity();
+            $this->date = date('Y-m-d H:i:s');
             $result = $this->mutateEntity();
 
             //  if($this->mutateEntity() && $this->loadById($this->id))
@@ -348,6 +349,7 @@ namespace Assay\Communication\Profile {
         /** Добавляет запись в БД
          * @return bool успешность изменения
          */
+        /*
         public function addEntity():bool
         {
             $arguments[ISqlHandler::QUERY_TEXT] =
@@ -372,6 +374,7 @@ namespace Assay\Communication\Profile {
 
             return $result;
         }
+        */
 
         /** Обновляет (изменяет) запись в БД
          * @return bool успешность изменения
@@ -379,7 +382,7 @@ namespace Assay\Communication\Profile {
         public function mutateEntity():bool
         {
             $result = false;
-            $stored = new Messages();
+            $stored = new Messages($this->profileId);
            // $this->id = 1;
             $wasReadStored = $stored->loadById($this->id);
 

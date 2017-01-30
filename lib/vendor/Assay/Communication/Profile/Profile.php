@@ -18,6 +18,9 @@ namespace Assay\Communication\Profile {
         /** @var string константа для не пустого значения */
         const EMPTY_VALUE = NULL;
 
+        /** @var string разделитель слов в названиях */
+        const WORD_DIVIDER = '_';
+
         /** @var string имя таблицы */
         const TABLE_NAME = 'profile';
 
@@ -48,6 +51,16 @@ namespace Assay\Communication\Profile {
 
         protected $tablename = self::TABLE_NAME;
 
+        public $fieldTypes = [
+            'id' => 'PARAM_INT',
+            'is_hidden' => 'PARAM_INT',
+            'name' => 'PARAM_STR',
+            'description' => 'PARAM_STR',
+            'city' => 'PARAM_STR',
+            'country' => 'PARAM_STR',
+            'code' => 'PARAM_STR',
+         ];
+
 
         public function __construct($id)
         {
@@ -58,7 +71,51 @@ namespace Assay\Communication\Profile {
             $this->getProfileCompany();
         }
 
-       // public $profile; //- это id
+        //получаем список полей таблицы
+        public function getFieldsList():array
+        {
+            $refl = new \ReflectionClass('Assay\Communication\Profile\Profile');
+            $params = $refl->getConstants();
+            $strangeParams = [];
+            foreach ($params as $key => $value)
+            {
+                if(is_array($value)) continue;
+                $stringKey = (string) $key;
+                $stringValue = (string) $value;
+                $strangeParams[$stringValue] = $stringKey;
+            }
+
+            unset($strangeParams[self::TABLE_NAME]);
+            unset($strangeParams[self::EMPTY_VALUE]);
+            unset($strangeParams[self::EMPTY_OBJECT]);
+            unset($strangeParams[self::DEFINE_AS_HIDDEN]);
+            unset($strangeParams[self::DEFINE_AS_NOT_HIDDEN]);
+            unset($strangeParams[self::DEFAULT_IS_HIDDEN]);
+            unset($strangeParams[self::WORD_DIVIDER]);
+            unset($strangeParams[self::GREETINGS_ROLE]);
+            unset($strangeParams[self::EXTERNAL_ID]);
+            //print_r($strangeParams);
+
+            return $strangeParams;
+        }
+
+        //camelCase
+        public static function camelCase($propertyName, array $noStrip = [])
+        {
+            // non-alpha and non-numeric characters become spaces
+            //  $str = preg_replace('/[^a-z0-9' . implode("", $noStrip) . ']+/i', ' ', $str);
+            $propertyName = trim($propertyName);
+            // uppercase the first character of each word
+            $propertyName = ucwords($propertyName, self::WORD_DIVIDER);
+            $propertyName = str_replace(" ", "", $propertyName);
+            $propertyName = str_replace(self::WORD_DIVIDER, "", $propertyName);
+            $propertyName = lcfirst($propertyName);
+
+            return $propertyName;
+        }
+
+
+        // public $profile; //- это id
 
         /** для капчи
          * @return bool
@@ -132,27 +189,15 @@ namespace Assay\Communication\Profile {
             $oneParameter[ISqlHandler::VALUE] = intval($id);
             $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
+            $params = $this->getFieldsList(); //print_r($params);
+
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
-                . self::ID
-                . ' , '
-                . self::CODE
-                . ' , '
-                . self::NAME
-                . ' , '
-                . self::DESCRIPTION
-                . ' , '
-                . self::IS_HIDDEN
-                . ' , '
-                . self::COUNTRY
-                . ' , '
-                . self::CITY
+                . implode(',', array_keys($params))
                 . ' FROM '
                 . $this->tablename
                 . ' WHERE '
-                . self::ID
-                . ' = '
-                . $oneParameter[ISqlHandler::PLACEHOLDER]
+                . self::ID. ' = '. $oneParameter[ISqlHandler::PLACEHOLDER]
                 . '
 ;
 ';
@@ -186,15 +231,33 @@ namespace Assay\Communication\Profile {
             $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $namedValue, self::EMPTY_VALUE);
             $this->name = Common::setIfExists(self::NAME, $namedValue, self::EMPTY_VALUE);
             */
+            /*
             parent::setByNamedValue($namedValue); //print_r($namedValue);
             $this->city = Common::setIfExists(self::CITY, $namedValue, self::EMPTY_VALUE);
             $this->country = Common::setIfExists(self::COUNTRY, $namedValue, self::EMPTY_VALUE);
+            */
+            $params = $this->getFieldsList();
+
+            foreach($params as $key => $value)
+            {
+                /*
+                $value = self::camelCase($value);
+                $k = 'Assay\Communication\Profile\Company::'.$key;
+                $v = constant($k);
+                $this->{$value} = Common::setIfExists($v, $namedValue, self::EMPTY_VALUE);
+                */
+                $keyCamel = self::camelCase($key);
+                $k = __CLASS__.'::'.$value;
+                $v = constant($k);
+                $this->{$keyCamel} = Common::setIfExists($v, $namedValue, self::EMPTY_VALUE);
+
+            }
 
             return true;
         }
 
         //создаем профиль пользователя
-        public function addUserProfileData(string $name, int $isHidden, $code, string $description, string $city, string $country):bool
+        public function addUserProfileData(array $values):bool
         {
             //$session = new Assay\Permission\Privilege\Session();
 
@@ -202,7 +265,7 @@ namespace Assay\Communication\Profile {
             //$profileId = 1; //для тестов
             //$profileId = $this->id;
             $result = false;
-
+/*
             $this->update_date = time();
             $this->name = $name;
             $this->isHidden = self::IS_HIDDEN;
@@ -213,10 +276,30 @@ namespace Assay\Communication\Profile {
 
              $this->addEntity();
             $result = $this->mutateEntity();
+*/
 
           //  if($this->mutateEntity() && $this->loadById($this->id))
           //      $result = true;
             //           print_r($result);
+
+            $params = $this->getFieldsList();
+
+            foreach($params as $key => $value)
+            {
+                if($key == 'id') continue;
+                //print_r($key);
+                $keyCamel = self::camelCase($key);
+                $k = __CLASS__.'::'.$value;
+                $v = constant($k);
+                if(isset($values[$key]))
+                    $this->{$keyCamel} = $values[$key];
+                else $this->{$keyCamel} = self::EMPTY_VALUE;//Common::setIfExists($v, $values[$key], self::EMPTY_VALUE);
+                // print_r($key);
+            }
+
+            $this->addEntity();
+            $result = $this->mutateEntity();
+
             return $result;
 
             // if($this->loadById($profileId)) $result = true;
@@ -228,7 +311,7 @@ namespace Assay\Communication\Profile {
         }
 
         //обновляем профиль текущего пользователя
-        public function setCurrentUserProfileData(string $name, int $isHidden, $code, string $description, string $city, string $country):bool
+        public function setCurrentUserProfileData(array $values):bool
         {
             //$session = new Assay\Permission\Privilege\Session();
 
@@ -237,6 +320,7 @@ namespace Assay\Communication\Profile {
             //$profileId = $this->id;
             $result = false;
 
+            /*
             $this->update_date = time();
             $this->name = $name;
             $this->isHidden = $isHidden;
@@ -244,9 +328,29 @@ namespace Assay\Communication\Profile {
             $this->description = $description;
             $this->city = $city;
             $this->country = $country;
+            */
 
            // $this->addEntity();
             //$result = $this->mutateEntity();
+
+            $params = $this->getFieldsList();
+
+            foreach($params as $key => $value)
+            {
+                //print_r($key);
+               // if($key == 'id') continue; //чтоб не было возможности менять чужой профиль
+                $keyCamel = self::camelCase($key);
+                $k = __CLASS__.'::'.$value;
+                $v = constant($k);
+                if(isset($values[$key]) && !empty($values[$key]))
+                    $this->{$keyCamel} = $values[$key];
+                else {
+                    if($this->fieldTypes[$key] == 'PARAM_INT')  $this->{$keyCamel} = self::EMPTY_VALUE;
+                    else $this->{$keyCamel} = self::EMPTY_VALUE;
+
+                }//self::EMPTY_VALUE;//Common::setIfExists($v, $values[$key], self::EMPTY_VALUE);
+                // print_r($key);
+            }
 
             if($this->mutateEntity() && $this->loadById($this->id))
                 $result = true;
@@ -290,7 +394,7 @@ namespace Assay\Communication\Profile {
         public function toEntity():array
         {
             $result = array();
-
+/*
             $result [self::CODE] = $this->code;
             $result [self::DESCRIPTION] = $this->description;
             $result [self::ID] = $this->id;
@@ -298,6 +402,25 @@ namespace Assay\Communication\Profile {
             $result [self::NAME] = $this->name;
             $result [self::CITY] = $this->city;
             $result [self::COUNTRY] = $this->country; //print_r($result);
+            */
+
+            $params = $this->getFieldsList();
+
+            foreach($params as $key => $value)
+            {
+                /*
+                $value = self::camelCase($value);
+                $k = 'Assay\Communication\Profile\Company::'.$key;
+                $v = constant($k);
+                $this->{$value} = Common::setIfExists($v, $namedValue, self::EMPTY_VALUE);
+                */
+                $keyCamel = self::camelCase($key);
+                $k = __CLASS__.'::'.$value;
+                $v = constant($k);
+                // $this->{$key} = Common::setIfExists($v, $namedValue, self::EMPTY_VALUE);
+                $result[$v] = $this->{$keyCamel};
+
+            }
 
             return $result;
         }
@@ -305,6 +428,7 @@ namespace Assay\Communication\Profile {
         protected function updateEntity():bool
         {
 
+            /*
             $id[ISqlHandler::PLACEHOLDER] = ':ID';
             $id[ISqlHandler::VALUE] = $this->id;
             $id[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
@@ -342,8 +466,38 @@ namespace Assay\Communication\Profile {
                     update_date = now(), '.self::CODE.' = '.$code[ISqlHandler::PLACEHOLDER].', '.self::IS_HIDDEN.' = '.$is_hidden[ISqlHandler::PLACEHOLDER].'
                 WHERE 
                 '.self::ID.' = '.$id[ISqlHandler::PLACEHOLDER];
-            $arguments[ISqlHandler::QUERY_PARAMETER] = [$id,$name,$description,$city,$country/*,$is_hidden*/];
+            $arguments[ISqlHandler::QUERY_PARAMETER] = [$id,$name,$description,$city,$country,$is_hidden];
+            */
          //   print_r($arguments);
+
+            $sqlText = '';
+            $params = $this->getFieldsList();
+            //    $end_element = array_pop($params); //потому что после последнего элемента нам не надо ставить запятую
+
+            foreach($params as $key => $value)
+            {
+                $propertyName = self::camelCase($key);
+                if($key == 'is_hidden') continue;
+
+                $$key[ISqlHandler::PLACEHOLDER] = ':' . $value;
+                $$key[ISqlHandler::VALUE] = $this->{$propertyName};
+                $$key[ISqlHandler::DATA_TYPE] = constant('\PDO::' . $this->fieldTypes[$key]);//$this->{$propertyName};
+
+                $sqlText .= constant('self::' . $value) . " = " . $$key[ISqlHandler::PLACEHOLDER] . ", ";
+                // }
+
+                $arguments[ISqlHandler::QUERY_PARAMETER][] = $$key;
+            }
+            //убираем запятую после последнего элемента
+            $sqlText = mb_substr(rtrim($sqlText), 0, -1).' ';
+
+            $arguments[ISqlHandler::QUERY_TEXT] = '
+               UPDATE 
+                    '.$this->tablename.'
+                SET 
+                    '.$sqlText.'
+                 WHERE
+                    '.self::ID.' = '.$id[ISqlHandler::PLACEHOLDER];
 
             $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
             $response = $sqlWriter->performQuery($arguments); //print_r($response);

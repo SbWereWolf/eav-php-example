@@ -43,7 +43,7 @@ use Assay\Core;
 use Assay\Communication\Profile\Profile;
 use Assay\Communication\Profile\Company;
 use Assay\Communication\Profile\Messages;
-
+/*
 function getProfileData()
 {
   $profile = new Profile();
@@ -52,10 +52,11 @@ function getProfileData()
   $profile->getUserEmail();
   return $profile;
 }
+*/
 
 //$var = getProfileData();
 //var_dump($var);
-
+/*
 function setProfileData()
 {
     $profile = new Profile();
@@ -69,21 +70,29 @@ function setProfileData()
  //   $profile->getUserEmail();
     return $profile;
 }
+*/
+
+if(isset($_POST["myprofile"])){
+    $profile = new Profile(1);
+    $values = $_POST;
+    $profile->setCurrentUserProfileData($values);
+   // header("Location:/profile_function.php?myprofile=1");
+}
 
 //setProfileData();
-
+/*
 function getProfileCompany()
 {
-    $profile = new Profile();
-    $profile->id = 1; //для тестов
-    $profile->getProfileCompany();
+    $profile = new Profile(1);
+   // $profile->id = 1; //для тестов
+   // $profile->getProfileCompany();
     //   $profile->getUserEmail();
     return $profile;
 }
-
+*/
 //$var = getProfileCompany();
 //var_dump($var);
-
+/*
 function getCurrentCompanyProfile()
 {
     $company = new Company();
@@ -92,11 +101,12 @@ function getCurrentCompanyProfile()
     return $company;
 
 }
+*/
 
 //$var = getCurrentCompanyProfile();
 //var_dump($var);
 
-
+/*
 function setCompanyData()
 {
     $company = new Company();
@@ -112,9 +122,25 @@ function setCompanyData()
     //   $profile->getUserEmail();
     return $company;
 }
+*/
+
+if(isset($_POST["mycompany"])){
+    $company = new Company($_POST["id"], 1);
+    $values = $_POST;
+    $company->setCurrentUserCompanyData($values);
+    // header("Location:/profile_function.php?myprofile=1");
+}
+
+if(isset($_POST["addmycompany"])){
+    $company = new Company(0, 1);
+    $values = $_POST;
+    $company->addCompanyData($values);
+    // header("Location:/profile_function.php?myprofile=1");
+}
+
 
 //setCompanyData();
-
+/*
 function addCompanyData()
 {
     $company = new Company();
@@ -128,6 +154,7 @@ function addCompanyData()
     //   $profile->getUserEmail();
      return $company;
 }
+*/
 
 //addCompanyData();
 
@@ -151,7 +178,7 @@ function getMessages()
 
 function addMessage()
 {
-    $message = new Messages();
+    $message = new Messages(1);
     $message->profileId = 1; //для тестов
     $values = [];
     // $company->id = 1; //для тестов
@@ -163,6 +190,14 @@ function addMessage()
     $message->addMessage($values);
     //   $profile->getUserEmail();
     return $message;
+}
+
+
+if(isset($_POST["addmessage"])){
+    $message = new Messages(1);
+    $values = $_POST;
+    $message->addMessage($values);
+    // header("Location:/profile_function.php?myprofile=1");
 }
 
 //addMessage();
@@ -435,6 +470,8 @@ if(!$ownProfile) $disabled = 'disabled';
 
 <br/><br/>
 <form name="profile_data" method="post">
+    <input type="hidden" name="id" value="<?php echo($profile->id); ?>" />
+    <input type="hidden" name="myprofile" value="1" />
 <table>
     <tr>
         <td>
@@ -500,7 +537,7 @@ else{
 ?>
         <td></td>
         <?php if($ownProfile){ ?>
-            <td><input type="button" name="add_company" value="Добавить"/></td>
+            <td><input type="button" name="add_company" value="Добавить" onclick="window.location = 'profile_function.php?company=0'"/></td>
         <?php } ?>
 <?php } ?>
     </tr>
@@ -522,7 +559,7 @@ else{
             ?>
             <td></td>
         <?php if($ownProfile){ ?>
-            <td><input type="button" name="add_advert" value="Добавить"/></td>
+            <td><input type="button" name="add_advert" id="add_advert" value="Добавить" /></td>
         <?php } ?>
         <?php } ?>
     </tr>
@@ -567,6 +604,7 @@ else{
     <form name="message_data" method="post">
         <input type="hidden" name ="author" value="<?php echo($messages->profileId); ?>" />
         <input type="hidden" name ="receiver" value="<?php echo($messages->authorId); ?>" />
+        <input type="hidden" name ="addmessage" value="1" />
         <table>
             <tr>
                 <td>
@@ -617,7 +655,13 @@ else{
 
     <br/><br/>
     <form name="company_data" method="post">
+        <?php if($company->id != 0){ ?>
         <input type="hidden" name="id" value="<?php echo($company->id); ?>"/>
+        <input type="hidden" name="mycompany" value="<?php echo($company->id); ?>"/>
+        <?php }else{ ?>
+            <input type="hidden" name="id" value="0"/>
+            <input type="hidden" name="addmycompany" value="1"/>
+        <?php } ?>
         <table>
             <tr>
                 <td>
@@ -713,7 +757,7 @@ else{
                     Часы работы:
                 </td>
                 <td>
-                    <input type="text" name="email" value="<?php echo($company->worktime); ?>" <?php echo($disabled); ?>"/>
+                    <input type="text" name="worktime" value="<?php echo($company->worktime); ?>" <?php echo($disabled); ?>"/>
                 </td>
             </tr>
             <tr>
@@ -728,6 +772,10 @@ else{
             <?php if($ownCompany){ ?>
             <tr>
                 <td colspan="2"><input type="submit" name="sub_profile" value="Сохранить" /></td>
+            </tr>
+            <?php }elseif($ownProfile){ ?>
+            <tr>
+                <td colspan="2"><input type="submit" name="add_company" value="Добавить" /></td>
             </tr>
             <?php } ?>
         </table>

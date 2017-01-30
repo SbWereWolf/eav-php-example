@@ -82,7 +82,7 @@ namespace Assay\Communication\Profile {
             'other_criteria' => 'PARAM_STR',
             'is_supplier' => 'PARAM_INT',
             'is_transport' => 'PARAM_INT',
-            'address' => 'PARAM_INT',
+            'address' => 'PARAM_STR',
             'website' => 'PARAM_STR',
             'email' => 'PARAM_STR',
             'phone' => 'PARAM_STR',
@@ -190,7 +190,7 @@ namespace Assay\Communication\Profile {
         {
             $profileId = $this->profileId;
             $result = false;
-            return $this->loadById($profileId);
+            return $this->loadById($this->id);
         }
 
         public function loadById(string $id):bool
@@ -276,7 +276,8 @@ namespace Assay\Communication\Profile {
             //$profileId = $this->id;
             $result = false;
 
-            $result = false;
+            //теоретически, здесь еще надо проверять, есть такая компания или нет, чтоб не давать возможности
+            //создать ее снова. Ну или прикрепить снова.
 
 
             $params = $this->getFieldsList();
@@ -284,6 +285,7 @@ namespace Assay\Communication\Profile {
             foreach($params as $key => $value)
             {
                 //print_r($key);
+                if($key == 'id') continue;
                 $keyCamel = self::camelCase($key);
                 $k = __CLASS__.'::'.$value;
                 $v = constant($k);
@@ -294,7 +296,34 @@ namespace Assay\Communication\Profile {
             }
 
             $this->addEntity();
-            $result = $this->mutateEntity();
+            $this->mutateEntity();
+
+
+
+
+            //привязываем профиль компании к пользователю----------
+
+            $oneParameter[ISqlHandler::PLACEHOLDER] = ':ID';
+            $oneParameter[ISqlHandler::VALUE] = $this->id;
+            $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $twoParameter[ISqlHandler::PLACEHOLDER] = ':PROFILE_ID';
+            $twoParameter[ISqlHandler::VALUE] = $this->profileId;
+            $twoParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+             $arguments[ISqlHandler::QUERY_TEXT] =
+                'INSERT INTO profile_company(profile_id, company_id) '
+                .' VALUES('. $twoParameter[ISqlHandler::PLACEHOLDER].','.$oneParameter[ISqlHandler::PLACEHOLDER].');
+ 
+';
+            $arguments[ISqlHandler::QUERY_PARAMETER] = [$twoParameter, $oneParameter];
+
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+            $response = $sqlReader->performQuery($arguments); print_r($response);
+
+            if($isSuccessfulRead = SqlHandler::isNoError($response)) $result = true;
+
+            //------------------------------------------------------
 
             //  if($this->mutateEntity() && $this->loadById($this->id))
             //      $result = true;
@@ -315,7 +344,6 @@ namespace Assay\Communication\Profile {
             //$profileId = $this->id;
             $result = false;
 
-
             $params = $this->getFieldsList();
 
             foreach($params as $key => $value)
@@ -324,16 +352,16 @@ namespace Assay\Communication\Profile {
                 $keyCamel = self::camelCase($key);
                 $k = __CLASS__.'::'.$value;
                 $v = constant($k);
-                if(isset($values[$keyCamel]) && !empty($values[$keyCamel]))
-                    $this->{$keyCamel} = $values[$keyCamel];
+                if(isset($values[$key]) && !empty($values[$key]))
+                    $this->{$keyCamel} = $values[$key];
                 else {
-                    if($this->fieldTypes[$key] == 'PARAM_INT')  $this->{$keyCamel} = self::EMPTY_VALUE;
+                    if($this->fieldTypes[$key] == 'PARAM_INT')  $this->{$keyCamel} = 0;
                     else $this->{$keyCamel} = self::EMPTY_VALUE;
 
                 }//self::EMPTY_VALUE;//Common::setIfExists($v, $values[$key], self::EMPTY_VALUE);
                // print_r($key);
             }
-//print_r($this); $a = NULL; echo("sdfdsfsdf".$a);
+//print_r($this); //$a = NULL; echo("sdfdsfsdf".$a);
             /*
             $this->update_date = time();
             $this->name = $name;
@@ -369,7 +397,7 @@ namespace Assay\Communication\Profile {
         {
             $result = false;
 
-            $stored = new Company();
+            $stored = new Company($this->id, $this->profileId);
            // $this->id = 1;
             $wasReadStored = $stored->loadById($this->id);
 
@@ -411,11 +439,11 @@ namespace Assay\Communication\Profile {
                 $v = constant($k);
                 $this->{$value} = Common::setIfExists($v, $namedValue, self::EMPTY_VALUE);
                 */
-                $key = self::camelCase($key);
+                $keyCamel = self::camelCase($key);
                 $k = __CLASS__.'::'.$value;
                 $v = constant($k);
                // $this->{$key} = Common::setIfExists($v, $namedValue, self::EMPTY_VALUE);
-                $result[$v] = $this->{$key};
+                $result[$v] = $this->{$keyCamel};
 
             }
 
@@ -461,6 +489,7 @@ namespace Assay\Communication\Profile {
 
             foreach($params as $key => $value)
             {
+                //if($key == 'is_hidden') continue;
                 $propertyName = self::camelCase($key);
                 //$varName = $key;
 /*
@@ -472,7 +501,10 @@ namespace Assay\Communication\Profile {
                 else {
                     */
                     $$key[ISqlHandler::PLACEHOLDER] = ':' . $value;
-                    $$key[ISqlHandler::VALUE] = $this->{$propertyName};
+                    if( $this->fieldTypes[$key] == 'PARAM_INT')
+                        $$key[ISqlHandler::VALUE] = intval($this->{$propertyName});
+                    else
+                        $$key[ISqlHandler::VALUE] = $this->{$propertyName};
                     $$key[ISqlHandler::DATA_TYPE] = constant('\PDO::' . $this->fieldTypes[$key]);//$this->{$propertyName};
 
                     $sqlText .= constant('self::' . $value) . " = " . $$key[ISqlHandler::PLACEHOLDER] . ", ";
@@ -522,6 +554,7 @@ namespace Assay\Communication\Profile {
         /** Добавляет запись в БД
          * @return bool успешность изменения
          */
+        /*
         public function addEntity():bool
         {
             $arguments[ISqlHandler::QUERY_TEXT] =
@@ -546,6 +579,7 @@ namespace Assay\Communication\Profile {
 
             return $result;
         }
+        */
 
         /*
             public function readEntity(string $id):bool
