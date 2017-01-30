@@ -33,29 +33,36 @@ namespace Assay\Core {
         /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
 
-        /** Удалить связь
+        /** Удалить связь по внешней ссылке
          * @param array $foreignKeys значение внешнего ключа
          * @return bool значения колонок
          */
-        public function dropLinkage(array $foreignKeys):bool
+        public function dropOuterLinkage(array $foreignKeys):bool
+        {
+            $result= false;
+            return $result;
+        }
+
+        /** Удалить связь по внутрейней ссылке
+         * @param array $foreignKeys значение внешнего ключа
+         * @return bool значения колонок
+         */
+        public function dropInnerLinkage(array $foreignKeys):bool
         {
             $conditionString = Common::getColumnValuePairByUnionString($foreignKeys,self::UNION_BY_AND);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 " DELETE FROM $this->tablename WHERE $conditionString"
-                . ' ; ';
+                . ' RETURNING NULL ; ';
 
-            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-            $response = $sqlWriter->performQuery($arguments);
+            $records= SqlHandler::writeAllRecords($arguments);
 
-            $isSuccessfulDelete = SqlHandler::isNoError($response);
-            
-            $deleteCount = 0 ;
-            if ($isSuccessfulDelete) {
-                $records = SqlHandler::getAllRecords($response);
-                $deleteCount = count($records); 
+            $deleteCount = 0;
+            $isArray = is_array($records);
+            if($isArray){
+                $deleteCount = count($records);
             }
-
+            
             $result = $deleteCount  > 0 ;
             return $result;
         }
@@ -79,25 +86,11 @@ VALUES $columnValuesInsideParentheses
  RETURNING $columnNames" . ICommon::ENUMERATION_SEPARATOR . self::ID
                 . ' ; ';
 
-            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-            $response = $sqlWriter->performQuery($arguments);
+            $record = SqlHandler::writeOneRecord($arguments);
 
-            $isSuccessfulRead = SqlHandler::isNoError($response);
-            $record = self::EMPTY_ARRAY;
-            if ($isSuccessfulRead) {
-                $record = SqlHandler::getFirstRecord($response);
-                $this->setByNamedValue($record);
-            }
-
-            $result = $record != self::EMPTY_ARRAY;
+            $result = $record != ISqlHandler::EMPTY_ARRAY;
+            
             return $result;
-        }
-
-        public function setByNamedValue(array $namedValue):bool
-        {
-            $this->id = \Assay\Core\Common::setIfExists(self::ID, $namedValue, self::EMPTY_VALUE);
-
-            return true;
         }
     }
 }

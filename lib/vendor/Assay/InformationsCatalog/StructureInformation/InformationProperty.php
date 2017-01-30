@@ -21,20 +21,21 @@ namespace Assay\InformationsCatalog\StructureInformation {
         const EXTERNAL_ID = 'information_property_id';
 
         /** @var string имя таблицы БД для хранения сущности */
-        const TABLE_NAME = 'information_property';
-
-        /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
 
         private $informationDomain = self::EMPTY_VALUE;
 
+        /** Загрузить значения свойств по коду сущности
+         * @param string $code код сущности
+         * @return bool успех выполнения
+         */
         public function loadByCode(string $code):bool
         {
 
             $isSuccessfulByCode = parent::loadByCode($code);
             $isSuccessfulLoadDomain = $this->loadInformationDomain();
 
-            $result = $isSuccessfulByCode  && $isSuccessfulLoadDomain  ;
+            $result = $isSuccessfulByCode && $isSuccessfulLoadDomain;
 
             return $result;
         }
@@ -48,16 +49,23 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $isSuccessfulById = parent::loadById($id);
             $isSuccessfulLoadDomain = $this->loadInformationDomain();
 
-            $result = $isSuccessfulById  && $isSuccessfulLoadDomain  ;
+            $result = $isSuccessfulById && $isSuccessfulLoadDomain;
 
             return $result;
         }
 
+        /** Установить свойства в соответствии со значениями элементов массива
+         * @param array $namedValue массив с именованными элементами
+         * @return bool успех выполнения
+         */
         public function setByNamedValue(array $namedValue):bool
         {
             parent::setByNamedValue($namedValue);
 
-            $this->informationDomain = Common::setIfExists(self::INFORMATION_DOMAIN, $namedValue, self::EMPTY_VALUE);
+            $informationDomain = Common::setIfExists(self::INFORMATION_DOMAIN, $namedValue, self::EMPTY_VALUE);
+            if ($informationDomain != self::EMPTY_VALUE) {
+                $this->informationDomain = $informationDomain;
+            }
 
             return true;
         }
@@ -100,10 +108,10 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
             $presentDomain = Common::setIfExists(self::INFORMATION_DOMAIN, $entity, self::EMPTY_VALUE);
             $storedDomain = Common::setIfExists(self::INFORMATION_DOMAIN, $storedEntity, self::EMPTY_VALUE);
-            $letSaveDomain = $presentDomain != $storedDomain
-                || $storedDomain == self::EMPTY_VALUE;
+            $letSaveDomain = $presentDomain != $storedDomain;
+
             $saveResult = true;
-            if($letSaveDomain){
+            if ($letSaveDomain) {
                 $saveResult = $this->saveInformationDomain();
             }
 
@@ -130,17 +138,18 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $domain = new InformationDomain();
             $isSuccess = $domain->loadByCode($code);
 
-            if($isSuccess){
-                $this->informationDomain=$domain->id;
+            if ($isSuccess) {
+                $this->informationDomain = $domain->id;
             }
         }
 
+        /** Загрузить идентификатор информационного домена
+         * @return bool успех выполнения
+         */
         private function loadInformationDomain():bool
         {
 
-            $oneParameter[ISqlHandler::PLACEHOLDER] = ':ID';
-            $oneParameter[ISqlHandler::VALUE] = intval($this->id);
-            $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+            $oneParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
@@ -154,43 +163,37 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 . ';';
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
 
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments);
+            $record = SqlHandler::readOneRecord($arguments);
 
-            $isSuccessfulRead = SqlHandler::isNoError($response);
-
-            $record = self::EMPTY_ARRAY;
-            if ($isSuccessfulRead) {
-                $record = SqlHandler::getFirstRecord($response);
-                $this->informationDomain = Common::setIfExists(InformationDomain::ID, $record,self::EMPTY_VALUE );
-            }
-
-            $result = false;
             if ($record != self::EMPTY_ARRAY) {
-                $result = true;
+                $this->informationDomain = Common::setIfExists(InformationDomain::ID, $record, self::EMPTY_VALUE);
             }
 
+            $result = $this->informationDomain != self::EMPTY_VALUE;
             return $result;
         }
 
+        /** Установить информационный джомен для свойства рубрики
+         * @return bool
+         */
         private function saveInformationDomain():bool
         {
 
-           $linkToThis = \Assay\DataAccess\Common::setForeignKeyParameter(self::EXTERNAL_ID, $this->id);
+            $linkToThis = \Assay\DataAccess\Common::setForeignKeyParameter(self::EXTERNAL_ID, $this->id);
             $foreignKeySet[] = $linkToThis;
 
             $linkage = new InformationPropertyDomain();
-            $isSuccess = $linkage->dropLinkage( $foreignKeySet);
+            $isSuccess = $linkage->dropInnerLinkage($foreignKeySet);
 
-            if($isSuccess ){
+            if ($isSuccess) {
                 $linkToDomain = \Assay\DataAccess\Common::setForeignKeyParameter(InformationDomain::EXTERNAL_ID
                     , $this->informationDomain);
                 $foreignKeySet[] = $linkToDomain;
 
-                $isSuccess  = $linkage->addLinkage($foreignKeySet);
+                $isSuccess = $linkage->addLinkage($foreignKeySet);
             }
 
-            return $isSuccess ;
+            return $isSuccess;
 
         }
     }

@@ -17,7 +17,7 @@ namespace Assay\InformationsCatalog\DataInformation {
     class CompanyAddress extends Rubric
     {
         /** @var string ссылка на позицию компании */
-        const COMPANY = InformationInstance::EXTERNAL_ID;
+        const COMPANY = RubricPosition::EXTERNAL_ID;
         /** @var string ссылка на тип адреса */
         const TYPE = CompanyAddress::EXTERNAL_ID;
         

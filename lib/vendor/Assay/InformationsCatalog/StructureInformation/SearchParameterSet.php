@@ -36,18 +36,16 @@ class SearchParameterSet implements ISearchParameterSet
                                  string $dataType = DataAccess\ICommon::STRING_TYPE,
                                  string $second = self::EMPTY_VALUE):bool
     {
-        $parameter = [
-            DataAccess\ICommon::EQUAL => $first,
-            DataAccess\ICommon::DATA_TYPE => $dataType,
-        ];
-
         if ($second != self::EMPTY_VALUE) {
             $parameter []= [
                 DataAccess\ICommon::MAXIMUM => $second,
                 DataAccess\ICommon::MINIMUM => $first,
             ];
-
-            unset($parameter[DataAccess\ICommon::EQUAL]);
+        }else{
+            $parameter = [
+                DataAccess\ICommon::EQUAL => $first,
+                DataAccess\ICommon::DATA_TYPE => $dataType,
+            ];
         }
         $this->pattern[] = $parameter;
         $result = true;

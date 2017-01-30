@@ -15,7 +15,7 @@ class InformationPropertyDomain extends LinkageEntity
 {
 
     /** @var string колонка для внешнего ключа ссылки на эту таблицу */
-    const EXTERNAL_ID = 'information_property_domain_id';
+    const EXTERNAL_ID = 'information_property_information_domain_id';
 
     /** @var string имя таблицы БД для хранения сущности */
     const TABLE_NAME = 'information_property_information_domain';

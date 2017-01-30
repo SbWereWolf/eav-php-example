@@ -9,7 +9,7 @@ namespace Assay\InformationsCatalog\DataInformation {
     /**
      * Функционал работы с пользовательскими данными
      */
-    interface IInstanceUserInformation
+    interface IAdditionalValue
     {
         /** Получить свойства цены доставки
          * @return array свойства цены
