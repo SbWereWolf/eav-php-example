@@ -151,13 +151,19 @@ class SqlHandler implements ISqlHandler
             $response,
             Common::EMPTY_VALUE);
 
-        $responseValue = array();
+        $responseValue = self::EMPTY_ARRAY;
         if ($records != Common::EMPTY_VALUE) {
             $responseIndex = 0;
             $responseValue = Common::setIfExists($responseIndex,
                 $records,
                 array());
         }
+
+        $isArray = is_array($responseValue);
+        if(!$isArray){
+            $responseValue = self::EMPTY_ARRAY;
+        }
+        
         return $responseValue;
     }
 

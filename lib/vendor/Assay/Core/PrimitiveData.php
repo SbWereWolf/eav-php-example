@@ -92,13 +92,23 @@ class PrimitiveData extends Record implements IPrimitiveData
         return $result;
     }
 
+    /** Установить свойства экземпляра в соответствии со значениями
+     * @param array $namedValue массив значений
+     * @return bool успех выполнения
+     */    
     public function setByNamedValue(array $namedValue):bool
     {        
         $id = Common::setIfExists(self::ID, $namedValue, self::EMPTY_VALUE);
+        if(is_null($id) ){
+            $id = self::EMPTY_VALUE;
+        }
         if($id!= self::EMPTY_VALUE){
             $this->id = $id;
         }
-        $isHidden = Common::setIfExists(self::IS_HIDDEN, $namedValue, self::EMPTY_VALUE);
+        $isHidden = strval(Common::setIfExists(self::IS_HIDDEN, $namedValue, self::EMPTY_VALUE));
+        if(is_null($isHidden) ){
+            $isHidden = self::EMPTY_VALUE;
+        }
         if($isHidden!= self::EMPTY_VALUE){
             $this->isHidden = $isHidden;
         }

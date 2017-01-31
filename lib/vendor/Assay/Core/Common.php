@@ -15,10 +15,11 @@ namespace Assay\Core {
                 $maySet = array_key_exists($key, $array);
             }
 
-            $value = $valueIfNotIsset;
+            $value = self::EMPTY_VALUE;
             if ($maySet) {
-                $value = self::isSetEx($array[$key], $valueIfNotIsset);
+                $value = $array[$key];
             }
+
             return $value;
         }
 

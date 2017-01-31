@@ -5,7 +5,7 @@
  * Date: 10.01.2017
  * Time: 18:46
  */
-namespace Assay\InformationsCatalog\DataInformation {
+namespace Assay\InformationsCatalog\RedactorContent {
     /**
      * Функционал работы с пользовательскими данными
      */

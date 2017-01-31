@@ -17,6 +17,12 @@ namespace Assay\InformationsCatalog\StructureInformation {
      */
     class InformationDomain extends NamedEntity implements IInformationDomain
     {
+        /** @var string колонка для внешнего ключа ссылки на эту таблицу */
+        const EXTERNAL_ID = 'information_domain_id';
+
+        /** @var string имя таблицы */
+        const TABLE_NAME = 'information_domain';
+        
         /** @var string имя таблицы */
         protected $tablename = self::TABLE_NAME;
 
@@ -60,24 +66,28 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
             $record = SqlHandler::readOneRecord($arguments);
 
-            $isSuccessfulRead = $record != ISqlHandler::EMPTY_ARRAY;
+            $isSuccess = $record != ISqlHandler::EMPTY_ARRAY;
 
-            return $isSuccessfulRead;
+            if($isSuccess){
+                $isSuccess = $this->setByNamedValue($record);
+            }
+
+            return $isSuccess;
         }
 
         public function setByNamedValue(array $namedValue):bool
         {
             $result = parent::setByNamedValue($namedValue);
 
-            $searchType = Common::setIfExists(self::SEARCH_TYPE, $namedValue, self::EMPTY_VALUE);
+            $searchType = strval(Common::setIfExists(self::SEARCH_TYPE, $namedValue, self::EMPTY_VALUE));
             if($searchType!=self::EMPTY_VALUE){
                 $this->searchType=$searchType;
             }
-            $typeEdit = Common::setIfExists(self::TYPE_EDIT, $namedValue, self::EMPTY_VALUE);
+            $typeEdit = strval(Common::setIfExists(self::TYPE_EDIT, $namedValue, self::EMPTY_VALUE));
             if($typeEdit!=self::EMPTY_VALUE){
                 $this->typeEdit=$typeEdit;
             }
-            $dataType = Common::setIfExists(self::DATA_TYPE, $namedValue, self::EMPTY_VALUE);
+            $dataType = strval(Common::setIfExists(self::DATA_TYPE, $namedValue, self::EMPTY_VALUE));
             if($dataType!=self::EMPTY_VALUE){
                 $this->dataType=$dataType;
             }

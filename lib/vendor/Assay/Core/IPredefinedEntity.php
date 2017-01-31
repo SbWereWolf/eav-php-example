@@ -9,12 +9,12 @@
 namespace Assay\Core;
 
 
-interface IChildEntity
+interface IPredefinedEntity
 {
 
     /** Добавить дочернюю сущность
      * @return bool успех выполнения
      */
-    public function addChildEntity():bool;
+    public function addPredefinedEntity():bool;
 
 }
