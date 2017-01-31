@@ -246,19 +246,14 @@ var_dump($otherRubricMap);
 // Задаём содержание свойствам
 echo " \n --==@@ set CONTENT of some POSITION`s @@==-- ";
 echo " \n otherRubric->saveContent x2 \n";
-
-
-
 $isSuccess = $otherRubricOnePosition->saveContent(" first property otherRubricOnePosition $otherRubricOnePosition->id ",
     $otherPropertyCode);
 $isSuccess = $otherRubricOnePosition->saveContent(" second property otherRubricOnePosition $otherRubricOnePosition->id ",
     $someOtherPropertyCode);
-
 $isSuccess = $otherRubricOtherPosition->saveContent(" first property otherRubricOtherPosition $otherRubricOtherPosition->id ",
     $otherPropertyCode);
 $isSuccess = $otherRubricOtherPosition->saveContent(" second property otherRubricOtherPosition $otherRubricOtherPosition->id ",
     $someOtherPropertyCode);
-
 echo " \n onePositionProperty = otherRubricOnePosition->getPosition(); \n";
 $onePositionProperty = $otherRubricOnePosition->getPosition();
 var_dump($onePositionProperty);
