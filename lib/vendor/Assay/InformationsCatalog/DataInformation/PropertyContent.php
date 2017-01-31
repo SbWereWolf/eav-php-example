@@ -7,7 +7,7 @@
  */
 namespace Assay\InformationsCatalog\DataInformation {
 
-    use Assay\Core\ChildEntity;
+    use Assay\Core\PredefinedEntity;
     use Assay\Core\Common;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
@@ -16,7 +16,7 @@ namespace Assay\InformationsCatalog\DataInformation {
     /**
      * Значения свойства позиции рубрики
      */
-    class PropertyContent extends ChildEntity
+    class PropertyContent extends PredefinedEntity
     {
 
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
@@ -27,18 +27,18 @@ namespace Assay\InformationsCatalog\DataInformation {
         /** @var string имя родительсклй таблицы */
         const PARENT_TABLE_NAME = RubricPosition::TABLE_NAME;
         /** @var string колонка в родительской таблицы для связи с дочерней */
-        const PARENT_ID = RubricPosition::ID;
+        const PARENT = RubricPosition::ID;
         /** @var string имя колонки для ссылки на родительскую запись */
-        const PARENT = RubricPosition::EXTERNAL_ID;
+        const CHILD = RubricPosition::EXTERNAL_ID;
 
         /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
         /** @var string имя таблицы БД для родительской сущности */
         protected $parentTablename = self::PARENT_TABLE_NAME;
         /** @var string колонка в родительской таблицы для связи с дочерней */
-        protected $parentIdColumn = self::PARENT_ID;
-        /** @var string колонка в дочерней таблице для связи с родительской */
         protected $parentColumn = self::PARENT;
+        /** @var string колонка в дочерней таблице для связи с родительской */
+        protected $childColumn = self::CHILD;
 
         /** @var string колонка для ссылки на рубрику */
         const PROPERTY = InformationProperty::EXTERNAL_ID;
@@ -46,7 +46,7 @@ namespace Assay\InformationsCatalog\DataInformation {
         const CONTENT = 'content';
 
         /** @var string ссылка на рубрику */
-        public $parentId = self::EMPTY_VALUE;
+        public $linkToParent = self::EMPTY_VALUE;
         /** @var string свойство */
         public $propertyId = self::EMPTY_VALUE;
         /** @var string значение свойства */
@@ -55,15 +55,15 @@ namespace Assay\InformationsCatalog\DataInformation {
         /** вставить в таблицу запись дочерней сущности
          * @return bool успех выполнения
          */
-        protected function insertChild():bool
+        protected function insertPredefined():bool
         {
-            $parentParameter = SqlHandler::setBindParameter(':PARENT', $this->parentId, \PDO::PARAM_INT);
+            $parentParameter = SqlHandler::setBindParameter(':PARENT', $this->linkToParent, \PDO::PARAM_INT);
             $propertyParameter = SqlHandler::setBindParameter(':PROPERTY', $this->propertyId, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'INSERT INTO  ' . $this->tablename
                 . ' ('
-                . $this->parentColumn
+                . $this->childColumn
                 . ' , ' . self::PROPERTY
                 . ')'
                 . ' VALUES  ('
@@ -72,7 +72,7 @@ namespace Assay\InformationsCatalog\DataInformation {
                 . ')'
                 . ' RETURNING '
                 . self::ID
-                . ' , ' . $this->parentColumn
+                . ' , ' . $this->childColumn
                 . ' , ' . self::PROPERTY
                 . ';';
 
@@ -89,6 +89,39 @@ namespace Assay\InformationsCatalog\DataInformation {
             return $isSuccess;
         }
 
+        /** Прочитать запись из БД
+         * @param string $id идентификатор записи
+         * @return bool успех выполнения
+         */
+        public function loadById(string $id):bool
+        {
+
+            $oneParameter = SqlHandler::setBindParameter(':ID', $id, \PDO::PARAM_INT);
+
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                'SELECT '
+                . self::ID
+                . ' , ' . self::PROPERTY
+                . ' , ' . self::CONTENT
+                . ' , ' . self::IS_HIDDEN
+                . ' , ' . $this->childColumn
+                . ' FROM '
+                . $this->tablename
+                . ' WHERE '
+                . self::ID . ' = ' . $oneParameter[ISqlHandler::PLACEHOLDER]
+                . ';';
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+
+            $record = SqlHandler::readOneRecord($arguments);
+
+            $result = false;
+            if ($record != ISqlHandler::EMPTY_ARRAY) {
+                $result = $this->setByNamedValue($record);
+            }
+
+            return $result;
+        }
+        
         public function setByNamedValue(array $namedValue):bool
         {
 
@@ -113,8 +146,8 @@ namespace Assay\InformationsCatalog\DataInformation {
         {
             $result = parent::toEntity();
 
-            $result[self::PROPERTY] = $this->parentId;
-            $result[self::CONTENT] = $this->parentId;
+            $result[self::PROPERTY] = $this->linkToParent;
+            $result[self::CONTENT] = $this->content;
 
             return $result;
         }
@@ -167,7 +200,7 @@ namespace Assay\InformationsCatalog\DataInformation {
                 . ' RETURNING '
                 . self::ID
                 . ' , ' . self::IS_HIDDEN
-                . ' , ' . $this->parentColumn
+                . ' , ' . $this->childColumn
                 . ' , ' . self::PROPERTY
                 . ' , ' . self::CONTENT
                 . ';';

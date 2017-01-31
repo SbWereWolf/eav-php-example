@@ -14,9 +14,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
      */
     interface IRubric
     {
-        /** @var string колонка для внешнего ключа ссылки на эту таблицу */
-        const EXTERNAL_ID = 'rubric_id';
-
+        
         /** Получить описания позиций рубрики
          * @param string $codeKey индекс для элементов массива
          * @return array позиции
@@ -34,9 +32,26 @@ namespace Assay\InformationsCatalog\StructureInformation {
          * @param string $dataType индекс для кода типа данных
          * @return array свойства рубрики
          */
-        public function getProperties(string $property = IInformationProperty::TABLE_NAME,
+        public function getProperties(string $property = InformationProperty::TABLE_NAME,
                                       string $typeEdit= TypeEdit::TABLE_NAME,
                                       string $searchType= SearchType::TABLE_NAME,
                                       string $dataType= DataType::TABLE_NAME):array;
+
+        /** Добавить позицию
+         * @return string идентификатор добавленной позиции
+         */
+        public function addPosition():string;
+
+        /** Добавить свойство
+         * @param string $code код свойства
+         * @return bool успех выполнения
+         */
+        public function addProperty(string $code):bool;
+
+        /** Скрыть свойство
+         * @param string $code код свойства 
+         * @return bool успех выполнения
+         */
+        public function dropProperty(string $code):bool;
     }
 }

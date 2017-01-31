@@ -8,15 +8,17 @@
 namespace Assay\InformationsCatalog\DataInformation {
 
     use Assay\Core;
-    use Assay\Core\ChildEntity;
     use Assay\Core\INamedEntity;
+    use Assay\Core\PredefinedEntity;
     use Assay\DataAccess;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
+    use Assay\InformationsCatalog\RedactorContent\AdditionalValue;
+    use Assay\InformationsCatalog\RedactorContent\Redactor;
     use Assay\InformationsCatalog\StructureInformation\DataType;
+    use Assay\InformationsCatalog\StructureInformation\DomainInformationProperty;
     use Assay\InformationsCatalog\StructureInformation\InformationDomain;
     use Assay\InformationsCatalog\StructureInformation\InformationProperty;
-    use Assay\InformationsCatalog\StructureInformation\InformationPropertyDomain;
     use Assay\InformationsCatalog\StructureInformation\Rubric;
     use Assay\InformationsCatalog\StructureInformation\RubricInformationProperty;
     use Assay\InformationsCatalog\StructureInformation\TypeEdit;
@@ -24,35 +26,35 @@ namespace Assay\InformationsCatalog\DataInformation {
     /**
      * Позиция рубрики
      */
-    class RubricPosition extends ChildEntity implements IRubricPosition,
+    class RubricPosition extends PredefinedEntity implements IRubricPosition,
         INamedEntity
     {
 
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
-        const EXTERNAL_ID = 'information_instance_id';
+        const EXTERNAL_ID = 'rubric_position_id';
 
         /** @var string имя таблицы БД для хранения сущности */
-        const TABLE_NAME = 'information_instance';
+        const TABLE_NAME = 'rubric_position';
         /** @var string имя родительсклй таблицы */
         const PARENT_TABLE_NAME = Rubric::TABLE_NAME;
         /** @var string колонка в родительской таблицы для связи с дочерней */
-        const PARENT_ID = Rubric::ID;
+        const PARENT = Rubric::ID;
         /** @var string колонка в дочерней таблице для связи с родительской */
-        const PARENT = Rubric::EXTERNAL_ID;
+        const CHILD = Rubric::EXTERNAL_ID;
 
         /** @var string имя таблицы значений */
-        const VALUE_TABLE_NAME = PropertyContent::TABLE_NAME;
+        const CONTENT_TABLE_NAME = PropertyContent::TABLE_NAME;
         /** @var string имя колонки для связи позиции и значения свойства */
-        const VALUE_PARENT = PropertyContent::PARENT;
+        const CONTENT_LINK = PropertyContent::CHILD;
 
         /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
         /** @var string имя таблицы БД для родительской сущности */
         protected $parentTablename = self::PARENT_TABLE_NAME;
         /** @var string колонка в родительской таблицы для связи с дочерней */
-        protected $parentIdColumn = self::PARENT_ID;
-        /** @var string колонка в дочерней таблице для связи с родительской */
         protected $parentColumn = self::PARENT;
+        /** @var string колонка в дочерней таблице для связи с родительской */
+        protected $childColumn = self::CHILD;
 
         /** @var string код */
         public $code = self::EMPTY_VALUE;
@@ -62,7 +64,53 @@ namespace Assay\InformationsCatalog\DataInformation {
         public $description = self::EMPTY_VALUE;
 
         /** @var string ссылка на рубрику */
-        public $parentId = self::EMPTY_VALUE;
+        public $linkToParent = self::EMPTY_VALUE;
+
+        public function setByNamedValue(array $namedValue):bool
+        {
+
+            $result = parent::setByNamedValue($namedValue);
+
+            $code = Core\Common::setIfExists(self::CODE, $namedValue, self::EMPTY_VALUE);
+            if (is_null($code)) {
+                $code = self::EMPTY_VALUE;
+            }
+            if ($code != self::EMPTY_VALUE) {
+                $this->code = $code;
+            }
+
+            $description = Core\Common::setIfExists(self::DESCRIPTION, $namedValue, self::EMPTY_VALUE);
+            if (is_null($description)) {
+                $description = self::EMPTY_VALUE;
+            }
+            if ($description != self::EMPTY_VALUE) {
+                $this->description = $description;
+            }
+
+            $name = Core\Common::setIfExists(self::NAME, $namedValue, self::EMPTY_VALUE);
+            if (is_null($name)) {
+                $name = self::EMPTY_VALUE;
+            }
+            if ($name != self::EMPTY_VALUE) {
+                $this->name = $name;
+            }
+
+            return $result;
+        }
+
+        /** Формирует массив из свойств экземпляра
+         * @return array массив свойств экземпляра
+         */
+        public function toEntity():array
+        {
+            $result = parent::toEntity();
+
+            $result [self::CODE] = $this->code;
+            $result [self::NAME] = $this->name;
+            $result [self::DESCRIPTION] = $this->description;
+
+            return $result;
+        }
 
         /** Получить имя и описание записи
          * @param string $code значение ключа для свойства код
@@ -85,14 +133,14 @@ namespace Assay\InformationsCatalog\DataInformation {
          * @param string $propertyDescription индекс для описания свойства
          * @param string $typeEdit индекс для типа редактирования
          * @param string $dataType индекс для типа данных
-         * @param string $value индекс для значения
+         * @param string $content индекс для значения
          * @return array массив с набором свойств
          */
-        public function getPosition(\string $propertyName = InformationProperty::NAME,
-                                    \string $propertyDescription = InformationProperty::DESCRIPTION,
-                                    \string $typeEdit = TypeEdit::EXTERNAL_ID,
-                                    \string $dataType = DataType::EXTERNAL_ID,
-                                    \string $value = PropertyContent::CONTENT):array
+        public function getPosition(string $propertyName = InformationProperty::NAME,
+                                    string $propertyDescription = InformationProperty::DESCRIPTION,
+                                    string $typeEdit = TypeEdit::EXTERNAL_ID,
+                                    string $dataType = DataType::EXTERNAL_ID,
+                                    string $content = PropertyContent::CONTENT):array
         {
             $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
             $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN',
@@ -102,24 +150,27 @@ namespace Assay\InformationsCatalog\DataInformation {
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' SELECT '
                 . ' P.' . InformationProperty::NAME . ' AS ' . $propertyName
-                . ' P.' . InformationProperty::DESCRIPTION . ' AS ' . $propertyDescription
-                . ' TE.' . TypeEdit::ID . 'AS ' . $typeEdit
-                . ' DT.' . DataType::ID . 'AS ' . $dataType
-                . ' DT.' . PropertyContent::CONTENT . 'AS ' . $value
+                . ' , P.' . InformationProperty::DESCRIPTION . ' AS ' . $propertyDescription
+                . ' , TE.' . TypeEdit::ID . ' AS ' . $typeEdit
+                . ' , DT.' . DataType::ID . ' AS ' . $dataType
+                . ' , C.' . PropertyContent::CONTENT . ' AS ' . $content
 
                 . ' FROM '
-                . self::TABLE_NAME . ' AS I '
-                . ' JOIN ' . self::PARENT_TABLE_NAME . ' AS R '
-                . ' ON I.' . $this->parentColumn . ' = R' . self::PARENT_ID
-                . ' JOIN ' . self::VALUE_TABLE_NAME . ' AS V '
-                . ' ON I.' . self::ID . ' = V' . self::VALUE_PARENT
+                . $this->tablename . ' AS RP '
+                . ' JOIN ' . self::CONTENT_TABLE_NAME . ' AS C '
+                . ' ON RP.' . self::ID . ' = C.' . self::CONTENT_LINK
+                . ' JOIN ' . $this->parentTablename . ' AS R '
+                . ' ON RP.' . $this->childColumn . ' = R.' . $this->parentColumn
+                . ' JOIN ' . RubricInformationProperty::TABLE_NAME . ' AS RI '
+                . ' ON R.' . Rubric::ID . ' = RI.' . RubricInformationProperty::LEFT
 
                 . ' JOIN ' . InformationProperty::TABLE_NAME . ' AS P '
-                . ' ON P.' . InformationProperty::ID . ' = RP.' . RubricInformationProperty::PROPERTY
-                . ' JOIN ' . InformationPropertyDomain::TABLE_NAME . ' AS PD '
-                . ' ON P.' . InformationProperty::ID . ' = PD.' . InformationProperty::EXTERNAL_ID
+                . ' ON P.' . InformationProperty::ID . ' = RI.' . RubricInformationProperty::RIGHT
+                . ' AND P.' . InformationProperty::ID . ' = C.' . PropertyContent::PROPERTY
+                . ' JOIN ' . DomainInformationProperty::TABLE_NAME . ' AS DP '
+                . ' ON P.' . InformationProperty::ID . ' = DP.' . DomainInformationProperty::RIGHT
                 . ' JOIN ' . InformationDomain::TABLE_NAME . ' AS D '
-                . ' ON D.' . InformationDomain::ID . ' = PD.' . InformationDomain::EXTERNAL_ID
+                . ' ON D.' . InformationDomain::ID . ' = DP.' . DomainInformationProperty::LEFT
 
                 . ' JOIN ' . TypeEdit::TABLE_NAME . ' AS TE '
                 . ' ON D.' . InformationDomain::TYPE_EDIT . ' = TE.' . TypeEdit::ID
@@ -168,7 +219,7 @@ namespace Assay\InformationsCatalog\DataInformation {
                 . ' , ' . self::NAME
                 . ' , ' . self::DESCRIPTION
                 . ' , ' . self::IS_HIDDEN
-                . ' , ' . $this->parentColumn
+                . ' , ' . $this->childColumn
                 . ' FROM '
                 . $this->tablename
                 . ' WHERE '
@@ -203,7 +254,7 @@ namespace Assay\InformationsCatalog\DataInformation {
                 . ' , ' . self::NAME
                 . ' , ' . self::DESCRIPTION
                 . ' , ' . self::IS_HIDDEN
-                . ' , ' . $this->parentColumn
+                . ' , ' . $this->childColumn
                 . ' FROM '
                 . $this->tablename
                 . ' WHERE '
@@ -228,7 +279,6 @@ namespace Assay\InformationsCatalog\DataInformation {
          */
         public function mutateEntity():bool
         {
-            $result = false;
 
             $stored = new RubricPosition();
             $wasReadStored = $stored->loadById($this->id);
@@ -242,6 +292,7 @@ namespace Assay\InformationsCatalog\DataInformation {
 
             $isContain = Core\Common::isOneArrayContainOther($entity, $storedEntity);
 
+            $result = false;
             if (!$isContain) {
                 $result = $this->updateEntity();
             }
@@ -260,7 +311,6 @@ namespace Assay\InformationsCatalog\DataInformation {
             $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
             $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', $this->isHidden, \PDO::PARAM_INT);
             $nameParameter = SqlHandler::setBindParameter(':NAME', $this->name, \PDO::PARAM_STR);
-            $parentParameter = SqlHandler::setBindParameter(':PARENT', $this->parentId, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' UPDATE '
@@ -270,7 +320,6 @@ namespace Assay\InformationsCatalog\DataInformation {
                 . ' , ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
                 . ' , ' . self::NAME . ' = ' . $nameParameter[ISqlHandler::PLACEHOLDER]
                 . ' , ' . self::DESCRIPTION . ' = ' . $descriptionParameter[ISqlHandler::PLACEHOLDER]
-                . ' , ' . $this->parentColumn . ' = ' . $parentParameter[ISqlHandler::PLACEHOLDER]
                 . ' WHERE '
                 . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
                 . ' RETURNING '
@@ -279,20 +328,20 @@ namespace Assay\InformationsCatalog\DataInformation {
                 . ' , ' . self::CODE
                 . ' , ' . self::NAME
                 . ' , ' . self::DESCRIPTION
-                . ' , ' . $this->parentColumn
+                . ' , ' . $this->childColumn
                 . ';';
+
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $descriptionParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $nameParameter;
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $parentParameter;
 
             $record = SqlHandler::writeOneRecord($arguments);
 
             $result = false;
             if ($record != ISqlHandler::EMPTY_ARRAY) {
-                $result = $this->setByNamedValue($record);;
+                $result = $this->setByNamedValue($record);
             }
             return $result;
         }
@@ -300,7 +349,7 @@ namespace Assay\InformationsCatalog\DataInformation {
         /** Добавить дочернюю сущность
          * @return bool успех выполнения
          */
-        public function addChildEntity():bool
+        public function addPredefinedEntity():bool
         {
             $propertyKey = InformationProperty::EXTERNAL_ID;
 
@@ -308,12 +357,12 @@ namespace Assay\InformationsCatalog\DataInformation {
 
             $isSuccess = $propertiesId != self::EMPTY_ARRAY;
             if ($isSuccess) {
-                $isSuccess = $this->insertChild();
+                $isSuccess = $this->insertPredefined();
             }
 
             $isChildSuccess = false;
             if ($isSuccess) {
-                $isChildSuccess = $this->insertPropertyValue($propertiesId, $propertyKey);
+                $isChildSuccess = $this->insertPropertyContent($propertiesId, $propertyKey);
             }
 
             return $isChildSuccess;
@@ -324,7 +373,7 @@ namespace Assay\InformationsCatalog\DataInformation {
          * @param string $propertyKey значение внешнего ключа записи информационного свойства
          * @return bool
          */
-        private function insertPropertyValue(array $foreignKeysSet, string $propertyKey):bool
+        private function insertPropertyContent(array $foreignKeysSet, string $propertyKey):bool
         {
             $isChildSuccess = count($foreignKeysSet) > 0;
 
@@ -338,10 +387,10 @@ namespace Assay\InformationsCatalog\DataInformation {
                 if ($isSuccess) {
                     $propertyValue = new PropertyContent();
 
-                    $propertyValue->parentId = $parentValue;
+                    $propertyValue->linkToParent = $parentValue;
                     $propertyValue->propertyId = $propertyKeyValue;
 
-                    $isSuccess = $propertyValue->addChildEntity();
+                    $isSuccess = $propertyValue->addPredefinedEntity();
                 }
                 $isChildSuccess = $isSuccess && $isChildSuccess;
 
@@ -356,14 +405,244 @@ namespace Assay\InformationsCatalog\DataInformation {
         private function getPropertiesId(string $propertyKey):array
         {
             $rubric = new Rubric();
-            $wasRubricLoad = $rubric->loadById($this->parentId);
+            $wasRubricLoad = $rubric->loadById($this->linkToParent);
 
             $propertiesId = self::EMPTY_ARRAY;
             if ($wasRubricLoad) {
-
                 $propertiesId = $rubric->readAllPropertyId($propertyKey);
             }
+
             return $propertiesId;
         }
+
+        /** Получить содержимое свойства по коду свойства
+         * @param string $code код свойства
+         * @return string идентификатор содержимого
+         */
+        private function getPositionContentId(string $code):string
+        {
+            $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+            $codeParameter = SqlHandler::setBindParameter(':CODE', $code, \PDO::PARAM_STR);
+            $isPropertyHiddenParameter = SqlHandler::setBindParameter(':IS_PROPERTY_HIDDEN',
+                InformationProperty::DEFINE_AS_NOT_HIDDEN,
+                \PDO::PARAM_INT);
+
+            $resultColumnName = PropertyContent::ID;
+
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                'SELECT '
+                . ' C.' . PropertyContent::ID . ' AS ' . $resultColumnName
+                . ' FROM '
+                . self::TABLE_NAME . ' AS R '
+                . ' JOIN ' . self::CONTENT_TABLE_NAME . ' AS C '
+                . ' ON R.' . self::ID . ' = C.' . self::CONTENT_LINK
+
+                . ' JOIN ' . InformationProperty::TABLE_NAME . ' AS P '
+                . ' ON P.' . InformationProperty::ID . ' = C.' . PropertyContent::PROPERTY
+
+                . ' WHERE '
+                . ' R.' . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND P.' . InformationProperty::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND P.' . InformationProperty::IS_HIDDEN . ' = ' . $isPropertyHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ';';
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isPropertyHiddenParameter;
+
+            $record = SqlHandler::readOneRecord($arguments);
+
+            $result = self::EMPTY_VALUE;
+            if ($record != ISqlHandler::EMPTY_ARRAY) {
+                $result = Core\Common::setIfExists($resultColumnName, $record, self::EMPTY_VALUE);
+            }
+            return $result;
+        }
+
+        /** сохранить содержание свойства
+         * @param string $content содержимое свойства
+         * @param string $code код свойства
+         * @return bool успех выполнения
+         */
+        public function saveContent(string $content, string $code):bool
+        {
+            $propertyContentId = $this->getPositionContentId($code);
+
+            $isSuccess = false;
+            $propertyContent = new PropertyContent();
+            if ($propertyContentId != self::EMPTY_VALUE) {
+                $isSuccess = $propertyContent->loadById($propertyContentId);
+            }
+
+            if ($isSuccess) {
+                $propertyContent->content = $content;
+                $isSuccess = $propertyContent->mutateEntity();
+            }
+
+            return $isSuccess;
+        }
+
+        /** Получить дополнительное значение свойства по коду свойства
+         * @param string $code код свойства
+         * @param string $redactorId редактор дополнительного значения
+         * @return string идентификатор дополнительного значения
+         */
+        private function getPositionValueId(string $code, string $redactorId):string
+        {
+            $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+            $codeParameter = SqlHandler::setBindParameter(':CODE', $code, \PDO::PARAM_STR);
+            $redactorParameter = SqlHandler::setBindParameter(':REDACTOR', $redactorId, \PDO::PARAM_INT);
+            $isPropertyHiddenParameter = SqlHandler::setBindParameter(':IS_PROPERTY_HIDDEN',
+                InformationProperty::DEFINE_AS_NOT_HIDDEN,
+                \PDO::PARAM_INT);
+            $isRedactorHiddenParameter = SqlHandler::setBindParameter(':IS_REDACTOR_HIDDEN',
+                Redactor::DEFINE_AS_NOT_HIDDEN,
+                \PDO::PARAM_INT);
+
+            $resultColumnName = AdditionalValue::ID;
+
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' SELECT '
+                . ' V.' . AdditionalValue::ID . ' AS ' . $resultColumnName
+                . ' FROM '
+                . self::TABLE_NAME . ' AS R '
+                . ' JOIN ' . self::CONTENT_TABLE_NAME . ' AS C '
+                . ' ON R.' . self::ID . ' = C.' . self::CONTENT_LINK
+                . ' JOIN ' . InformationProperty::TABLE_NAME . ' AS P '
+                . ' ON P.' . InformationProperty::ID . ' = C.' . PropertyContent::PROPERTY
+
+                . ' JOIN ' . AdditionalValue::TABLE_NAME . ' AS V '
+                . ' ON V.' . AdditionalValue::CHILD . ' = C.' . AdditionalValue::PARENT
+
+                . ' JOIN ' . Redactor::TABLE_NAME . ' AS D '
+                . ' ON V.' . AdditionalValue::REDACTOR . ' = D.' . Redactor::ID
+
+                . ' WHERE '
+                . ' R.' . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND P.' . InformationProperty::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND P.' . InformationProperty::IS_HIDDEN . ' = ' . $isPropertyHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND М.' . AdditionalValue::REDACTOR . ' = ' . $redactorParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND D.' . Redactor::IS_HIDDEN . ' = ' . $isRedactorHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ';';
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $redactorParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isPropertyHiddenParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isRedactorHiddenParameter;
+
+            $record = SqlHandler::readOneRecord($arguments);
+
+            $result = self::EMPTY_VALUE;
+            if ($record != ISqlHandler::EMPTY_ARRAY) {
+                $result = Core\Common::setIfExists($resultColumnName, $record, self::EMPTY_VALUE);
+            }
+            return $result;
+        }
+
+        /** Проверить допустимость установки дополнительного свойства
+         * @param string $code код свойства
+         * @return bool результат проверки
+         */
+        private function mayDefineValue(string $code):bool
+        {
+            $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+            $codeParameter = SqlHandler::setBindParameter(':CODE', $code, \PDO::PARAM_STR);
+            $isPropertyHiddenParameter = SqlHandler::setBindParameter(':IS_PROPERTY_HIDDEN',
+                InformationProperty::DEFINE_AS_NOT_HIDDEN,
+                \PDO::PARAM_INT);
+
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' SELECT '
+                . ' NULL '
+                . ' FROM '
+                . self::TABLE_NAME . ' AS R '
+                . ' JOIN ' . self::CONTENT_TABLE_NAME . ' AS C '
+                . ' ON R.' . self::ID . ' = C.' . self::CONTENT_LINK
+                . ' JOIN ' . InformationProperty::TABLE_NAME . ' AS P '
+                . ' ON P.' . InformationProperty::ID . ' = C.' . PropertyContent::PROPERTY
+
+                . ' WHERE '
+                . ' R.' . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND P.' . InformationProperty::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND P.' . InformationProperty::IS_HIDDEN . ' = ' . $isPropertyHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ';';
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isPropertyHiddenParameter;
+
+
+            $record = SqlHandler::readOneRecord($arguments);
+
+            $result = $record != ISqlHandler::EMPTY_ARRAY;
+
+            return $result;
+        }
+
+        /** Сохранить дополнительное значение
+         * @param string $value дополнительное значение свойства
+         * @param string $code код свойства
+         * @param string $redactorId идентификатор редактора
+         * @return string идентификатор добавленной позиции
+         */
+        public function saveValue(string $value, string $code, string $redactorId):string
+        {
+
+            $mayDefine = $this->mayDefineValue($code);
+
+            $valueId = self::EMPTY_VALUE;
+            if ($mayDefine) {
+                $valueId = $this->getPositionValueId($code, $redactorId);
+            }
+
+            $isSuccess = $valueId != self::EMPTY_VALUE;
+
+            $positionValue = new AdditionalValue();
+
+            $letAddValue = (!$isSuccess) && $mayDefine;
+            if ($letAddValue) {
+                $valueId = $this->addPositionValue($code, $redactorId, $positionValue);
+            }
+
+            $isSuccess = $valueId != self::EMPTY_VALUE;
+            if ($isSuccess) {
+                $isSuccess = $positionValue->loadById($valueId);
+            }
+            if ($isSuccess) {
+                $positionValue->value = $value;
+                $isSuccess = $positionValue->mutateEntity();
+            }
+
+            return $isSuccess;
+        }
+
+        /** Добавить дополнительное значение для позиции
+         * @param string $code код свойства
+         * @param string $redactorId идентификатор редактора
+         * @param AdditionalValue $positionValue экземпляр дополнительного значения
+         * @return string идентификатор добавленого дополнительного значения
+         */
+        private function addPositionValue(string $code, string $redactorId, AdditionalValue $positionValue):string
+        {
+            $propertyContentId = $this->getPositionContentId($code);
+
+            $isSuccess = $propertyContentId != self::EMPTY_VALUE;
+            if ($isSuccess) {
+
+                $positionValue->linkToParent = $propertyContentId;
+                $positionValue->redactorId = $redactorId;
+
+                $isSuccess = $positionValue->addPredefinedEntity();
+            }
+
+            $result = self::EMPTY_VALUE;
+            if ($isSuccess) {
+                $result = $positionValue->id;
+            }
+
+            return $result;
+        }
+
     }
 }

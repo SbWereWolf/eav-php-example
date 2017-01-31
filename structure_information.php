@@ -1,12 +1,308 @@
 <?php
 
-
-use Assay\DataAccess\SqlHandler;
-use Assay\InformationsCatalog\StructureInformation\Structure;
+use Assay\InformationsCatalog\DataInformation\RubricPosition;
+use Assay\InformationsCatalog\StructureInformation\InformationProperty;
 use Assay\InformationsCatalog\StructureInformation\Rubric;
 
 include "autoloader.php";
 
+
+echo '<pre>';
+/*
+$RubricPosition = new RubricPosition();
+var_dump($RubricPosition);
+$InformationProperty= new InformationProperty();
+var_dump($InformationProperty);
+$RubricInformationProperty= new RubricInformationProperty();
+var_dump($RubricInformationProperty);
+*/
+
+echo '</pre>';
+
+
+echo '<pre>';
+// Добавили рубрику
+echo " \n --==@@ RUBRIC @@==-- ";
+echo " \n rubric = new Rubric() \n";
+$rubric = new Rubric();
+var_dump($rubric);
+echo " \n rubric->addEntity(); \n";
+$result = $rubric->addEntity();
+var_dump($rubric);
+$rubricIdForRestore = $rubric->id;
+echo " \n setup rubric code , name , desc for id => $rubric->id \n";
+$rubric->code = " rubric CODE for $rubric->id";
+$rubric->name = " rubric NAME for $rubric->id";
+$rubric->description = " rubric DESCRIPTION for $rubric->id";
+var_dump($rubric);
+echo " \n rubric->mutateEntity(); \n";
+$rubric->mutateEntity();
+var_dump($rubric);
+unset($rubric);
+echo " \n rubricForRestore = new Rubric(); \n";
+$rubricForRestore = new Rubric();
+var_dump($rubricForRestore);
+echo " \n rubricForRestore->id = $rubricIdForRestore; rubricForRestore->getStored(); \n";
+$rubricForRestore->id = $rubricIdForRestore;
+$isSuccess = $rubricForRestore->getStored();
+var_dump($rubricForRestore);
+// Добавили свойство
+echo " \n --==@@ INFORMATION PROPERTY @@==-- ";
+echo " \n property = new InformationProperty(); \n";
+$property = new InformationProperty();
+var_dump($property);
+echo " \n property->addEntity(); \n";
+$isSuccess = $property->addEntity();
+var_dump($property);
+echo " \n property->setInformationDomain('SYSTEM_LIKE')\n";
+$property->setInformationDomain('SYSTEM_LIKE');
+var_dump($property);
+echo " \n property set : code name description isHidden ')\n";
+$propertyId = $property->id;
+$propertyCode = " property CODE $propertyId ";
+$property->code = $propertyCode;
+$property->name = " property NAME $propertyId ";
+$property->description = " property DESCRIPTION $propertyId ";
+$property->isHidden = InformationProperty::DEFINE_AS_NOT_HIDDEN;
+var_dump($property);
+echo " \n property->mutateEntity(); \n";
+$isSuccess = $property->mutateEntity();
+var_dump($property);
+// добавили рубрике свойство
+echo " \n --==@@ POSITION INFORMATION PROPERTY @@==-- ";
+echo " \n propertyId = rubricForRestore->addProperty($propertyCode); \n";
+$isSuccess = $rubricForRestore->addProperty($propertyCode);
+var_dump($isSuccess);
+echo " \n rubricForRestore->getProperties(); \n";
+$rubricProperties = $rubricForRestore->getProperties();
+var_dump($rubricProperties);
+// Добавили позицию
+echo " \n --==@@ RUBRIC POSITION @@==-- ";
+echo " \n rubricForRestore->addPosition(); \n";
+$positionId = $rubricForRestore->addPosition();
+var_dump($positionId);
+$position = new RubricPosition();
+echo " \n position->id = $positionId => position->getStored(); \n";
+$position->id = $positionId;
+$position->getStored();
+var_dump($position);
+echo " \n position set : code name description isHidden ')\n";
+$position->code = " position CODE $position->id ";
+$position->name = " position NAME $position->id ";
+$position->description = " position DESCRIPTION $position->id ";
+$position->isHidden = InformationProperty::DEFINE_AS_NOT_HIDDEN;
+var_dump($position);
+echo " \n position->loadById($positionId); \n";
+$position->loadById($positionId);
+var_dump($position);
+echo " \n position set : code name description isHidden ')\n";
+$positionCode = " position CODE $position->id ";
+$position->code = $positionCode;
+$position->name = " position NAME $position->id ";
+$position->description = " position DESCRIPTION $position->id ";
+$position->isHidden = InformationProperty::DEFINE_AS_NOT_HIDDEN;
+var_dump($position);
+echo " \n position->mutateEntity(); \n";
+$position->mutateEntity();
+var_dump($position);
+echo " \n testMutatePosition = new RubricPosition(); \n";
+$testMutatePosition = new RubricPosition();
+var_dump($testMutatePosition);
+echo " \n testMutatePosition->loadByCode($positionCode); \n";
+$testMutatePosition->loadByCode($positionCode);
+var_dump($testMutatePosition);
+echo " \n rubricForRestore->getMap(); \n";
+$rubricMap = $rubricForRestore->getMap();
+var_dump($rubricMap);
+echo " \n --==@@ RUBRIC other POSITION @@==-- ";
+echo " \n rubricForRestore->addPosition(); \n";
+$otherPositionId = $rubricForRestore->addPosition();
+var_dump($otherPositionId);
+echo " \n otherPosition->loadById($otherPositionId); \n";
+$otherPosition = new RubricPosition();
+$otherPosition->loadById($otherPositionId);
+var_dump($otherPosition);
+echo " \n new otherPositionCode set : code name description isHidden ') \n";
+$otherPositionId = $otherPosition->id;
+$otherPositionCode = " otherPosition CODE $position->id ";
+$otherPosition->code = $otherPositionCode;
+$otherPosition->name = " otherPosition NAME $position->id ";
+$otherPosition->description = " otherPosition DESCRIPTION $position->id ";
+$otherPosition->isHidden = InformationProperty::DEFINE_AS_NOT_HIDDEN;
+var_dump($otherPosition);
+echo " \n otherPosition->mutateEntity(); \n";
+$otherPosition->mutateEntity();
+var_dump($otherPosition);
+echo " \n rubricForRestore \n";
+var_dump($rubricForRestore);
+echo " \n rubricForRestore->getMap(); \n";
+$rubricMap = $rubricForRestore->getMap();
+var_dump($rubricMap);
+// Задаём содержание свойству
+echo " \n --==@@ set POSITION CONTENT @@==-- ";
+echo " \n operatorPosition->id = $otherPositionId; operatorPosition->getStored() \n";
+$operatorPosition = new RubricPosition();
+$operatorPosition->id = $otherPositionId;
+$operatorPosition->getStored();
+var_dump($operatorPosition);
+echo " \n operatorPosition->saveContent(' operatorPosition $operatorPosition->id ', $propertyCode); \n";
+$isSuccess = $operatorPosition->saveContent(" operatorPosition $operatorPosition->id ", $propertyCode);
+var_dump($isSuccess);
+echo " \n positionCollection = operatorPosition->getPosition(); \n";
+$positionCollection = $operatorPosition->getPosition();
+var_dump($positionCollection);
+
+// Добавим другую рубрику
+echo " \n --==@@ other RUBRIC @@==-- ";
+echo " \n rubric = new Rubric() \n";
+$otherRubric = new Rubric();
+var_dump($otherRubric);
+echo " \n otherRubric->addEntity(); \n";
+$result = $otherRubric->addEntity();
+var_dump($otherRubric);
+$rubricIdForRestore = $otherRubric->id;
+echo " \n setup otherRubric code , name , desc for id => $otherRubric->id \n";
+$otherRubric->code = " otherRubric CODE for $otherRubric->id";
+$otherRubric->name = " otherRubric NAME for $otherRubric->id";
+$otherRubric->description = " otherRubric DESCRIPTION for $otherRubric->id";
+var_dump($otherRubric);
+echo " \n otherRubric->mutateEntity(); \n";
+$otherRubric->mutateEntity();
+var_dump($otherRubric);
+// Добавим два свойства
+echo " \n --==@@ other INFORMATION PROPERTY @@==-- ";
+echo " \n otherProperty = new InformationProperty(); \n";
+$otherProperty = new InformationProperty();
+var_dump($otherProperty);
+echo " \n otherProperty->addEntity(); \n";
+$isSuccess = $otherProperty->addEntity();
+var_dump($otherProperty);
+echo " \n otherProperty->setInformationDomain('SYSTEM_BETWEEN_INTEGER')\n";
+$otherProperty->setInformationDomain('SYSTEM_BETWEEN_INTEGER');
+var_dump($otherProperty);
+echo " \n otherProperty set : code name description isHidden ')\n";
+$otherPropertyId = $otherProperty->id;
+$otherPropertyCode = " otherProperty CODE $otherPropertyId SYSTEM_BETWEEN_INTEGER ";
+$otherProperty->code = $otherPropertyCode;
+$otherProperty->name = " otherProperty NAME $otherPropertyId SYSTEM_BETWEEN_INTEGER ";
+$otherProperty->description = " otherProperty DESCRIPTION $otherPropertyId SYSTEM_BETWEEN_INTEGER ";
+$otherProperty->isHidden = InformationProperty::DEFINE_AS_NOT_HIDDEN;
+var_dump($otherProperty);
+echo " \n otherProperty->mutateEntity(); \n";
+$isSuccess = $otherProperty->mutateEntity();
+var_dump($otherProperty);
+echo " \n --==@@ some other INFORMATION PROPERTY @@==-- ";
+echo " \n someOtherProperty = new InformationProperty(); \n";
+$someOtherProperty = new InformationProperty();
+var_dump($someOtherProperty);
+echo " \n someOtherProperty->addEntity(); \n";
+$isSuccess = $someOtherProperty->addEntity();
+var_dump($someOtherProperty);
+echo " \n someOtherProperty->setInformationDomain('SYSTEM_ENUMERATION')\n";
+$someOtherProperty->setInformationDomain('SYSTEM_ENUMERATION');
+var_dump($someOtherProperty);
+echo " \n someOtherProperty set : code name description isHidden ')\n";
+$someOtherPropertyId = $someOtherProperty->id;
+$someOtherPropertyCode = " someOtherProperty CODE $someOtherPropertyId SYSTEM_ENUMERATION ";
+$someOtherProperty->code = $someOtherPropertyCode;
+$someOtherProperty->name = " someOtherProperty NAME $someOtherPropertyId SYSTEM_ENUMERATION ";
+$someOtherProperty->description = " someOtherProperty DESCRIPTION $someOtherPropertyId SYSTEM_ENUMERATION ";
+$someOtherProperty->isHidden = InformationProperty::DEFINE_AS_NOT_HIDDEN;
+var_dump($someOtherProperty);
+echo " \n someOtherProperty->mutateEntity(); \n";
+$isSuccess = $someOtherProperty->mutateEntity();
+var_dump($someOtherProperty);
+// добавили рубрике свойство
+echo " \n --==@@ other POSITION INFORMATION PROPERTY @@==-- ";
+echo " \n isSuccess = otherRubric->addProperty($otherPropertyCode); \n";
+$isSuccess = $otherRubric->addProperty($otherPropertyCode);
+var_dump($isSuccess);
+echo " \n isSuccess = otherRubric->addProperty($someOtherPropertyCode); \n";
+$isSuccess = $otherRubric->addProperty($someOtherPropertyCode);
+var_dump($isSuccess);
+echo " \n rubricForRestore->getProperties(); \n";
+$rubricProperties = $otherRubric->getProperties();
+var_dump($rubricProperties);
+echo " \n --==@@ add other Position @@==-- ";
+echo " \n otherRubricOnePositionId = otherRubric->addPosition(); ";
+$otherRubricOnePositionId = $otherRubric->addPosition();
+echo " \n otherRubricOtherPositionId = otherRubric->addPosition(); ";
+$otherRubricOtherPositionId = $otherRubric->addPosition();
+
+$otherRubricOnePosition = new RubricPosition();
+$otherRubricOnePosition->id = $otherRubricOnePositionId;
+$otherRubricOnePosition->getStored();
+$otherRubricOnePosition->code = " Position $otherRubricOnePosition->id ";
+$otherRubricOnePosition->mutateEntity();
+
+$otherRubricOtherPosition = new RubricPosition();
+$otherRubricOtherPosition->loadById($otherRubricOtherPositionId);
+$otherRubricOtherPosition->code = " Position $otherRubricOtherPosition->id ";
+$otherRubricOtherPosition->mutateEntity();
+
+echo " \n otherRubricMap = otherRubric->getMap(); \n";
+$otherRubricMap = $otherRubric->getMap();
+var_dump($otherRubricMap);
+// Задаём содержание свойствам
+echo " \n --==@@ set CONTENT of some POSITION`s @@==-- ";
+echo " \n otherRubric->saveContent x2 \n";
+
+
+
+$isSuccess = $otherRubricOnePosition->saveContent(" first property otherRubricOnePosition $otherRubricOnePosition->id ",
+    $otherPropertyCode);
+$isSuccess = $otherRubricOnePosition->saveContent(" second property otherRubricOnePosition $otherRubricOnePosition->id ",
+    $someOtherPropertyCode);
+
+$isSuccess = $otherRubricOtherPosition->saveContent(" first property otherRubricOtherPosition $otherRubricOtherPosition->id ",
+    $otherPropertyCode);
+$isSuccess = $otherRubricOtherPosition->saveContent(" second property otherRubricOtherPosition $otherRubricOtherPosition->id ",
+    $someOtherPropertyCode);
+
+echo " \n onePositionProperty = otherRubricOnePosition->getPosition(); \n";
+$onePositionProperty = $otherRubricOnePosition->getPosition();
+var_dump($onePositionProperty);
+echo " \n otherPositionProperty = otherRubricOtherPosition->getPosition(); \n";
+$otherPositionProperty = $otherRubricOtherPosition->getPosition();
+var_dump($otherPositionProperty);
+echo " \n isSuccess = otherRubric->dropProperty(someOtherPropertyCode); \n";
+$isSuccess = $otherRubric->dropProperty($someOtherPropertyCode);
+var_dump($isSuccess);
+echo " \n otherPositionProperty = otherRubricOtherPosition->getPosition(); \n";
+$otherPositionProperty = $otherRubricOtherPosition->getPosition();
+var_dump($otherPositionProperty);
+echo '</pre>';
+
+
+
+/*
+echo '<pre>';
+
+$Redactor = new Redactor();
+var_export($Redactor);
+$AdditionalValue = new AdditionalValue();
+var_export($AdditionalValue);
+$PropertyContent = new PropertyContent();
+var_export($PropertyContent);
+$PropertyContent = new PropertyContent();
+var_export($PropertyContent);
+$RubricPosition = new RubricPosition();
+var_export($RubricPosition);
+$RubricStructure = new RubricStructure();
+var_export($RubricStructure);
+$RubricInformationProperty = new RubricInformationProperty();
+var_export($RubricInformationProperty);
+$InformationPropertyDomain = new InformationPropertyDomain();
+var_export($InformationPropertyDomain);
+$InformationDomain = new InformationDomain();
+var_export($InformationDomain);
+$InformationProperty = new InformationProperty();
+var_export($InformationProperty);
+
+echo '</pre>';
+*/
+
+/*
 echo '<pre>';
 
 echo " \n rubric = new Rubric() \n";
@@ -210,4 +506,4 @@ var_dump($sameStructure);
 
 
 echo "</pre>";
-
+*/
