@@ -1,26 +1,66 @@
 <?php
 
 use Assay\InformationsCatalog\DataInformation\RubricPosition;
-use Assay\InformationsCatalog\StructureInformation\InformationProperty;
 use Assay\InformationsCatalog\StructureInformation\Rubric;
 
 include "autoloader.php";
 
 
 echo '<pre>';
-/*
-$RubricPosition = new RubricPosition();
-var_dump($RubricPosition);
-$InformationProperty= new InformationProperty();
-var_dump($InformationProperty);
-$RubricInformationProperty= new RubricInformationProperty();
-var_dump($RubricInformationProperty);
-*/
+
+
+echo " \n --==@@ RUBRIC @@==-- ";
+$kmCode = 'TRANSPORTATION_PRICE_KM';
+$tonCode = 'TRANSPORTATION_PRICE_TONN';
+$code40 = ' CODE 40';
+$goodsPriceCode = 'GOODS_PRICE';
+$goodsUnitsOfMeasureCode = 'GOODS_UNITS_OF_MEASURE';
+
+$rubric = new Rubric();
+$rubric->addEntity();
+$rubric->name = 'test get shipping position';
+$rubric->mutateEntity();
+var_dump($rubric);
+$rubric->addProperty($kmCode);
+$rubric->addProperty($tonCode);
+$rubric->addProperty($code40);
+$rubric->addProperty($goodsPriceCode);
+$rubric->addProperty($goodsUnitsOfMeasureCode);
+
+$positionId = $rubric->addPosition();
+$rubricPosition = new RubricPosition();
+$rubricPosition->loadById($positionId);
+$rubricPosition->saveContent(' some string', $code40);
+echo " \n positionContent = rubricPosition->getPositionContent(); \n";
+$positionContent = $rubricPosition->getPositionContent();
+var_dump($positionContent);
+
+$redactorIdVasya = 3;
+$rubricPosition->saveValue('3.1415926', $kmCode, $redactorIdVasya);
+$rubricPosition->saveValue('3,1415926', $tonCode, $redactorIdVasya);
+$rubricPosition->saveValue(' OTHER STR ', $code40, $redactorIdVasya);
+$rubricPosition->saveValue('2.99', $goodsPriceCode, $redactorIdVasya);
+$rubricPosition->saveValue('шт.', $goodsUnitsOfMeasureCode, $redactorIdVasya);
+
+echo " \n rubricPosition->getPositionValue(); \n";
+$positionValue = $rubricPosition->getPositionValue();
+var_dump($positionValue);
+echo " \n rubricPosition->getShippingPricing(); \n";
+$shippingPricing = $rubricPosition->getShippingPricing();
+var_dump($shippingPricing);
+echo " \n goodsPricing = rubricPosition->getGoodsPricing(); \n";
+$goodsPricing = $rubricPosition->getGoodsPricing();
+var_dump($goodsPricing);
+
 
 echo '</pre>';
 
 
+
+/*
+
 echo '<pre>';
+
 // Добавили рубрику
 echo " \n --==@@ RUBRIC @@==-- ";
 echo " \n rubric = new Rubric() \n";
@@ -149,7 +189,7 @@ echo " \n operatorPosition->saveContent(' operatorPosition $operatorPosition->id
 $isSuccess = $operatorPosition->saveContent(" operatorPosition $operatorPosition->id ", $propertyCode);
 var_dump($isSuccess);
 echo " \n positionCollection = operatorPosition->getPosition(); \n";
-$positionCollection = $operatorPosition->getPosition();
+$positionCollection = $operatorPosition->getPositionContent();
 var_dump($positionCollection);
 
 // Добавим другую рубрику
@@ -255,47 +295,69 @@ $isSuccess = $otherRubricOtherPosition->saveContent(" first property otherRubric
 $isSuccess = $otherRubricOtherPosition->saveContent(" second property otherRubricOtherPosition $otherRubricOtherPosition->id ",
     $someOtherPropertyCode);
 echo " \n onePositionProperty = otherRubricOnePosition->getPosition(); \n";
-$onePositionProperty = $otherRubricOnePosition->getPosition();
+$onePositionProperty = $otherRubricOnePosition->getPositionContent();
 var_dump($onePositionProperty);
 echo " \n otherPositionProperty = otherRubricOtherPosition->getPosition(); \n";
-$otherPositionProperty = $otherRubricOtherPosition->getPosition();
+$otherPositionProperty = $otherRubricOtherPosition->getPositionContent();
 var_dump($otherPositionProperty);
 echo " \n isSuccess = otherRubric->dropProperty(someOtherPropertyCode); \n";
 $isSuccess = $otherRubric->dropProperty($someOtherPropertyCode);
 var_dump($isSuccess);
 echo " \n otherPositionProperty = otherRubricOtherPosition->getPosition(); \n";
-$otherPositionProperty = $otherRubricOtherPosition->getPosition();
+$otherPositionProperty = $otherRubricOtherPosition->getPositionContent();
 var_dump($otherPositionProperty);
+echo " \n --==@@ REDACTOR @@==-- ";
+$redactor = new Redactor();
+var_export($redactor);
+echo " \n redactor->addEntity(); \n";
+$redactor->addEntity();
+var_export($redactor);
+$vasyaId = $redactor->id;
+echo " \n redactor->name = vasya merzlyakov \n";
+$redactor->name = 'vasya merzlyakov';
+var_export($redactor);
+echo " \n redactor->mutateEntity(); \n";
+$redactor->mutateEntity();
+var_export($redactor);
+$vasyaRedactor = new Redactor();
+echo " \n vasyaRedactor->getStored(); \n";
+$vasyaRedactor->id = $vasyaId;
+$vasyaRedactor->getStored();
+var_export($redactor);
+echo " \n otherRubricOnePosition->saveValue(' vasino znachenie ', $otherPropertyCode, $vasyaRedactor->id); \n";
+$vasyaValue = $otherRubricOnePosition->saveValue(' vasino znachenie ', $otherPropertyCode, $vasyaRedactor->id);
+var_export($vasyaValue);
+echo " \n onePositionValue = otherRubricOnePosition->getPositionValue(); \n";
+$onePositionValue = $otherRubricOnePosition->getPositionValue();
+var_export($onePositionValue );
+echo " \n vasyaOtherValue = otherRubricOtherPosition->saveValue(' zna4enie dlya other vasino ', 
+$otherPropertyCode, $vasyaRedactor->id); \n";
+$vasyaOtherValue = $otherRubricOtherPosition->saveValue(' zna4enie dlya other vasino ',
+    $otherPropertyCode, $vasyaRedactor->id);
+var_export($vasyaOtherValue);
+echo " \n otherPositionValue = otherRubricOtherPosition->getPositionValue(); \n";
+$otherPositionValue = $otherRubricOtherPosition->getPositionValue();
+var_export($otherPositionValue);
+$petyaRedactor = new Redactor();
+$petyaRedactor->addEntity();
+$petyaId = $petyaRedactor->id;
+$petyaRedactor->name=' petya ';
+echo " \n petyaRedactor->mutateEntity(); \n";
+$petyaRedactor->mutateEntity();
+var_export($petyaRedactor);
+echo " \n petyaOtherValue = otherRubricOtherPosition->saveValue(' zna4enie dlya other vasino ',
+    $otherPropertyCode, $petyaRedactor->id); \n";
+$petyaOtherValue = $otherRubricOtherPosition->saveValue(' petino zna4enie ',
+    $otherPropertyCode, $petyaRedactor->id);
+var_export($petyaOtherValue);
+echo " \n otherPositionValue = otherRubricOtherPosition->getPositionValue(); \n";
+$otherPositionValue = $otherRubricOtherPosition->getPositionValue();
+var_export($otherPositionValue);
+
 echo '</pre>';
 
-
-
-/*
-echo '<pre>';
-
-$Redactor = new Redactor();
-var_export($Redactor);
-$AdditionalValue = new AdditionalValue();
-var_export($AdditionalValue);
-$PropertyContent = new PropertyContent();
-var_export($PropertyContent);
-$PropertyContent = new PropertyContent();
-var_export($PropertyContent);
-$RubricPosition = new RubricPosition();
-var_export($RubricPosition);
-$RubricStructure = new RubricStructure();
-var_export($RubricStructure);
-$RubricInformationProperty = new RubricInformationProperty();
-var_export($RubricInformationProperty);
-$InformationPropertyDomain = new InformationPropertyDomain();
-var_export($InformationPropertyDomain);
-$InformationDomain = new InformationDomain();
-var_export($InformationDomain);
-$InformationProperty = new InformationProperty();
-var_export($InformationProperty);
-
-echo '</pre>';
 */
+
 
 /*
 echo '<pre>';

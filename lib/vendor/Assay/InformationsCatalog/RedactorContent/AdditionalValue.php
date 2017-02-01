@@ -16,7 +16,7 @@ namespace Assay\InformationsCatalog\RedactorContent {
     /**
      * Пользовательские данные
      */
-    class AdditionalValue extends PredefinedEntity implements IAdditionalValue
+    class AdditionalValue extends PredefinedEntity
     {
 
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
@@ -226,24 +226,5 @@ namespace Assay\InformationsCatalog\RedactorContent {
             }
             return $result;
         }
-
-        /** Получить свойства цены доставки
-         * @return array свойства цены
-         */
-        public function getShippingPricing():array
-        {
-            $result = self::EMPTY_ARRAY;
-            return $result;
-        }
-
-        /** Получить свойства цены товара
-         * @return array свойства цены
-         */
-        public function getGoodsPricing():array
-        {
-            $result = self::EMPTY_ARRAY;
-            return $result;
-        }
-
     }
 }

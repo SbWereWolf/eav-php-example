@@ -104,7 +104,6 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
             $isContain = Common::isOneArrayContainOther($entity, $storedEntity);
 
-
             if (!$isContain) {
                 $updateResult = $this->updateEntity();
             }

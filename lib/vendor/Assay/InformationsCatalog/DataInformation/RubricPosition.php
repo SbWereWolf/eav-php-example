@@ -42,10 +42,14 @@ namespace Assay\InformationsCatalog\DataInformation {
         /** @var string колонка в дочерней таблице для связи с родительской */
         const CHILD = Rubric::EXTERNAL_ID;
 
-        /** @var string имя таблицы значений */
+        /** @var string имя таблицы содержимого */
         const CONTENT_TABLE_NAME = PropertyContent::TABLE_NAME;
-        /** @var string имя колонки для связи позиции и значения свойства */
+        /** @var string имя колонки для связи позиции и содержания свойства */
         const CONTENT_LINK = PropertyContent::CHILD;
+        /** @var string имя таблицы дополнительных значений */
+        const VALUE_TABLE_NAME = AdditionalValue::TABLE_NAME;
+        /** @var string имя колонки для связи дополнительного значения и содержимого свойства */
+        const VALUE_LINK = AdditionalValue::CHILD;
 
         /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
@@ -72,25 +76,16 @@ namespace Assay\InformationsCatalog\DataInformation {
             $result = parent::setByNamedValue($namedValue);
 
             $code = Core\Common::setIfExists(self::CODE, $namedValue, self::EMPTY_VALUE);
-            if (is_null($code)) {
-                $code = self::EMPTY_VALUE;
-            }
             if ($code != self::EMPTY_VALUE) {
                 $this->code = $code;
             }
 
             $description = Core\Common::setIfExists(self::DESCRIPTION, $namedValue, self::EMPTY_VALUE);
-            if (is_null($description)) {
-                $description = self::EMPTY_VALUE;
-            }
             if ($description != self::EMPTY_VALUE) {
                 $this->description = $description;
             }
 
             $name = Core\Common::setIfExists(self::NAME, $namedValue, self::EMPTY_VALUE);
-            if (is_null($name)) {
-                $name = self::EMPTY_VALUE;
-            }
             if ($name != self::EMPTY_VALUE) {
                 $this->name = $name;
             }
@@ -129,18 +124,17 @@ namespace Assay\InformationsCatalog\DataInformation {
         }
 
         /** Получить позицию для отображения
-         * @param string $propertyName индекс для Названия свойства
-         * @param string $propertyDescription индекс для описания свойства
+         * @param string $propertyCode код свойства
+         * @param string $content индекс для значения
          * @param string $typeEdit индекс для типа редактирования
          * @param string $dataType индекс для типа данных
-         * @param string $content индекс для значения
          * @return array массив с набором свойств
          */
-        public function getPosition(string $propertyName = InformationProperty::NAME,
-                                    string $propertyDescription = InformationProperty::DESCRIPTION,
-                                    string $typeEdit = TypeEdit::EXTERNAL_ID,
-                                    string $dataType = DataType::EXTERNAL_ID,
-                                    string $content = PropertyContent::CONTENT):array
+        public function getPositionContent(
+            string $propertyCode = InformationProperty::TABLE_NAME,
+            string $content = PropertyContent::CONTENT,
+            string $typeEdit = TypeEdit::EXTERNAL_ID,
+            string $dataType = DataType::EXTERNAL_ID):array
         {
             $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
             $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN',
@@ -149,11 +143,10 @@ namespace Assay\InformationsCatalog\DataInformation {
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' SELECT '
-                . ' P.' . InformationProperty::NAME . ' AS ' . $propertyName
-                . ' , P.' . InformationProperty::DESCRIPTION . ' AS ' . $propertyDescription
-                . ' , TE.' . TypeEdit::ID . ' AS ' . $typeEdit
+                . ' TE.' . TypeEdit::ID . ' AS ' . $typeEdit
                 . ' , DT.' . DataType::ID . ' AS ' . $dataType
                 . ' , C.' . PropertyContent::CONTENT . ' AS ' . $content
+                . ' , P.' . InformationProperty::CODE .' AS '. $propertyCode
 
                 . ' FROM '
                 . $this->tablename . ' AS RP '
@@ -193,14 +186,72 @@ namespace Assay\InformationsCatalog\DataInformation {
             return $result;
         }
 
-        /** Выполнить поиск
-         * @param array $filterProperties параметры поиска
-         * @param int $start показать позиции результата начиная с номера
-         * @param int $paging количество для отображения
-         * @return array результаты поиска
+        /** Получить позицию для отображения
+         * @param string $property код свойства
+         * @param string $typeEdit индекс для типа редактирования
+         * @param string $dataType индекс для типа данных
+         * @param string $value индекс для значения
+         * @return array массив с набором свойств
          */
-        public function search(array $filterProperties, int $start, int $paging):array
+        public function getPositionValue(
+            string $property = InformationProperty::CODE,
+            string $value = AdditionalValue::VALUE,
+            string $typeEdit = TypeEdit::EXTERNAL_ID,
+            string $dataType = DataType::EXTERNAL_ID
+        ):array
         {
+            $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN',
+                self::DEFINE_AS_NOT_HIDDEN,
+                \PDO::PARAM_INT);
+
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' SELECT '
+                . ' TE.' . TypeEdit::ID . ' AS ' . $typeEdit
+                . ' , DT.' . DataType::ID . ' AS ' . $dataType
+                . ' , P.' . InformationProperty::CODE . ' AS ' . $property
+                . ' , V.' . AdditionalValue::VALUE . ' AS ' . $value
+
+                . ' FROM '
+                . $this->tablename . ' AS RP '
+                . ' JOIN ' . self::CONTENT_TABLE_NAME . ' AS C '
+                . ' ON RP.' . self::ID . ' = C.' . self::CONTENT_LINK
+
+                . ' JOIN ' . self::VALUE_TABLE_NAME . ' AS V '
+                . ' ON C.' . PropertyContent::ID . ' = V.' . self::VALUE_LINK
+
+                . ' JOIN ' . $this->parentTablename . ' AS R '
+                . ' ON RP.' . $this->childColumn . ' = R.' . $this->parentColumn
+                . ' JOIN ' . RubricInformationProperty::TABLE_NAME . ' AS RI '
+                . ' ON R.' . Rubric::ID . ' = RI.' . RubricInformationProperty::LEFT
+
+                . ' JOIN ' . InformationProperty::TABLE_NAME . ' AS P '
+                . ' ON P.' . InformationProperty::ID . ' = RI.' . RubricInformationProperty::RIGHT
+                . ' AND P.' . InformationProperty::ID . ' = C.' . PropertyContent::PROPERTY
+                . ' JOIN ' . DomainInformationProperty::TABLE_NAME . ' AS DP '
+                . ' ON P.' . InformationProperty::ID . ' = DP.' . DomainInformationProperty::RIGHT
+                . ' JOIN ' . InformationDomain::TABLE_NAME . ' AS D '
+                . ' ON D.' . InformationDomain::ID . ' = DP.' . DomainInformationProperty::LEFT
+
+                . ' JOIN ' . TypeEdit::TABLE_NAME . ' AS TE '
+                . ' ON D.' . InformationDomain::TYPE_EDIT . ' = TE.' . TypeEdit::ID
+                . ' JOIN ' . DataType::TABLE_NAME . ' AS DT '
+                . ' ON D.' . InformationDomain::DATA_TYPE . ' = DT.' . DataType::ID
+
+                . ' WHERE '
+                . ' RP.' . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND P.' . InformationProperty::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND D.' . InformationDomain::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND TE.' . TypeEdit::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND DT.' . DataType::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ';';
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
+
+            $result = SqlHandler::readAllRecords($arguments);
+
+            return $result;
         }
 
         /** Прочитать запись из БД
@@ -614,7 +665,12 @@ namespace Assay\InformationsCatalog\DataInformation {
                 $isSuccess = $positionValue->mutateEntity();
             }
 
-            return $isSuccess;
+            $id = self::EMPTY_VALUE;
+            if ($isSuccess) {
+                $id = $positionValue->id;
+            }
+
+            return $id;
         }
 
         /** Добавить дополнительное значение для позиции
@@ -644,5 +700,140 @@ namespace Assay\InformationsCatalog\DataInformation {
             return $result;
         }
 
+        /** Получить свойства цены доставки
+         * @param string $value индекс для дополнительных значений
+         * @param string $code индекс для кода свойства
+         * @param string $redactor индекс для идентификатора редактора
+         * @return array свойства цены
+         */
+        public function getShippingPricing(
+            string $value = AdditionalValue::VALUE,
+            string $code = InformationProperty::CODE,
+            string $redactor = AdditionalValue::REDACTOR):array
+        {
+            $settingsRubric = new Rubric();
+
+            $isSuccess = $settingsRubric->loadByCode(self::TRANSPORTATION_CODE);
+
+            $codeIndex = InformationProperty::TABLE_NAME;
+            $transportationCodeCollection = SqlHandler::EMPTY_ARRAY;
+            if ($isSuccess) {
+                $transportationCodeCollection = $settingsRubric->getProperties($codeIndex);
+            }
+
+            $isSuccess = $transportationCodeCollection != SqlHandler::EMPTY_ARRAY;
+            $record = self::EMPTY_ARRAY;
+            if ($isSuccess) {
+
+                $record = $this->getAllPositionValueByCode(
+                    $transportationCodeCollection,
+                    $codeIndex,
+                    $value,
+                    $code,
+                    $redactor);
+            }
+
+            return $record;
+
+        }
+
+        /** Получить свойства цены товара
+         * @param string $value индекс для дополнительных значений
+         * @param string $code индекс для кода свойства
+         * @param string $redactor индекс для идентификатора редактора
+         * @return array свойства цены
+         */
+        public function getGoodsPricing(
+            string $value = AdditionalValue::VALUE,
+            string $code = InformationProperty::CODE,
+            string $redactor = AdditionalValue::REDACTOR):array
+        {
+            $settingsRubric = new Rubric();
+
+            $isSuccess = $settingsRubric->loadByCode(self::GOODS_PRISING_CODE);
+
+            $codeIndex = InformationProperty::TABLE_NAME;
+            $transportationCodeCollection = SqlHandler::EMPTY_ARRAY;
+            if ($isSuccess) {
+                $transportationCodeCollection = $settingsRubric->getProperties($codeIndex);
+            }
+
+            $isSuccess = $transportationCodeCollection != SqlHandler::EMPTY_ARRAY;
+            $record = self::EMPTY_ARRAY;
+            if ($isSuccess) {
+
+                $record = $this->getAllPositionValueByCode(
+                    $transportationCodeCollection,
+                    $codeIndex,
+                    $value,
+                    $code,
+                    $redactor);
+            }
+
+            return $record;
+        }
+
+        /**
+         * @param array $transportationCodeCollection
+         * @param string $property
+         * @param string $valueOutput
+         * @param string $codeOutput
+         * @param string $redactorOutput
+         * @return array
+         */
+        private function getAllPositionValueByCode(
+            array $transportationCodeCollection,
+            string $property = InformationProperty::TABLE_NAME,
+            string $valueOutput = AdditionalValue::VALUE,
+            string $codeOutput = InformationProperty::CODE,
+            string $redactorOutput = AdditionalValue::REDACTOR):array
+        {
+            $arguments = self::EMPTY_ARRAY;
+            $inComponentCollection = self::EMPTY_ARRAY;
+            foreach ($transportationCodeCollection as $key => $collectionElement) {
+
+                $parameterValue = $collectionElement[$property];
+                $parameterName = ":CODE$key";
+                $inComponentCollection[] = $parameterName;
+                $codeParameter = SqlHandler::setBindParameter($parameterName, $parameterValue, \PDO::PARAM_STR);
+                $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
+            }
+
+            $inComponent = implode(',', $inComponentCollection);
+
+            $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', self::DEFINE_AS_NOT_HIDDEN, \PDO::PARAM_INT);
+
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' SELECT '
+                . ' V.' . AdditionalValue::VALUE . " AS $valueOutput "
+                . ' , P.' . InformationProperty::CODE . " AS $codeOutput "
+                . ' , V.' . AdditionalValue::REDACTOR . " AS $redactorOutput "
+                . ' FROM '
+                . $this->tablename . ' AS RP '
+                . ' JOIN ' . self::CONTENT_TABLE_NAME . ' AS C '
+                . ' ON RP.' . self::ID . ' = C.' . self::CONTENT_LINK
+                . ' JOIN ' . InformationProperty::TABLE_NAME . ' AS P '
+                . ' ON P.' . InformationProperty::ID . ' = C.' . PropertyContent::PROPERTY
+
+                . ' JOIN ' . AdditionalValue::TABLE_NAME . ' AS V '
+                . ' ON V.' . AdditionalValue::CHILD . ' = C.' . AdditionalValue::PARENT
+
+                . ' JOIN ' . Redactor::TABLE_NAME . ' AS R '
+                . ' ON R.' . Redactor::ID . ' = V.' . AdditionalValue::REDACTOR
+
+                . ' WHERE '
+                . ' RP.' . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND P.' . InformationProperty::CODE . ' IN (' . $inComponent . ') '
+                . ' AND P.' . InformationProperty::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND R.' . Redactor::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ';';
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
+
+            $record = SqlHandler::readAllRecords($arguments);
+            return $record;
+        }
     }
 }

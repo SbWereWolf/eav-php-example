@@ -220,5 +220,15 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
             return $isSuccess;
         }
+
+        /** Выполнить поиск
+         * @param array $filterProperties параметры поиска
+         * @param int $start показать позиции результата начиная с номера
+         * @param int $paging количество для отображения
+         * @return array результаты поиска
+         */
+        public function search(array $filterProperties, int $start, int $paging):array
+        {
+        }
     }
 }
