@@ -84,6 +84,7 @@ namespace Assay\Communication\Profile {
 
         public function getForGreetings():string
         {
+
         }
 
         public function enableCommenting():bool
@@ -96,6 +97,74 @@ namespace Assay\Communication\Profile {
 
         public function setGroup():bool
         {
+        }
+
+        //создаем профиль пользователя
+        public function addProfile($accountId):bool
+        {
+
+            $result = false;
+            $params = Common::getFieldsList(__CLASS__);
+
+            foreach ($params as $key => $value) {
+                //print_r($key);
+                $keyCamel = Common::camelCase($key, [], self::WORD_DIVIDER);
+                $k = __CLASS__ . '::' . $value;
+                $v = constant($k);
+                if (isset($values[$key]))
+                    $this->{$keyCamel} = $values[$key];
+                else {
+                    if ($this->fieldTypes[$key] == 'PARAM_INT') $this->{$keyCamel} = 0;//self::EMPTY_VALUE;
+                    else $this->{$keyCamel} = self::EMPTY_VALUE;
+
+                }                // print_r($key);
+            }
+            if ($this->addEntity()) {
+            //обновляем профиль, записываем как минимум дату создания
+            $this->date = date('Y-m-d H:i:s');
+            $result = $this->mutateEntity();
+
+            //затем записываем связь в таблицу связи аккаунт-профиль
+                //видимо, это тоже должно делаться как-то хитровыебано
+
+            //  if($this->mutateEntity() && $this->loadById($this->id))
+            //      $result = true;
+            //           print_r($result);
+            }
+            return $result;
+
+            // if($this->loadById($profileId)) $result = true;
+            // return $this->loadById($profileId);
+        }
+
+
+        /** Добавляет запись в БД
+         * @return bool успешность изменения
+         */
+
+        public function addEntity():bool
+        {
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' INSERT INTO ' . $this->tablename
+                . ' DEFAULT VALUES RETURNING '
+                . self::ID
+                .' ; '
+            ;
+            $sqlWriter = new SqlHandler(ISqlHandler::DATA_WRITER);
+            $response = $sqlWriter->performQuery($arguments);
+
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+            $record = self::EMPTY_ARRAY;
+            if ($isSuccessfulRead) {
+                $record = SqlHandler::getFirstRecord($response);
+            }
+
+            $this->id = Common::setIfExists(self::ID, $record, self::EMPTY_VALUE);
+//            $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $record, self::EMPTY_VALUE);
+
+            $result = $this->id != self::EMPTY_VALUE;
+
+            return $result;
         }
 
         public function loadById(string $id):bool

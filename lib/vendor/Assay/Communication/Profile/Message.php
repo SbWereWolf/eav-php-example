@@ -105,7 +105,7 @@ namespace Assay\Communication\Profile {
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter; //print_r($arguments);
 
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments); print_r($response);
+            $response = $sqlReader->performQuery($arguments); //print_r($response);
 
             $isSuccessfulRead = SqlHandler::isNoError($response);
 
@@ -147,7 +147,7 @@ namespace Assay\Communication\Profile {
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT count(*) FROM message'
-                . ' WHERE '.self::RECEIVER . ' = ' . $twoParameter[ISqlHandler::PLACEHOLDER]
+                . ' WHERE '.self::PROFILE . ' = ' . $twoParameter[ISqlHandler::PLACEHOLDER]
                 . ' AND '.self::AUTHOR . ' = ' . $oneParameter[ISqlHandler::PLACEHOLDER];
 
             $arguments[ISqlHandler::QUERY_PARAMETER] = [$oneParameter, $twoParameter];
@@ -175,15 +175,15 @@ namespace Assay\Communication\Profile {
 
             $arguments[ISqlHandler::QUERY_TEXT] = 'SELECT M.'.self::DATE.', M.'.self::MESSAGE_TEXT
                 .', (SELECT name FROM '.PersonProfile::TABLE_NAME.' WHERE '.PersonProfile::ID.' = M.'.self::AUTHOR.') as Author_name'
-                .', (SELECT name FROM '.PersonProfile::TABLE_NAME.' WHERE '.PersonProfile::ID.' = M.'.self::RECEIVER.') as Receiver_name'
+                .', (SELECT name FROM '.PersonProfile::TABLE_NAME.' WHERE '.PersonProfile::ID.' = M.'.self::PROFILE.') as Receiver_name'
                 .'  FROM '.self::TABLE_NAME.' as M '
                 . ' WHERE ('
-                . ' M.'.self::RECEIVER.' = '.$oneParameter[ISqlHandler::PLACEHOLDER]
+                . ' M.'.self::PROFILE.' = '.$oneParameter[ISqlHandler::PLACEHOLDER]
                 . ' AND M.'.self::AUTHOR.' = '.$twoParameter[ISqlHandler::PLACEHOLDER]
                 .')'
                 . ' OR
                 ('
-                . ' M.'.self::RECEIVER.' = '.$twoParameter[ISqlHandler::PLACEHOLDER]
+                . ' M.'.self::PROFILE.' = '.$twoParameter[ISqlHandler::PLACEHOLDER]
                 . ' AND M.'.self::AUTHOR.' = '.$oneParameter[ISqlHandler::PLACEHOLDER]
                 .')
                  ORDER BY M.'.self::DATE.' DESC;';
@@ -208,6 +208,74 @@ namespace Assay\Communication\Profile {
             return $result;
 
         }
+
+        //создаем обычное сообщение
+        public function addMessage(array $values):bool
+        {
+
+            $result = false;
+         //   if(!$this->isOwnProfile()) return false;
+
+
+            $params = Common::getFieldsList(__CLASS__);
+
+            foreach($params as $key => $value)
+            {
+                //print_r($key);
+                $keyCamel = Common::camelCase($key, [], self::WORD_DIVIDER);
+                $k = __CLASS__.'::'.$value;
+                $v = constant($k);
+                if(isset($values[$key]))
+                    $this->{$keyCamel} = $values[$key];
+                else {
+                    if($this->fieldTypes[$key] == 'PARAM_INT')  $this->{$keyCamel} = 0;//self::EMPTY_VALUE;
+                    else $this->{$keyCamel} = self::EMPTY_VALUE;
+
+                }                // print_r($key);
+            }
+            $this->addEntity();
+            $this->date = date('Y-m-d H:i:s');
+            $result = $this->mutateEntity();
+
+            //  if($this->mutateEntity() && $this->loadById($this->id))
+            //      $result = true;
+            //           print_r($result);
+            return $result;
+
+            // if($this->loadById($profileId)) $result = true;
+            // return $this->loadById($profileId);
+        }
+
+
+        /** Добавляет запись в БД
+         * @return bool успешность изменения
+         */
+
+        public function addEntity():bool
+        {
+            $arguments[ISqlHandler::QUERY_TEXT] =
+                ' INSERT INTO ' . $this->tablename
+                . ' DEFAULT VALUES RETURNING '
+                . self::ID
+                .' ; '
+            ;
+            $sqlWriter = new SqlHandler(ISqlHandler::DATA_WRITER);
+            $response = $sqlWriter->performQuery($arguments);
+
+            $isSuccessfulRead = SqlHandler::isNoError($response);
+            $record = self::EMPTY_ARRAY;
+            if ($isSuccessfulRead) {
+                $record = SqlHandler::getFirstRecord($response);
+            }
+
+            $this->id = Common::setIfExists(self::ID, $record, self::EMPTY_VALUE);
+//            $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $record, self::EMPTY_VALUE);
+
+            $result = $this->id != self::EMPTY_VALUE;
+
+            return $result;
+        }
+
 
 
 

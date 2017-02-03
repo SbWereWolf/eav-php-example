@@ -196,7 +196,7 @@ function addMessage()
 
 
 if(isset($_POST["addmessage"])){
-    $message = new Messages(1);
+    $message = new Message(1);
     $values = $_POST;
     $message->addMessage($values);
     // header("Location:/profile_function.php?myprofile=1");
