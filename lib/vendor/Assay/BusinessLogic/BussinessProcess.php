@@ -31,7 +31,7 @@ namespace Assay\BusinessLogic {
 
             $session = getRequestSession();
 
-            $isAllow = authorizationProcess($session,$action,$object);
+            $isAllow = $this->authorizationProcess($session,$action,$object);
 
             $registrationResult = false;
             $user = new Account();
@@ -39,12 +39,16 @@ namespace Assay\BusinessLogic {
                 $registrationResult = $user->registration($login,$password,$passwordConfirmation,$email);
             }
 
+
             if($registrationResult){
                 $accountRole = new AccountRole($user->id);
                 $accountRole->grantRole(IProcessRequest::MODE_USER);
-                $logonResult = $this->logOn($login,$password,$session);
-                $result = Common::setIfExists(0, $logonResult, false);
+                /*$logonResult = $this->logOn($login,$password,$session);
+                $result = Common::setIfExists(0, $logonResult, false);*/
+                $result = $registrationResult;
             }
+
+
             return $result;
         }
 
@@ -128,7 +132,7 @@ namespace Assay\BusinessLogic {
             $object = IProcessRequest::OBJECT_ACCOUNT;
             $action = IProcessRequest::PROCESS_CHANGE_PASSWORD;
 
-            $isAllow = authorizationProcess($session,$action, $object);
+            $isAllow = $this->authorizationProcess($session,$action, $object);
             $isCorrectPassword= false;
             if($isAllow){
                 $isCorrectPassword = ($newPassword == $passwordConfirmation && $newPassword != $password);

@@ -32,12 +32,19 @@ namespace Assay\Permission\Privilege {
         public function grantRole(string $role):bool
         {
             $result = false;
+
+            /*
             $user_id[ISqlHandler::PLACEHOLDER] = ':USER_ID';
             $user_id[ISqlHandler::VALUE] = $this->userId;
             $user_id[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
             $role_field[ISqlHandler::PLACEHOLDER] = ':USER_ROLE_ID';
             $role_field[ISqlHandler::VALUE] = $role;
             $role_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
+            */
+
+            $accountIdField = SqlHandler::setBindParameter(':ACCOUNT_ID',$this->userId,\PDO::PARAM_STR);
+            $roleField = SqlHandler::setBindParameter(':ACCOUNT_ROLE_ID',$role,\PDO::PARAM_STR);
+
             $arguments[ISqlHandler::QUERY_TEXT] = '
                 INSERT INTO 
                     '.$this->tablename.'
@@ -45,16 +52,27 @@ namespace Assay\Permission\Privilege {
                     '.IAccount::EXTERNAL_ID.', '.IAccountRole::ROLE.'
                 ) 
                 SELECT
-                    '.$user_id[ISqlHandler::PLACEHOLDER].','.self::ID.'
+                    '.$accountIdField[ISqlHandler::PLACEHOLDER].','.self::ID.'
                 FROM
                     '.BusinessRole::TABLE_NAME.'
                 WHERE
-                    '.INamedEntity::CODE.' = '.$role_field[ISqlHandler::PLACEHOLDER].'
+                    '.INamedEntity::CODE.' = '.$roleField[ISqlHandler::PLACEHOLDER].'
+                RETURNING 
+                    '.IAccount::EXTERNAL_ID.','.IAccountRole::ROLE.'
             ';
-            $arguments[ISqlHandler::QUERY_PARAMETER] = [$user_id,$role_field];
+            $arguments[ISqlHandler::QUERY_PARAMETER] = [
+                $accountIdField,
+                $roleField
+            ];
+            $record = SqlHandler::writeOneRecord($arguments);
+
+            $result = $record != ISqlHandler::EMPTY_ARRAY;
+
+            /*
             $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
             $response = $sqlWriter->performQuery($arguments);
             $result = SqlHandler::isNoError($response);
+            */
 
             return $result;
         }
@@ -62,29 +80,56 @@ namespace Assay\Permission\Privilege {
         public function revokeRole(string $role):bool
         {
             $result = false;
+
+            /*
             $user_id[ISqlHandler::PLACEHOLDER] = ':ACCOUNT_ID';
             $user_id[ISqlHandler::VALUE] = $this->userId;
             $user_id[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
             $role_field[ISqlHandler::PLACEHOLDER] = ':ACCOUNT_ROLE_ID';
             $role_field[ISqlHandler::VALUE] = $role;
             $role_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-            $arguments[ISqlHandler::QUERY_TEXT] = "
+            */
+
+            $accountIdField = SqlHandler::setBindParameter(':ACCOUNT_ID',$this->userId,\PDO::PARAM_STR);
+            $roleField = SqlHandler::setBindParameter(':ACCOUNT_ROLE_ID',$role,\PDO::PARAM_STR);
+
+            $arguments[ISqlHandler::QUERY_TEXT] = '
                 DELETE FROM
-                        ".$this->tablename."
-                    WHERE 
-                        ".IAccount::EXTERNAL_ID." = ".$user_id[ISqlHandler::PLACEHOLDER]." AND ".IAccountRole::ROLE." = ".$role_field[ISqlHandler::PLACEHOLDER]."
-            ";
-            $arguments[ISqlHandler::QUERY_PARAMETER] = [$user_id,$role_field];
+                    '.$this->tablename.'
+                WHERE 
+                    '.IAccount::EXTERNAL_ID.' = '.$accountIdField[ISqlHandler::PLACEHOLDER].' AND 
+                    '.IAccountRole::ROLE.' = (
+                        SELECT 
+                            '.self::ID.' 
+                        FROM 
+                            '.BusinessRole::TABLE_NAME.' 
+                        WHERE 
+                            '.NamedEntity::CODE.' = '.$roleField[ISqlHandler::PLACEHOLDER].'
+                    ) 
+                RETURNING 
+                    NULL
+            ';
+            $arguments[ISqlHandler::QUERY_PARAMETER] = [
+                $accountIdField,
+                $roleField
+            ];
+
+            $record = SqlHandler::writeOneRecord($arguments);
+
+            $result = $record != ISqlHandler::EMPTY_ARRAY;
+
+            /*
             $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
             $response = $sqlWriter->performQuery($arguments);
             $result = SqlHandler::isNoError($response);
-
+            */
             return $result;
         }
 
         public function userAuthorization(string $process, string $object, string $sid):bool
         {
             $result = false;
+            /*
             $process_field[ISqlHandler::PLACEHOLDER] = ':PROCESS';
             $process_field[ISqlHandler::VALUE] = $process;
             $process_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
@@ -97,6 +142,13 @@ namespace Assay\Permission\Privilege {
             $is_hidden_field[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
             $is_hidden_field[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
             $is_hidden_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+            */
+
+            $processField = SqlHandler::setBindParameter(':PROCESS',$process,\PDO::PARAM_STR);
+            $objectField = SqlHandler::setBindParameter(':OBJECT',$object,\PDO::PARAM_STR);
+            $sidField = SqlHandler::setBindParameter(':SESSION_ID',$this->userId,\PDO::PARAM_STR);
+            $isHiddenField = SqlHandler::setBindParameter(':IS_HIDDEN',self::DEFAULT_IS_HIDDEN,\PDO::PARAM_INT);
+
             $arguments[ISqlHandler::QUERY_TEXT] = "
                 SELECT 
                     NULL 
@@ -117,23 +169,32 @@ namespace Assay\Permission\Privilege {
                 JOIN 
                     ".BusinessObject::TABLE_NAME." BO ON BO.".self::ID." = P.".BusinessObject::EXTERNAL_ID."
                 WHERE
-                    BP.".NamedEntity::CODE." = ".$process_field[ISqlHandler::PLACEHOLDER]." AND 
-                    BO.".NamedEntity::CODE." = ".$object_field[ISqlHandler::PLACEHOLDER]." AND 
-                    S.".self::ID." = ".$sid_field[ISqlHandler::PLACEHOLDER]." AND 
-                    U.".self::IS_HIDDEN." = ".$is_hidden_field[ISqlHandler::PLACEHOLDER]." AND 
-                    BO.".self::IS_HIDDEN." = ".$is_hidden_field[ISqlHandler::PLACEHOLDER]." AND 
-                    BP.".self::IS_HIDDEN." = ".$is_hidden_field[ISqlHandler::PLACEHOLDER]." AND 
-                    R.".self::IS_HIDDEN." = ".$is_hidden_field[ISqlHandler::PLACEHOLDER]." AND
-                    S.".self::IS_HIDDEN." = ".$is_hidden_field[ISqlHandler::PLACEHOLDER]."
+                    BP.".NamedEntity::CODE." = ".$processField[ISqlHandler::PLACEHOLDER]." AND 
+                    BO.".NamedEntity::CODE." = ".$objectField[ISqlHandler::PLACEHOLDER]." AND 
+                    S.".self::ID." = ".$sidField[ISqlHandler::PLACEHOLDER]." AND 
+                    U.".self::IS_HIDDEN." = ".$isHiddenField[ISqlHandler::PLACEHOLDER]." AND 
+                    BO.".self::IS_HIDDEN." = ".$isHiddenField[ISqlHandler::PLACEHOLDER]." AND 
+                    BP.".self::IS_HIDDEN." = ".$isHiddenField[ISqlHandler::PLACEHOLDER]." AND 
+                    R.".self::IS_HIDDEN." = ".$isHiddenField[ISqlHandler::PLACEHOLDER]." AND
+                    S.".self::IS_HIDDEN." = ".$isHiddenField[ISqlHandler::PLACEHOLDER]."
+                LIMIT 1
             ";
-            $arguments[ISqlHandler::QUERY_PARAMETER] = [$process_field,$object_field,$sid_field,$is_hidden_field];
+            $arguments[ISqlHandler::QUERY_PARAMETER] = [
+                $processField,
+                $objectField,
+                $sidField,
+                $isHiddenField
+            ];
+            $record = SqlHandler::readOneRecord($arguments);
+
+            /*
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
             $response = $sqlReader->performQuery($arguments);
             $isSuccessfulRead = SqlHandler::isNoError($response);
-            if ($isSuccessfulRead) {
-                $record = SqlHandler::getFirstRecord($response);
-                $result = $record != Common::EMPTY_ARRAY;
-            }
+            */
+
+            $result = $record != Common::EMPTY_ARRAY;
+
             return $result;
         }
     }

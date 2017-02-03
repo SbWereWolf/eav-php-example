@@ -33,7 +33,7 @@ namespace Assay\Communication\Profile {
         /** @var string идентификатор записи таблицы */
        public $id = self::EMPTY_VALUE;
         /** @var string признак "является скрытым" */
-        public $isHidden = Core\IEntity::DEFAULT_IS_HIDDEN;
+        public $isHidden = Core\IPrimitiveData::DEFAULT_IS_HIDDEN;
         /** @var string родительский элемент */
       //  public $parent = self::EMPTY_VALUE;
         /** @var string код записи */

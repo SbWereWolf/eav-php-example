@@ -15,7 +15,7 @@ include "autoloader.php";
     <meta charset="UTF-8">
     <title>Вход</title>
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <script src="js/main.js"></script>
+    <script src="assets/js/main.js"></script>
 </head>
 <body>
 <form onsubmit="page.logOn(); return false;" action="router.php" method="post">

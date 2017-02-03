@@ -102,7 +102,7 @@ namespace Assay\Permission\InterfacePermission {
         {
             $session = new Session();
             $storedSession = $session->loadByKey();
-            $session->id = $storedSession[self::ID];
+            $session->id = Common::setIfExists(self::ID,$storedSession,self::EMPTY_VALUE);
             $session->getStored();
             $result = $session->mode;
             return $result;
@@ -112,7 +112,7 @@ namespace Assay\Permission\InterfacePermission {
         {
             $session = new Session();
             $storedSession = $session->loadByKey();
-            $session->id = $storedSession[self::ID];
+            $session->id = Common::setIfExists(self::ID,$storedSession,self::EMPTY_VALUE);
             $session->getStored();
             $result = $session->profileId;
             return $result;
@@ -122,7 +122,7 @@ namespace Assay\Permission\InterfacePermission {
         {
             $session = new Session();
             $storedSession = $session->loadByKey();
-            $session->id = $storedSession[self::ID];
+            $session->id = Common::setIfExists(self::ID,$storedSession,self::EMPTY_VALUE);
             $session->getStored();
             $result = $session->userId;
             return $result;
@@ -132,7 +132,7 @@ namespace Assay\Permission\InterfacePermission {
         {
             $session = new Session();
             $storedSession = $session->loadByKey();
-            $session->id = $storedSession[self::ID];
+            $session->id = Common::setIfExists(self::ID,$storedSession,self::EMPTY_VALUE);
             $session->getStored();
             $result = $session->paging;
             return $result;
@@ -142,7 +142,7 @@ namespace Assay\Permission\InterfacePermission {
         {
             $session = new Session();
             $storedSession = $session->loadByKey();
-            $session->id = $storedSession[self::ID];
+            $session->id = Common::setIfExists(self::ID,$storedSession,self::EMPTY_VALUE);
             $session->getStored();
             $result = $session->companyFilter;
             return $result;

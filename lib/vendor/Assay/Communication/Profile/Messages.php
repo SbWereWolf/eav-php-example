@@ -47,7 +47,7 @@ namespace Assay\Communication\Profile {
         public $messageList = [];
         public $profileId = NULL;
         public $authorId = NULL;
-        public $isHidden = Core\IEntity::DEFAULT_IS_HIDDEN;
+        public $isHidden = Core\IPrimitiveData::DEFAULT_IS_HIDDEN;
 
         public $fieldTypes = [
             'id' => 'PARAM_INT',

@@ -46,6 +46,7 @@ var Page_object = function () {
         var pass = $(pass_id).val();
         var rep_pass = $(rep_pass_id).val();
         var email = $(email_id).val();
+        var pageObject = this;
         action = "registration";
         if (pass == rep_pass) {
             $.post(
@@ -60,7 +61,8 @@ var Page_object = function () {
                     data = JSON.parse(data);
                     var error = data.error;
                     if (!error.isError) {
-                        window.location.href = "/";
+                        //window.location.href = "/";
+                        pageObject.logOn(login,pass);
                     } else
                         console.log(error.message);
                 }
@@ -89,10 +91,10 @@ var Page_object = function () {
         });
     };
 
-    this.logOn = function () {
+    this.logOn = function (login,pass) {
         action = "logOn";
-        var login = $(login_id).val();
-        var pass = $(pass_id).val();
+        var login = login || $(login_id).val();
+        var pass = pass || $(pass_id).val();
 
         $.post(
             url, {

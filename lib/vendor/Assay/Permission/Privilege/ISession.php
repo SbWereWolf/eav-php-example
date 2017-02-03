@@ -20,7 +20,7 @@ namespace Assay\Permission\Privilege {
         /** @var string номер сессии */
         const KEY = 'key';
         const COMPANY_FILTER = IUserInreface::COMPANY_FILTER;
-        const MODE = IBussinessProcess::MODE;
+        const MODE = IUserInreface::MODE;
         const PAGING = IUserInreface::PAGING;
         const GREETINGS_ROLE = IProfile::GREETINGS_ROLE;
 
