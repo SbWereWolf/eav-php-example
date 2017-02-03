@@ -11,9 +11,8 @@ namespace Assay\InformationsCatalog\StructureInformation;
 
 interface IInformationProperty
 {
-    /** @var string имя таблицы БД для хранения сущности */
-    const TABLE_NAME = 'information_property';
-    
+
+
     /** @var string колонка для внешнего ключа ссылки на информационный домен */
     const INFORMATION_DOMAIN = InformationDomain::EXTERNAL_ID;
 

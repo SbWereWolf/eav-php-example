@@ -25,7 +25,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         const TABLE_NAME = 'structure';
 
         /** @var string родительский элемент */
-        public $parent = self::EMPTY_VALUE;
+        public $linkToParent = self::EMPTY_VALUE;
 
         /** @var string имя таблицы */
         protected $tablename = self::TABLE_NAME;
@@ -41,7 +41,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' SELECT '
                 . self::ID
-                . ' , ' . self::PARENT
+                . ' , ' . self::CHILD
                 . ' , ' . self::CODE
                 . ' , ' . self::NAME
                 . ' , ' . self::DESCRIPTION
@@ -73,9 +73,9 @@ namespace Assay\InformationsCatalog\StructureInformation {
         {
 
             $result = parent::setByNamedValue($namedValue);
-            $parent = Core\Common::setIfExists(self::PARENT, $namedValue, self::EMPTY_VALUE);
-            if($parent!=self::EMPTY_VALUE){
-                $this->parent=$parent;
+            $linkToParent = Core\Common::setIfExists(self::CHILD, $namedValue, self::EMPTY_VALUE);
+            if($linkToParent!=self::EMPTY_VALUE){
+                $this->linkToParent=$linkToParent;
             }
 
             return $result;
@@ -85,14 +85,14 @@ namespace Assay\InformationsCatalog\StructureInformation {
          * @param string $parentCode
          * @return bool успех выполнения
          */
-        public function setParent(string $parentCode):bool
+        public function setLinkToParent(string $parentCode):bool
         {
             $stored = new Structure();
             $isSuccess = $stored->loadByCode($parentCode);
 
             $result = false;
             if ($isSuccess) {
-                $this->parent = $stored->id;
+                $this->linkToParent = $stored->id;
                 $result = true;
             }
             return $result;
@@ -139,7 +139,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
             $nameParameter = SqlHandler::setBindParameter(':NAME', $this->name, \PDO::PARAM_STR);
 
-            $parentParameter = SqlHandler::setBindParameter(':PARENT', $this->parent, \PDO::PARAM_INT);
+            $linkToParentParameter = SqlHandler::setBindParameter(':LINK_TO_PARENT', $this->linkToParent, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'UPDATE '
@@ -147,7 +147,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 . ' SET '
                 . self::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER]
                 . ' , ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
-                . ' , ' . self::PARENT . ' = ' . $parentParameter[ISqlHandler::PLACEHOLDER]
+                . ' , ' . self::CHILD . ' = ' . $linkToParentParameter[ISqlHandler::PLACEHOLDER]
                 . ' , ' . self::NAME . ' = ' . $nameParameter[ISqlHandler::PLACEHOLDER]
                 . ' , ' . self::DESCRIPTION . ' = ' . $descriptionParameter[ISqlHandler::PLACEHOLDER]
                 . ' WHERE '
@@ -155,7 +155,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 . ' RETURNING '
                 . self::CODE
                 . ' , ' . self::IS_HIDDEN
-                . ' , ' . self::PARENT
+                . ' , ' . self::CHILD
                 . ' , ' . self::NAME
                 . ' , ' . self::DESCRIPTION
                 . ' , ' . self::ID
@@ -165,7 +165,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $nameParameter;
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $parentParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $linkToParentParameter;
 
             $record = SqlHandler::writeOneRecord($arguments);
 
@@ -184,7 +184,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         {
 
             $result = parent::toEntity();
-            $result [self::PARENT] = $this->parent;
+            $result [self::CHILD] = $this->linkToParent;
 
             return $result;
         }
@@ -203,7 +203,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
                 . self::ID
-                . ' , ' . self::PARENT
+                . ' , ' . self::CHILD
                 . ' , ' . self::CODE
                 . ' , ' . self::NAME
                 . ' , ' . self::DESCRIPTION
@@ -237,7 +237,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $child = new Structure();
             $child->addEntity();
 
-            $child->parent = $this->id;
+            $child->linkToParent = $this->id;
             $isSuccess = $child->mutateEntity();
 
             $result = self::EMPTY_VALUE;
@@ -262,7 +262,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 . ' FROM '
                 . self::TABLE_NAME
                 . ' WHERE '
-                . self::PARENT . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . self::CHILD . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
                 . ' AND ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
                 . ';';
 
@@ -290,7 +290,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 . ' FROM '
                 . $this->tablename
                 . ' WHERE '
-                . self::PARENT . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . self::CHILD . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
                 . ' ANd ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] .
                 ';';
 
@@ -305,9 +305,9 @@ namespace Assay\InformationsCatalog\StructureInformation {
         /** Получить идентификатор ролительского элемнта
          * @return string идентификатор
          */
-        public function getParent():string
+        public function getLinkToParent():string
         {
-            $result = strval($this->parent);
+            $result = strval($this->linkToParent);
             return $result;
         }
 
@@ -348,7 +348,7 @@ WITH RECURSIVE children ( id, structure_id, code, name,level ) AS
 (
   SELECT
     SC.' . self::ID . ',
-    SC.' . self::PARENT . ',
+    SC.' . self::CHILD . ',
     SC.' . self::CODE . ',
     SC.' . self::NAME . ',
     0
@@ -357,13 +357,13 @@ WITH RECURSIVE children ( id, structure_id, code, name,level ) AS
   UNION
   SELECT
     SN.' . self::ID . ',
-    SN.' . self::PARENT . ',
+    SN.' . self::CHILD . ',
     SN.' . self::CODE . ',
     SN.' . self::NAME . ',
     level + 1
   FROM ' . self::TABLE_NAME . ' SN
     INNER JOIN children C
-      ON (C.' . self::PARENT . ' = SN.' . self::ID . ')
+      ON (C.' . self::CHILD . ' = SN.' . self::ID . ')
 )
 SELECT '
                 . self::CODE
@@ -375,7 +375,6 @@ ORDER BY level DESC
 ;
 ';
             $arguments[ISqlHandler::QUERY_TEXT] = $queryText;
-
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
 
             $records = SqlHandler::readAllRecords($arguments);
@@ -398,7 +397,7 @@ WITH RECURSIVE nodes ( id, structure_id, code, name, path, level ) AS
 (
   SELECT
     SC.' . self::ID . ',
-    SC.' . self::PARENT . ',
+    SC.' . self::CHILD . ',
     SC.' . self::CODE . ',
     SC.' . self::NAME . ',
     CAST ( SC.' . self::CODE . ' AS text ),
@@ -407,19 +406,19 @@ WITH RECURSIVE nodes ( id, structure_id, code, name, path, level ) AS
   WHERE SC.' . self::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER] . ' 
     OR (
         ' . $codeParameter[ISqlHandler::PLACEHOLDER] . ' = \' \' 
-        AND SC.' . self::PARENT . ' IS NULL
+        AND SC.' . self::CHILD . ' IS NULL
     )
   UNION
   SELECT
     SN.' . self::ID . ',
-    SN.' . self::PARENT . ',
+    SN.' . self::CHILD . ',
     SN.' . self::CODE . ',
     SN.' . self::NAME . ',
     CAST ( N.path || \'-\'|| SN.' . self::CODE . '  AS text ),
     level + 1
   FROM ' . self::TABLE_NAME . ' SN
     INNER JOIN nodes N
-      ON (N.id = SN.' . self::PARENT . ')
+      ON (N.id = SN.' . self::CHILD . ')
   WHERE SN.'
                 . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] . '
 )
@@ -501,7 +500,7 @@ AND EXISTS
         (
           SELECT
             SC.' . self::ID . ',
-            SC.' . self::PARENT . ',
+            SC.' . self::CHILD . ',
             SC.' . self::CODE . ',
             0
           FROM ' . self::TABLE_NAME . ' SC
@@ -509,12 +508,12 @@ AND EXISTS
           UNION
           SELECT
             SN.' . self::ID . ',
-            SN.' . self::PARENT . ',
+            SN.' . self::CHILD . ',
             SN.' . self::CODE . ',
             level + 1
           FROM ' . self::TABLE_NAME . ' SN
             INNER JOIN children C
-              ON (C.' . self::PARENT . ' = SN.' . self::ID . ')
+              ON (C.' . self::CHILD . ' = SN.' . self::ID . ')
           WHERE
             SN.' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] . '
         )
@@ -568,7 +567,7 @@ AND EXISTS
                 . ' FROM '
                 . self::TABLE_NAME
                 . ' WHERE '
-                . self::PARENT . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . self::CHILD . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
                 . ' AND ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
                 . ';';
 

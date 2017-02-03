@@ -108,9 +108,7 @@ namespace Assay\Core {
                 . ' FROM '
                 . $this->tablename
                 . ' WHERE '
-                . self::ID
-                . ' = '
-                . $oneParameter[ISqlHandler::PLACEHOLDER]
+                . self::ID. ' = '. $oneParameter[ISqlHandler::PLACEHOLDER]
                 . ';';
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
 
@@ -127,7 +125,7 @@ namespace Assay\Core {
         public function setByNamedValue(array $namedValue):bool
         {
 
-            $result = parent::toEntity();
+            $result = parent::setByNamedValue( $namedValue);
 
             $code = Common::setIfExists(self::CODE, $namedValue, self::EMPTY_VALUE);
             if($code!=self::EMPTY_VALUE){
@@ -150,13 +148,11 @@ namespace Assay\Core {
          */
         public function toEntity():array
         {
-            $result = self::EMPTY_ARRAY;
+            $result = parent::toEntity();
 
             $result [self::CODE] = $this->code;
-            $result [self::DESCRIPTION] = $this->description;
-            $result [self::ID] = $this->id;
-            $result [self::IS_HIDDEN] = $this->isHidden;
             $result [self::NAME] = $this->name;
+            $result [self::DESCRIPTION] = $this->description;
 
             return $result;
         }
@@ -226,7 +222,7 @@ namespace Assay\Core {
 
             $result = false;
             if ($record != ISqlHandler::EMPTY_ARRAY) {
-                $result = $this->setByNamedValue($record);;
+                $result = $this->setByNamedValue($record);
             }
             return $result;
         }

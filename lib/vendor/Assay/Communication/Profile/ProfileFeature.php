@@ -7,10 +7,9 @@
  */
 namespace Assay\Communication\Profile {
 
-    //use Assay\Core\LinkageEntity;
-    use Assay\Core\PredefinedEntity;
+    use Assay\Core\InnerLinkageEntity;
 
-    class ProfileFeature extends PredefinedEntity
+    class ProfileFeature extends InnerLinkageEntity
     {
         /** @var string колонка ссылки на профиль пользователя */
         const PROFILE = IPersonProfile::EXTERNAL_ID;
