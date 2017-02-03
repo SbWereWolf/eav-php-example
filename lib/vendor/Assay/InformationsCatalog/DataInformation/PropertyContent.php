@@ -7,7 +7,7 @@
  */
 namespace Assay\InformationsCatalog\DataInformation {
 
-    use Assay\Core\ChildEntity;
+    use Assay\Core\PredefinedEntity;
     use Assay\Core\Common;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
@@ -16,7 +16,7 @@ namespace Assay\InformationsCatalog\DataInformation {
     /**
      * Значения свойства позиции рубрики
      */
-    class PropertyContent extends ChildEntity
+    class PropertyContent extends PredefinedEntity
     {
 
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
@@ -55,7 +55,7 @@ namespace Assay\InformationsCatalog\DataInformation {
         /** вставить в таблицу запись дочерней сущности
          * @return bool успех выполнения
          */
-        protected function insertChild():bool
+        protected function insertPredefined():bool
         {
             $parentParameter = SqlHandler::setBindParameter(':PARENT', $this->parentId, \PDO::PARAM_INT);
             $propertyParameter = SqlHandler::setBindParameter(':PROPERTY', $this->propertyId, \PDO::PARAM_INT);

@@ -30,7 +30,7 @@ namespace Assay\Communication\Profile {
         const RECEIVER = 'receiver';
         const MESSAGE_TEXT = 'message_text';
         const DATE = 'date';
-      //  const IS_HIDDEN = 'is_hidden';
+        const DEFAULT_IS_HIDDEN = 0;
 
         /** @var string идентификатор записи таблицы */
         public $id = self::EMPTY_VALUE;
@@ -47,7 +47,7 @@ namespace Assay\Communication\Profile {
         public $messageList = [];
         public $profileId = NULL;
         public $authorId = NULL;
-        public $isHidden = Core\IEntity::DEFAULT_IS_HIDDEN;
+        public $isHidden = self::DEFAULT_IS_HIDDEN;
 
         public $fieldTypes = [
             'id' => 'PARAM_INT',
@@ -55,7 +55,9 @@ namespace Assay\Communication\Profile {
             'receiver' => 'PARAM_INT',
             'message_text' => 'PARAM_STR',
             'date' => 'PARAM_STR',
-            'is_hidden' => 'PARAM_INT'
+            'is_hidden' => 'PARAM_INT',
+            'author_is_company' => 'PARAM_INT',
+            'receiver_is_company' => 'PARAM_INT'
              ];
 
        // public $profile; //- это id
@@ -106,6 +108,7 @@ namespace Assay\Communication\Profile {
         public function __construct($profileId)
         {
             $this->profileId = $profileId;
+            $this->getMode();
         }
 
         /**
@@ -118,6 +121,14 @@ namespace Assay\Communication\Profile {
             return true; //- для тестов пока что предположим, что в собственном
         }
 
+
+        public function getMode()
+        {
+            $mode = 'user'; //хотя на самом деле мы должны брать это из сессии
+            $this->authorIsCompany = 1;
+            if($mode == 'company') $this->authorIsCompany = 1;
+        }
+
         //получаем список сообщений
         public function getMessagesList():bool
         {
@@ -128,6 +139,8 @@ namespace Assay\Communication\Profile {
             $oneParameter[ISqlHandler::VALUE] = $this->profileId;
             $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
+
+
             $arguments[ISqlHandler::QUERY_TEXT] = 'SELECT DISTINCT ON (M.'.self::AUTHOR.') M.'.self::AUTHOR.', M.'.self::DATE.', M.'.self::MESSAGE_TEXT
                 .', (SELECT name FROM '.Profile::TABLE_NAME.' WHERE '.Profile::ID.' = M.'.self::AUTHOR.') as author_name'
                 .'  FROM '.self::TABLE_NAME.' as M '
@@ -135,10 +148,23 @@ namespace Assay\Communication\Profile {
                  M.'.self::RECEIVER.' = '.$oneParameter[ISqlHandler::PLACEHOLDER]
                 .' ORDER BY  M.'.self::AUTHOR.', M.'.self::DATE.' DESC;';
 
+
+
+            /*
+            $arguments[ISqlHandler::QUERY_TEXT] = 'SELECT DISTINCT ON (M.'.self::AUTHOR.', M.'.self::AUTHOR_IS_COMPANY.') M.'.self::AUTHOR.', M.'.self::AUTHOR_IS_COMPANY.', M.'.self::DATE.', M.'.self::MESSAGE_TEXT
+                .', (SELECT name FROM '.Profile::TABLE_NAME.' WHERE '.Profile::ID.' = M.'.self::AUTHOR.') as author_name_user'
+                .', (SELECT name FROM '.COMPANY::TABLE_NAME.' WHERE '.Profile::ID.' = M.'.self::AUTHOR.') as author_name_company'
+                .'  FROM '.self::TABLE_NAME.' as M '
+                . ' WHERE 
+                 M.'.self::RECEIVER.' = '.$oneParameter[ISqlHandler::PLACEHOLDER]
+                .' ORDER BY  M.'.self::AUTHOR.', M.'.self::AUTHOR_IS_COMPANY.', M.'.self::DATE.' DESC;';
+
+            */
+
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
 
             $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments); //print_r($response);
+            $response = $sqlReader->performQuery($arguments); print_r($response);
 
             $isSuccessfulRead = SqlHandler::isNoError($response);
 
@@ -149,6 +175,11 @@ namespace Assay\Communication\Profile {
                 if(count($record) > 0) {
                     $result = true;
                     $this->messageList = $record;
+
+                //    if($record["author_is_company"] == 1) $this->messageList["author_name"] = $record["author_name_company"];
+                //   else $this->messageList["author_name"] = $record["author_name_user"];
+
+
                 }
             }
             return $result;

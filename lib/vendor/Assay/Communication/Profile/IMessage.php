@@ -9,13 +9,13 @@ namespace Assay\Communication\Profile {
     interface IMessage
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'message_id';
+       // const EXTERNAL_ID = 'message_id';
 
         const CONTENT = 'content';
 
-        public function getCorrespondent():array;
+        public function getCorrespondent():bool;
 
-        public function getByCorrespondent():array;
+        public function getByCorrespondent($authorId):bool;
 
         public function saveGoodsOrder():bool;
 

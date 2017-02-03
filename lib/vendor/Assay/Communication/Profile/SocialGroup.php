@@ -11,6 +11,10 @@ namespace Assay\Communication\Profile {
 
     class SocialGroup extends NamedEntity implements ISocialGroup
     {
+        /** Является ли пользователь членом группы
+         * добавить id пользователя ?
+         * @return bool
+         */
         public function isMember():bool
         {
         }

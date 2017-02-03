@@ -8,7 +8,7 @@
 namespace Assay\InformationsCatalog\DataInformation {
 
     use Assay\Core;
-    use Assay\Core\ChildEntity;
+    use Assay\Core\PredefinedEntity;
     use Assay\Core\INamedEntity;
     use Assay\DataAccess;
     use Assay\DataAccess\ISqlHandler;
@@ -24,7 +24,7 @@ namespace Assay\InformationsCatalog\DataInformation {
     /**
      * Позиция рубрики
      */
-    class RubricPosition extends ChildEntity implements IRubricPosition,
+    class RubricPosition extends PredefinedEntity implements IRubricPosition,
         INamedEntity
     {
 
@@ -300,7 +300,7 @@ namespace Assay\InformationsCatalog\DataInformation {
         /** Добавить дочернюю сущность
          * @return bool успех выполнения
          */
-        public function addChildEntity():bool
+        public function addPredefinedEntity():bool
         {
             $propertyKey = InformationProperty::EXTERNAL_ID;
 
@@ -308,7 +308,7 @@ namespace Assay\InformationsCatalog\DataInformation {
 
             $isSuccess = $propertiesId != self::EMPTY_ARRAY;
             if ($isSuccess) {
-                $isSuccess = $this->insertChild();
+                $isSuccess = $this->insertPredefined();
             }
 
             $isChildSuccess = false;
@@ -341,7 +341,7 @@ namespace Assay\InformationsCatalog\DataInformation {
                     $propertyValue->parentId = $parentValue;
                     $propertyValue->propertyId = $propertyKeyValue;
 
-                    $isSuccess = $propertyValue->addChildEntity();
+                    $isSuccess = $propertyValue->addPredefinedEntity();
                 }
                 $isChildSuccess = $isSuccess && $isChildSuccess;
 

@@ -7,7 +7,7 @@
  */
 namespace Assay\InformationsCatalog\RedactorContent {
 
-    use Assay\Core\ChildEntity;
+    use Assay\Core\PredefinedEntity;
     use Assay\Core\Common;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
@@ -17,7 +17,7 @@ namespace Assay\InformationsCatalog\RedactorContent {
     /**
      * Пользовательские данные
      */
-    class AdditionalValue extends ChildEntity implements IAdditionalValue
+    class AdditionalValue extends PredefinedEntity implements IAdditionalValue
     {
 
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
@@ -56,7 +56,7 @@ namespace Assay\InformationsCatalog\RedactorContent {
         /** вставить в таблицу запись дочерней сущности
          * @return bool успех выполнения
          */
-        protected function insertChild():bool
+        protected function insertPredefined():bool
         {
             $parentParameter = SqlHandler::setBindParameter(':PARENT', $this->parentId, \PDO::PARAM_INT);
             $redactorParameter = SqlHandler::setBindParameter(':REDACTOR', $this->value, \PDO::PARAM_INT);

@@ -12,7 +12,7 @@ namespace Assay\Core;
 use Assay\DataAccess\ISqlHandler;
 use Assay\DataAccess\SqlHandler;
 
-class ChildEntity extends PrimitiveData implements IChildEntity
+class PredefinedEntity extends PrimitiveData implements IPredefinedEntity
 {
     /** @var string колонка для внешнего ключа ссылки на эту таблицу */
     const EXTERNAL_ID = 'child_entity_id';
@@ -111,7 +111,7 @@ class ChildEntity extends PrimitiveData implements IChildEntity
     {
         $result = false;
 
-        $stored = new ChildEntity();
+        $stored = new PredefinedEntity();
         $wasReadStored = $stored->loadById($this->id);
 
         $storedEntity = array();
@@ -201,16 +201,16 @@ class ChildEntity extends PrimitiveData implements IChildEntity
     /** Добавить дочернюю сущность
      * @return bool успех выполнения
      */
-    public function addChildEntity():bool
+    public function addPredefinedEntity():bool
     {
-        $isSuccess = $this->insertChild();
+        $isSuccess = $this->insertPredefined();
         return $isSuccess;
     }
 
     /** вставить в таблицу запись дочерней сущности
      * @return bool успех выполнения
      */
-    protected function insertChild():bool
+    protected function insertPredefined():bool
     {
         $parentParameter = SqlHandler::setBindParameter(':PARENT', $this->parentId, \PDO::PARAM_INT);
 

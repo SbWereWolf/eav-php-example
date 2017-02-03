@@ -11,14 +11,9 @@ namespace Assay\Communication\Profile {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */
         const EXTERNAL_ID = 'person_profile_id';
 
-        /** @var string колонка ссылки на социальный объект */
-        const OBJECT = SocialObject::EXTERNAL_ID;
-
         public function getForGreetings():string;
 
         public function enableCommenting():bool;
-
-        public function testPrivilege():bool;
 
         public function purgeGroup():bool;
 
