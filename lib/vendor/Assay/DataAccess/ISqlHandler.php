@@ -77,4 +77,11 @@ interface ISqlHandler
      * @return array результат записи
      */
     public static function writeAllRecords(array $arguments):array;
+
+    /** Сформировать условие разбивки на страницы
+     * @param int $start с какой позиции показывать
+     * @param int $paging сколько позиций показать
+     * @return string условие разбивки на страницы
+     */
+    public static function getPagingCondition(int $start, int $paging):string;
 }

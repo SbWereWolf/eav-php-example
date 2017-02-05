@@ -42,7 +42,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 ' SELECT '
                 . self::ID
                 . ' , ' . self::CHILD
-                . ' , ' . self::CODE
+                . ' , btrim(' . self::CODE . ') AS "' . self::CODE . '"'
                 . ' , ' . self::NAME
                 . ' , ' . self::DESCRIPTION
                 . ' , ' . self::IS_HIDDEN
@@ -74,8 +74,8 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
             $result = parent::setByNamedValue($namedValue);
             $linkToParent = Core\Common::setIfExists(self::CHILD, $namedValue, self::EMPTY_VALUE);
-            if($linkToParent!=self::EMPTY_VALUE){
-                $this->linkToParent=$linkToParent;
+            if ($linkToParent != self::EMPTY_VALUE) {
+                $this->linkToParent = $linkToParent;
             }
 
             return $result;
@@ -130,15 +130,10 @@ namespace Assay\InformationsCatalog\StructureInformation {
         protected function updateEntity():bool
         {
             $codeParameter = SqlHandler::setBindParameter(':CODE', $this->code, \PDO::PARAM_STR);
-
             $descriptionParameter = SqlHandler::setBindParameter(':DESCRIPTION', $this->description, \PDO::PARAM_STR);
-
             $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
-
             $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', $this->isHidden, \PDO::PARAM_INT);
-
             $nameParameter = SqlHandler::setBindParameter(':NAME', $this->name, \PDO::PARAM_STR);
-
             $linkToParentParameter = SqlHandler::setBindParameter(':LINK_TO_PARENT', $this->linkToParent, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
@@ -153,7 +148,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 . ' WHERE '
                 . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
                 . ' RETURNING '
-                . self::CODE
+                . ' btrim(' . self::CODE . ') AS "' . self::CODE . '"'
                 . ' , ' . self::IS_HIDDEN
                 . ' , ' . self::CHILD
                 . ' , ' . self::NAME
@@ -204,7 +199,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 'SELECT '
                 . self::ID
                 . ' , ' . self::CHILD
-                . ' , ' . self::CODE
+                . ' , btrim(' . self::CODE . ') AS "' . self::CODE . '"'
                 . ' , ' . self::NAME
                 . ' , ' . self::DESCRIPTION
                 . ' , ' . self::IS_HIDDEN
@@ -284,14 +279,13 @@ namespace Assay\InformationsCatalog\StructureInformation {
             $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', self::DEFINE_AS_NOT_HIDDEN, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
-                ' SELECT 
-                ' . self::CODE . ' AS '
-                . $codeKey
+                ' SELECT'
+                . ' btrim(' . self::CODE . ') AS "' . $codeKey . '"'
                 . ' FROM '
                 . $this->tablename
                 . ' WHERE '
                 . self::CHILD . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
-                . ' ANd ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] .
+                . ' AND ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] .
                 ';';
 
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
@@ -349,7 +343,7 @@ WITH RECURSIVE children ( id, structure_id, code, name,level ) AS
   SELECT
     SC.' . self::ID . ',
     SC.' . self::CHILD . ',
-    SC.' . self::CODE . ',
+    btrim(SC.' . self::CODE . ') AS "' . self::CODE . '",
     SC.' . self::NAME . ',
     0
   FROM ' . self::TABLE_NAME . ' SC
@@ -358,7 +352,7 @@ WITH RECURSIVE children ( id, structure_id, code, name,level ) AS
   SELECT
     SN.' . self::ID . ',
     SN.' . self::CHILD . ',
-    SN.' . self::CODE . ',
+    btrim(SN.' . self::CODE . ') AS "' . self::CODE . '",
     SN.' . self::NAME . ',
     level + 1
   FROM ' . self::TABLE_NAME . ' SN
@@ -366,9 +360,8 @@ WITH RECURSIVE children ( id, structure_id, code, name,level ) AS
       ON (C.' . self::CHILD . ' = SN.' . self::ID . ')
 )
 SELECT '
-                . self::CODE
-                . ', '
-                . self::NAME
+                . 'btrim(' . self::CODE . ') AS "' . self::CODE . '"'
+                . ' , ' . self::NAME
                 . '
 FROM children
 ORDER BY level DESC
@@ -398,9 +391,9 @@ WITH RECURSIVE nodes ( id, structure_id, code, name, path, level ) AS
   SELECT
     SC.' . self::ID . ',
     SC.' . self::CHILD . ',
-    SC.' . self::CODE . ',
+    btrim(SC.' . self::CODE  .') AS "'.self::CODE.'",
     SC.' . self::NAME . ',
-    CAST ( SC.' . self::CODE . ' AS text ),
+    CAST ( btrim(SC.' . self::CODE . ') AS text ) AS "'.self::CODE.'",
     0
   FROM ' . self::TABLE_NAME . ' SC
   WHERE SC.' . self::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER] . ' 
@@ -412,9 +405,9 @@ WITH RECURSIVE nodes ( id, structure_id, code, name, path, level ) AS
   SELECT
     SN.' . self::ID . ',
     SN.' . self::CHILD . ',
-    SN.' . self::CODE . ',
+    btrim( SN.' . self::CODE  .') AS "'.self::CODE.'",
     SN.' . self::NAME . ',
-    CAST ( N.path || \'-\'|| SN.' . self::CODE . '  AS text ),
+    CAST ( N.path || \'-\'|| btrim(SN.' . self::CODE . ')  AS text ) AS "'.self::CODE.'",
     level + 1
   FROM ' . self::TABLE_NAME . ' SN
     INNER JOIN nodes N
@@ -423,7 +416,7 @@ WITH RECURSIVE nodes ( id, structure_id, code, name, path, level ) AS
                 . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] . '
 )
 SELECT
-  ' . self::CODE . ',
+  btrim(' . self::CODE  .') AS "'.self::CODE.'",
   ' . self::NAME . ',
   path,
   level
@@ -459,7 +452,7 @@ ORDER BY path
 
             $queryText =
                 'SELECT '
-                . self::CODE
+                . ' btrim(' . self::CODE .') AS "'.self::CODE.'"'
                 . ' , ' . self::NAME
                 . ' , ' . self::DESCRIPTION
                 . ' FROM '
@@ -501,7 +494,7 @@ AND EXISTS
           SELECT
             SC.' . self::ID . ',
             SC.' . self::CHILD . ',
-            SC.' . self::CODE . ',
+            btrim( SC.' . self::CODE  .') AS "'.self::CODE.'",
             0
           FROM ' . self::TABLE_NAME . ' SC
           WHERE SC.' . self::ID . ' = SO.' . self::ID . '
@@ -509,7 +502,7 @@ AND EXISTS
           SELECT
             SN.' . self::ID . ',
             SN.' . self::CHILD . ',
-            SN.' . self::CODE . ',
+            btrim(SN.' . self::CODE  .') AS "'.self::CODE.'",
             level + 1
           FROM ' . self::TABLE_NAME . ' SN
             INNER JOIN children C
@@ -530,17 +523,8 @@ AND EXISTS
             }
             $queryText .= $queryWithCode;
 
-            $queryLimit = '';
-            if ($paging > 0) {
-                $queryLimit = " LIMIT $paging ";
-            }
-            $queryText .= $queryLimit;
-
-            $queryOffset = '';
-            if ($start > 0) {
-                $queryOffset = "  OFFSET $start ";
-            }
-            $queryText .= $queryOffset;
+            $pagingString = SqlHandler::getPagingCondition($start, $paging);
+            $queryText .= $pagingString;
 
             $arguments[ISqlHandler::QUERY_TEXT] = $queryText;
 

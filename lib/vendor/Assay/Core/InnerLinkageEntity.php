@@ -163,7 +163,7 @@ namespace Assay\Core {
         public function loadByRight(string $rightId):bool
         {
 
-            $result = $this->loadByForeignKey($rightId, self::RIGHT);
+            $result = $this->loadByForeignKey($rightId, $this->rightColumn);
 
             return $result;
         }
@@ -174,7 +174,7 @@ namespace Assay\Core {
          */
         public function loadByLeft(string $leftId):bool
         {
-            $result = $this->loadByForeignKey($leftId, self::LEFT);
+            $result = $this->loadByForeignKey($leftId, $this->leftColumn);
 
             return $result;
         }
@@ -189,11 +189,11 @@ namespace Assay\Core {
             if ($id != self::EMPTY_VALUE) {
                 $this->id = $id;
             }
-            $leftId = Common::setIfExists(self::LEFT, $namedValue, self::EMPTY_VALUE);
+            $leftId = Common::setIfExists($this->leftColumn, $namedValue, self::EMPTY_VALUE);
             if ($leftId != self::EMPTY_VALUE) {
                 $this->leftId = $leftId;
             }
-            $rightId = Common::setIfExists(self::RIGHT, $namedValue, self::EMPTY_VALUE);
+            $rightId = Common::setIfExists($this->rightColumn, $namedValue, self::EMPTY_VALUE);
             if ($rightId != self::EMPTY_VALUE) {
                 $this->rightId = $rightId;
             }
@@ -224,8 +224,8 @@ namespace Assay\Core {
 
             $record = SqlHandler::readOneRecord($arguments);
 
-            $result = false;
-            if ($record != ISqlHandler::EMPTY_ARRAY) {
+            $result = $record != ISqlHandler::EMPTY_ARRAY;
+            if ($result) {
                 $result = $this->setByNamedValue($record);
             }
 

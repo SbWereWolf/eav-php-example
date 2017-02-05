@@ -117,7 +117,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 $saveResult = $this->saveInformationDomain();
             }
 
-            $result = $saveResult && $updateResult;
+            $result = $saveResult || $updateResult;
             return $result;
         }
 
@@ -127,8 +127,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public function getSearchParameter():array
         {
 
-            $result = self::EMPTY_ARRAY;
-            return $result;
+
         }
 
         /** Установить информационный домен свойства рубрики
@@ -179,5 +178,50 @@ namespace Assay\InformationsCatalog\StructureInformation {
             return $isSuccess;
 
         }
+
+        /** Получить тип поиска по свойству
+         * @return SearchType тип поиска по свойству
+         */
+        public function getPropertySearchType():SearchType
+        {
+            $domain = new InformationDomain();
+
+            $isSuccess = $domain->loadById($this->informationDomain);
+
+            $searchTypeId = self::EMPTY_VALUE;
+            if ($isSuccess) {
+                $searchTypeId = $domain->searchType;
+            }
+
+            $isSuccess = $searchTypeId != self::EMPTY_VALUE;
+            $searchType = new SearchType();
+            if ($isSuccess) {
+                $searchType->loadById($searchTypeId);
+            }
+            return $searchType;
+        }
+
+        /** Получить тип поиска по свойству
+         * @return DataType тип поиска по свойству
+         */
+        public function getPropertyDataType():DataType
+        {
+            $domain = new InformationDomain();
+            $isSuccess = $domain->loadById($this->informationDomain);
+
+            $dataTypeId = self::EMPTY_VALUE;
+            if ($isSuccess && $domain->isHidden == InformationDomain::DEFINE_AS_NOT_HIDDEN) {
+                $dataTypeId = $domain->dataType;
+            }
+
+            $isSuccess = $dataTypeId != self::EMPTY_VALUE;
+            $dataType = new DataType();
+            if ($isSuccess) {
+                $dataType->loadById($dataTypeId);
+            }
+            
+            return $dataType;
+        }
+
     }
 }

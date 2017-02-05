@@ -1,6 +1,11 @@
 <?php
 
+use Assay\InformationsCatalog\DataInformation\DigitalContent;
 use Assay\InformationsCatalog\DataInformation\RubricPosition;
+use Assay\InformationsCatalog\DataInformation\StringContent;
+use Assay\InformationsCatalog\RedactorContent\DigitalValue;
+use Assay\InformationsCatalog\RedactorContent\StringValue;
+use Assay\InformationsCatalog\StructureInformation\InformationProperty;
 use Assay\InformationsCatalog\StructureInformation\Rubric;
 
 include "autoloader.php";
@@ -8,6 +13,586 @@ include "autoloader.php";
 
 echo '<pre>';
 
+
+$kmCode = 'TRANSPORTATION_PRICE_KM';
+$tonCode = 'TRANSPORTATION_PRICE_TONN';
+$goodsPriceCode = 'GOODS_PRICE';
+$goodsUnitsOfMeasureCode = 'GOODS_UNITS_OF_MEASURE';
+$sysLike = 'CODE 34';
+$sysStringEnum = 'CODE 35';
+$sysDigitEnum = 'CODE 36';
+$companyBetweenDigital = 'CODE 37';
+$companyDigitEnum = 'CODE 38';
+$userLike = 'CODE 39';
+$sysBetweenDigital = 'CODE 40';
+
+$rubric = new Rubric();
+$rubric->loadById(181);
+$rubricSearchParameters = $rubric->getSearchParameters();
+
+
+echo " \n --==@@ SEARCH rubricSearchParameters @@==-- \n ";
+$rubricSearchParametersJson = json_encode($rubricSearchParameters);
+var_dump($rubricSearchParametersJson);
+
+$codeForStringSearch = $sysLike ;
+$filterProperties['description'][$codeForStringSearch]=$rubricSearchParameters['description'][$codeForStringSearch];
+$filterProperties['description'][$codeForStringSearch]['description'][]='nothing';
+
+
+$codeForDigitalSearch = $sysDigitEnum;
+$filterProperties['description'][$codeForDigitalSearch]=$rubricSearchParameters['description'][$codeForDigitalSearch];
+
+
+$searchResult = $rubric->search($filterProperties);
+echo " \n --==@@ SEARCH filterProperties @@==-- \n ";
+$filterPropertiesJson = json_encode($filterProperties);
+var_dump($filterPropertiesJson);
+echo " \n --==@@ SEARCH searchResult @@==-- \n ";
+$searchResultJson = json_encode($searchResult);
+var_dump($searchResultJson);
+
+
+echo '</pre>';
+
+
+/*
+echo '<pre>';
+
+echo " \n --==@@ RubricPosition COD testing @@==-- \n ";
+$rubric = new Rubric();
+echo " \n rubric->addEntity(); \n ";
+$rubric->addEntity();
+var_dump($rubric);
+
+
+echo '</pre>';
+*/
+
+/*
+echo '<pre>';
+
+echo " \n --==@@ RubricPosition COD testing @@==-- \n ";
+$rubric = new Rubric();
+//echo " \n rubric->addEntity(); \n ";
+$rubric->addEntity();
+//var_dump($rubric);
+$sysBetweenDigital = 'CODE 40';
+$rubric->addProperty($sysBetweenDigital);
+//echo " \n rubricPositionId = rubric->addPosition(); \n ";
+$rubricPositionId = $rubric->addPosition();
+//var_dump($rubricPositionId);
+$rubricPosition = new RubricPosition();
+//echo " \n rubricPosition->loadById($rubricPositionId); \n ";
+$rubricPosition->loadById($rubricPositionId);
+//var_dump($rubricPosition);
+$rubricPosition->code = 'next'.time();
+//echo " \n before rubricPosition->mutateEntity(); \n ";
+//var_dump($rubricPosition);
+echo " \n isSuccess = rubricPosition->mutateEntity(); \n ";
+$isSuccess = $rubricPosition->mutateEntity();
+
+echo '</pre>';
+*/
+
+/*
+echo '<pre>';
+
+$kmCode = 'TRANSPORTATION_PRICE_KM';
+$tonCode = 'TRANSPORTATION_PRICE_TONN';
+$goodsPriceCode = 'GOODS_PRICE';
+$goodsUnitsOfMeasureCode = 'GOODS_UNITS_OF_MEASURE';
+$sysLike = 'CODE 34';
+$sysStringEnum = 'CODE 35';
+$sysDigitEnum = 'CODE 36';
+$companyBetweenDigital = 'CODE 37';
+$companyDigitEnum = 'CODE 38';
+$userLike = 'CODE 39';
+$sysBetweenDigital = 'CODE 40';
+
+$rubric_code = 'save content test 201702041943';
+
+$rubric = new Rubric();
+
+echo " \n rubric->loadByCode($rubric_code); \n ";
+$rubric->loadByCode($rubric_code);
+var_dump($rubric);
+
+echo " \n rubricPositionId = rubric->addPosition(); \n ";
+$rubricPositionId = $rubric->addPosition();
+var_dump($rubricPositionId );
+
+$rubricPosition = new RubricPosition();
+$rubricPosition->loadById($rubricPositionId);
+$rubricPosition->code = 'next';
+$isSuccess = $rubricPosition->mutateEntity();
+var_dump($isSuccess);
+var_dump($rubricPosition);
+$rubricPosition->saveContent(' user string 34', $sysLike);
+$rubricPosition->saveContent(' sys enum4', $sysStringEnum);
+$rubricPosition->saveContent(' user enum3', $userLike);
+$rubricPosition->saveContent('5', $sysDigitEnum);
+$rubricPosition->saveContent('1', $companyBetweenDigital);
+$rubricPosition->saveContent('15.1', $companyDigitEnum);
+$rubricPosition->saveContent('9.99', $sysBetweenDigital);
+$rubricPosition->saveContent('150', $kmCode);
+$rubricPosition->saveContent('1', $tonCode);
+$rubricPosition->saveContent('15.159', $goodsPriceCode);
+$rubricPosition->saveContent('ty', $goodsUnitsOfMeasureCode);
+
+
+echo '</pre>';
+*/
+
+/*
+echo '<pre>';
+
+$kmCode = 'TRANSPORTATION_PRICE_KM';
+$tonCode = 'TRANSPORTATION_PRICE_TONN';
+$goodsPriceCode = 'GOODS_PRICE';
+$goodsUnitsOfMeasureCode = 'GOODS_UNITS_OF_MEASURE';
+$sysLike = 'CODE 34';
+$sysStringEnum = 'CODE 35';
+$sysDigitEnum = 'CODE 36';
+$companyBetweenDigital = 'CODE 37';
+$companyDigitEnum = 'CODE 38';
+$userLike = 'CODE 39';
+$sysBetweenDigital = 'CODE 40';
+
+$rubric_code = 'save content test 201702041943';
+
+$rubric = new Rubric();
+//$rubric->addEntity();
+
+//$rubric->code = $rubric_code;
+//$rubric->name = 'контент';
+//$rubric->description= 'тестирование функционала';
+//$rubric->mutateEntity();
+
+echo " \n rubric->loadByCode($rubric_code); \n ";
+$rubric->loadByCode($rubric_code);
+var_dump($rubric);
+
+echo " \n rubricPositionId = rubric->addPosition(); \n ";
+$rubricPositionId = $rubric->addPosition();
+var_dump($rubricPositionId );
+$rubricPosition = new RubricPosition();
+
+echo " \n rubricPosition->loadById($rubricPositionId) \n ";
+$rubricPosition->loadById($rubricPositionId);
+var_dump($rubricPosition);
+echo " \n rubricPosition->mutateEntity(); \n ";
+$rubricPosition->code = 'первая позиция';
+$isSuccess = $rubricPosition->mutateEntity();
+var_dump($isSuccess);
+var_dump($rubricPosition);
+
+$rubricPosition->saveContent(' user some string', $sysLike);
+$rubricPosition->saveContent(' sys enum1', $sysStringEnum);
+$rubricPosition->saveContent(' user enum1', $userLike);
+$rubricPosition->saveContent('15', $sysDigitEnum);
+$rubricPosition->saveContent('18', $companyBetweenDigital);
+$rubricPosition->saveContent('15.15', $companyDigitEnum);
+$rubricPosition->saveContent('99.99', $sysBetweenDigital);
+$rubricPosition->saveContent('15', $kmCode);
+$rubricPosition->saveContent('18', $tonCode);
+$rubricPosition->saveContent('15.15', $goodsPriceCode);
+$rubricPosition->saveContent('tt', $goodsUnitsOfMeasureCode);
+
+echo " \n rubricPositionId = rubric->addPosition(); \n ";
+$rubricPositionId = $rubric->addPosition();
+var_dump($rubricPositionId );
+$rubricPosition = new RubricPosition();
+$rubricPosition->loadById($rubricPositionId);
+$rubricPosition->code = 'следующая';
+$isSuccess = $rubricPosition->mutateEntity();
+var_dump($isSuccess);
+var_dump($rubricPosition);
+$rubricPosition->saveContent(' user same string', $sysLike);
+$rubricPosition->saveContent(' sys enum1', $sysStringEnum);
+$rubricPosition->saveContent(' user enum1', $userLike);
+$rubricPosition->saveContent('15', $sysDigitEnum);
+$rubricPosition->saveContent('18', $companyBetweenDigital);
+$rubricPosition->saveContent('15.15', $companyDigitEnum);
+$rubricPosition->saveContent('99.99', $sysBetweenDigital);
+$rubricPosition->saveContent('15', $kmCode);
+$rubricPosition->saveContent('18', $tonCode);
+$rubricPosition->saveContent('15.15', $goodsPriceCode);
+$rubricPosition->saveContent('tt', $goodsUnitsOfMeasureCode);
+
+echo " \n rubricPositionId = rubric->addPosition(); \n ";
+$rubricPositionId = $rubric->addPosition();
+var_dump($rubricPositionId );
+$rubricPosition = new RubricPosition();
+$rubricPosition->loadById($rubricPositionId);
+$rubricPosition->code = 'third';
+$isSuccess = $rubricPosition->mutateEntity();
+var_dump($isSuccess);
+var_dump($rubricPosition);
+$rubricPosition->saveContent(' user other string', $sysLike);
+$rubricPosition->saveContent(' sys enum1', $sysStringEnum);
+$rubricPosition->saveContent(' user enum1', $userLike);
+$rubricPosition->saveContent('15', $sysDigitEnum);
+$rubricPosition->saveContent('18', $companyBetweenDigital);
+$rubricPosition->saveContent('15.15', $companyDigitEnum);
+$rubricPosition->saveContent('99.99', $sysBetweenDigital);
+$rubricPosition->saveContent('15', $kmCode);
+$rubricPosition->saveContent('18', $tonCode);
+$rubricPosition->saveContent('15.15', $goodsPriceCode);
+$rubricPosition->saveContent('tt', $goodsUnitsOfMeasureCode);
+
+echo " \n rubricPositionId = rubric->addPosition(); \n ";
+$rubricPositionId = $rubric->addPosition();
+var_dump($rubricPositionId );
+$rubricPosition = new RubricPosition();
+$rubricPosition->loadById($rubricPositionId);
+$rubricPosition->code = 'next';
+$isSuccess = $rubricPosition->mutateEntity();
+var_dump($isSuccess);
+var_dump($rubricPosition);
+$rubricPosition->saveContent(' user string 34', $sysLike);
+$rubricPosition->saveContent(' sys enum4', $sysStringEnum);
+$rubricPosition->saveContent(' user enum3', $userLike);
+$rubricPosition->saveContent('5', $sysDigitEnum);
+$rubricPosition->saveContent('1', $companyBetweenDigital);
+$rubricPosition->saveContent('15.1', $companyDigitEnum);
+$rubricPosition->saveContent('9.99', $sysBetweenDigital);
+$rubricPosition->saveContent('150', $kmCode);
+$rubricPosition->saveContent('1', $tonCode);
+$rubricPosition->saveContent('15.159', $goodsPriceCode);
+$rubricPosition->saveContent('ty', $goodsUnitsOfMeasureCode);
+
+echo " \n rubricPositionId = rubric->addPosition(); \n ";
+$rubricPositionId = $rubric->addPosition();
+var_dump($rubricPositionId );
+$rubricPosition = new RubricPosition();
+$rubricPosition->loadById($rubricPositionId);
+$rubricPosition->code = 'continue';
+$isSuccess = $rubricPosition->mutateEntity();
+var_dump($isSuccess);
+var_dump($rubricPosition);
+$rubricPosition->saveContent('string', $sysLike);
+$rubricPosition->saveContent(' sys enum1', $sysStringEnum);
+$rubricPosition->saveContent(' user enum3', $userLike);
+$rubricPosition->saveContent('15,0', $sysDigitEnum);
+$rubricPosition->saveContent('18,o', $companyBetweenDigital);
+$rubricPosition->saveContent('15,15', $companyDigitEnum);
+$rubricPosition->saveContent('100', $sysBetweenDigital);
+$rubricPosition->saveContent('5', $kmCode);
+$rubricPosition->saveContent('1', $tonCode);
+$rubricPosition->saveContent('150.15', $goodsPriceCode);
+$rubricPosition->saveContent('yy', $goodsUnitsOfMeasureCode);
+
+echo " \n rubricPositionId = rubric->addPosition(); \n ";
+$rubricPositionId = $rubric->addPosition();
+var_dump($rubricPositionId );
+$rubricPosition = new RubricPosition();
+$rubricPosition->loadById($rubricPositionId);
+$rubricPosition->code = 'last последняя';
+$isSuccess = $rubricPosition->mutateEntity();
+var_dump($isSuccess);
+var_dump($rubricPosition);
+$rubricPosition->saveContent('nothing', $sysLike);
+$rubricPosition->saveContent(' sys enum1', $sysStringEnum);
+$rubricPosition->saveContent(' user enum1', $userLike);
+$rubricPosition->saveContent('13', $sysDigitEnum);
+$rubricPosition->saveContent('19', $companyBetweenDigital);
+$rubricPosition->saveContent('13.15', $companyDigitEnum);
+$rubricPosition->saveContent('51.99', $sysBetweenDigital);
+$rubricPosition->saveContent('16', $kmCode);
+$rubricPosition->saveContent('21', $tonCode);
+$rubricPosition->saveContent('75.15', $goodsPriceCode);
+$rubricPosition->saveContent('ty', $goodsUnitsOfMeasureCode);
+
+
+echo '</pre>';
+
+*/
+
+/*
+echo '<pre>';
+
+$kmCode = 'TRANSPORTATION_PRICE_KM';
+$tonCode = 'TRANSPORTATION_PRICE_TONN';
+$goodsPriceCode = 'GOODS_PRICE';
+$goodsUnitsOfMeasureCode = 'GOODS_UNITS_OF_MEASURE';
+$sysLike = 'CODE 34';
+$sysStringEnum = 'CODE 35';
+$sysDigitEnum = 'CODE 36';
+$companyBetweenDigital = 'CODE 37';
+$companyDigitEnum = 'CODE 38';
+$userLike = 'CODE 39';
+$sysBetweenDigital = 'CODE 40';
+
+$rubric_code = 'save content test 201702041943';
+
+$rubric = new Rubric();
+echo " \n stringValue = new StringValue(); \n ";
+$rubric->loadByCode($rubric_code);
+$rubric->addProperty($kmCode);
+$rubric->addProperty($tonCode);
+$rubric->addProperty($goodsPriceCode);
+$rubric->addProperty($goodsUnitsOfMeasureCode);
+$rubric->addProperty($sysLike);
+$rubric->addProperty($sysStringEnum);
+$rubric->addProperty($sysDigitEnum);
+$rubric->addProperty($companyBetweenDigital);
+$rubric->addProperty($companyDigitEnum);
+$rubric->addProperty($userLike);
+$rubric->addProperty($sysBetweenDigital);
+$rubricProperties = $rubric->getProperties();
+var_dump($rubricProperties);
+
+echo '</pre>';
+*/
+
+/*
+echo '<pre>';
+
+$kmCode = 'TRANSPORTATION_PRICE_KM';
+$tonCode = 'TRANSPORTATION_PRICE_TONN';
+$goodsPriceCode = 'GOODS_PRICE';
+$goodsUnitsOfMeasureCode = 'GOODS_UNITS_OF_MEASURE';
+$sysLike = 'CODE 34';
+$sysStringEnum = 'CODE 35';
+$sysDigitEnum = 'CODE 36';
+$companyBetweenDigital = 'CODE 37';
+$companyDigitEnum = 'CODE 38';
+$userLike = 'CODE 39';
+$sysBetweenDigital = 'CODE 40';
+
+$informationProperty = new InformationProperty();
+
+echo " \n informationProperty->loadByCode($kmCode) \n ";
+$isSuccess = $informationProperty->loadByCode($kmCode);
+var_dump($informationProperty);
+echo " \n informationProperty->setInformationDomain('USER_BETWEEN_DIGITAL') \n ";
+$isSuccess = $informationProperty->setInformationDomain('USER_BETWEEN_DIGITAL');
+var_dump($informationProperty);
+echo " \n informationProperty->mutateEntity(); \n ";
+$isSuccess = $informationProperty->mutateEntity();
+var_dump($isSuccess);
+echo " \n informationProperty->loadByCode($tonCode); \n ";
+$isSuccess = $informationProperty->loadByCode($tonCode);
+var_dump($informationProperty);
+echo " \n informationProperty->setInformationDomain('USER_BETWEEN_DIGITAL'); \n ";
+$isSuccess = $informationProperty->setInformationDomain('USER_BETWEEN_DIGITAL');
+var_dump($informationProperty);
+echo " \n informationProperty->mutateEntity(); \n ";
+$isSuccess = $informationProperty->mutateEntity();
+var_dump($isSuccess);
+echo " \n informationProperty->loadByCode($goodsPriceCode); \n ";
+$isSuccess = $informationProperty->loadByCode($goodsPriceCode);
+var_dump($informationProperty);
+echo " \n informationProperty->setInformationDomain('USER_BETWEEN_DIGITAL'); \n ";
+$isSuccess = $informationProperty->setInformationDomain('USER_BETWEEN_DIGITAL');
+var_dump($informationProperty);
+echo " \n informationProperty->mutateEntity(); \n ";
+$isSuccess = $informationProperty->mutateEntity();
+var_dump($isSuccess);
+echo " \n informationProperty->loadByCode($goodsUnitsOfMeasureCode); \n ";
+$isSuccess = $informationProperty->loadByCode($goodsUnitsOfMeasureCode);
+var_dump($informationProperty);
+echo " \n informationProperty->setInformationDomain('USER_STRING_ENUMERATION'); \n ";
+$isSuccess = $informationProperty->setInformationDomain('USER_STRING_ENUMERATION');
+var_dump($informationProperty);
+
+echo '</pre>';
+*/
+
+/*
+$isSuccess = $informationProperty->loadByCode($sysLike);
+$isSuccess = $informationProperty->setInformationDomain('SYSTEM_LIKE');
+$isSuccess = $informationProperty->mutateEntity();
+$isSuccess = $informationProperty->loadByCode($sysStringEnum);
+$isSuccess = $informationProperty->setInformationDomain('SYSTEM_STRING_ENUMERATION');
+$isSuccess = $informationProperty->mutateEntity();
+$isSuccess = $informationProperty->loadByCode($sysDigitEnum);
+$isSuccess = $informationProperty->setInformationDomain('SYSTEM_DIGITAL_ENUMERATION');
+$isSuccess = $informationProperty->mutateEntity();
+$isSuccess = $informationProperty->loadByCode($companyBetweenDigital);
+$isSuccess = $informationProperty->setInformationDomain('COMPANY_BETWEEN_DIGITAL');
+$isSuccess = $informationProperty->mutateEntity();
+$isSuccess = $informationProperty->loadByCode($companyDigitEnum);
+$isSuccess = $informationProperty->setInformationDomain('COMPANY_DIGITAL_ENUMERATION');
+$isSuccess = $informationProperty->mutateEntity();
+$isSuccess = $informationProperty->loadByCode($userLike);
+$isSuccess = $informationProperty->setInformationDomain('USER_LIKE');
+$isSuccess = $informationProperty->mutateEntity();
+$isSuccess = $informationProperty->loadByCode($sysBetweenDigital);
+$isSuccess = $informationProperty->setInformationDomain('SYSTEM_BETWEEN_DIGITAL');
+$isSuccess = $informationProperty->mutateEntity();
+*/
+
+/*
+echo '<pre>';
+
+
+echo " \n stringValue = new StringValue(); \n ";
+$stringValue = new StringValue();
+var_dump($stringValue );
+echo " \n digitalValue = new DigitalValue(); \n ";
+$digitalValue = new DigitalValue();
+var_dump($digitalValue );
+echo " \n stringContent = new StringContent(); \n ";
+$stringContent = new StringContent();
+var_dump($stringContent );
+echo " \n digitalContent = new DigitalContent(); \n ";
+$digitalContent = new DigitalContent();
+var_dump($digitalContent );
+
+
+echo '</pre>';
+*/
+
+/*
+echo '<pre>';
+
+
+$kmCode = 'TRANSPORTATION_PRICE_KM';
+$tonCode = 'TRANSPORTATION_PRICE_TONN';
+$goodsPriceCode = 'GOODS_PRICE';
+$goodsUnitsOfMeasureCode = 'GOODS_UNITS_OF_MEASURE';
+$codeUserLike = 'CODE 34';
+$codeSysEnum = 'CODE 35';
+$codeUserEnum = 'CODE 36';
+$codeSysBetweenInt = 'CODE 37';
+$codeUserBetweenInt = 'CODE 38';
+$codeSysBetweenFloat = 'CODE 39';
+$codeUserBetweenFloat = 'CODE 40';
+
+$rubric = new Rubric();
+$rubric->loadById(178);
+$rubricSearchParameters = $rubric->getSearchParameters();
+var_dump($rubricSearchParameters);
+$filterProperties['description'][$codeUserLike]=$rubricSearchParameters['description'][trim($codeUserLike)];
+$filterProperties['description'][$codeUserLike]['description'][]='user string';
+$searchResult = $rubric->search($filterProperties, 2, 2);
+
+
+echo '</pre>';
+*/
+
+/*
+echo '<pre>';
+
+
+echo " \n --==@@ SEARCH RUBRIC @@==-- \n ";
+
+$kmCode = 'TRANSPORTATION_PRICE_KM';
+$tonCode = 'TRANSPORTATION_PRICE_TONN';
+$goodsPriceCode = 'GOODS_PRICE';
+$goodsUnitsOfMeasureCode = 'GOODS_UNITS_OF_MEASURE';
+$codeUserLike = 'CODE 34';
+$codeSysEnum = 'CODE 35';
+$codeUserEnum = 'CODE 36';
+$codeSysBetweenInt = 'CODE 37';
+$codeUserBetweenInt = 'CODE 38';
+$codeSysBetweenFloat = 'CODE 39';
+$codeUserBetweenFloat = 'CODE 40';
+
+$rubric = new Rubric();
+$rubric->addEntity();
+$rubricPositionId = $positionId = $rubric->addPosition();
+$rubricPosition = new RubricPosition();
+$rubricPosition->loadById($rubricPositionId);
+$rubricPosition->saveContent(' user string', $codeUserLike);
+$rubricPosition->saveContent(' sys enum1', $codeSysEnum);
+$rubricPosition->saveContent(' user enum1', $codeUserEnum);
+$rubricPosition->saveContent('15', $codeSysBetweenInt);
+$rubricPosition->saveContent('18', $codeUserBetweenInt);
+$rubricPosition->saveContent('15.15', $codeSysBetweenFloat);
+$rubricPosition->saveContent('99.99', $codeUserBetweenFloat);
+
+$rubricPositionId = $positionId = $rubric->addPosition();
+$rubricPosition->loadById($rubricPositionId);
+$rubricPosition->saveContent(' string user', $codeUserLike);
+$rubricPosition->saveContent(' sys enum2', $codeSysEnum);
+$rubricPosition->saveContent(' user enum2', $codeUserEnum);
+$rubricPosition->saveContent('13', $codeSysBetweenInt);
+$rubricPosition->saveContent('19', $codeUserBetweenInt);
+$rubricPosition->saveContent('12.15', $codeSysBetweenFloat);
+$rubricPosition->saveContent('100.99', $codeUserBetweenFloat);
+
+$rubricPositionId = $positionId = $rubric->addPosition();
+$rubricPosition->loadById($rubricPositionId);
+$rubricPosition->saveContent(' user string user', $codeUserLike);
+$rubricPosition->saveContent(' sys enum1', $codeSysEnum);
+$rubricPosition->saveContent(' user enum1', $codeUserEnum);
+$rubricPosition->saveContent('154', $codeSysBetweenInt);
+$rubricPosition->saveContent('1', $codeUserBetweenInt);
+$rubricPosition->saveContent('145.15', $codeSysBetweenFloat);
+$rubricPosition->saveContent('9.99', $codeUserBetweenFloat);
+
+$rubricPositionId = $positionId = $rubric->addPosition();
+$rubricPosition->loadById($rubricPositionId);
+$rubricPosition->saveContent(' user string', $codeUserLike);
+$rubricPosition->saveContent(' sys enum2', $codeSysEnum);
+$rubricPosition->saveContent(' user enum2', $codeUserEnum);
+$rubricPosition->saveContent('5', $codeSysBetweenInt);
+$rubricPosition->saveContent('8', $codeUserBetweenInt);
+$rubricPosition->saveContent('5.15', $codeSysBetweenFloat);
+$rubricPosition->saveContent('1099.99', $codeUserBetweenFloat);
+
+$rubricPositionId = $positionId = $rubric->addPosition();
+$rubricPosition->loadById($rubricPositionId);
+$rubricPosition->saveContent('xxxx', $codeUserLike);
+$rubricPosition->saveContent(' sys enum3', $codeSysEnum);
+$rubricPosition->saveContent(' user enum3', $codeUserEnum);
+$rubricPosition->saveContent('0', $codeSysBetweenInt);
+$rubricPosition->saveContent('-5', $codeUserBetweenInt);
+$rubricPosition->saveContent('-5.15', $codeSysBetweenFloat);
+$rubricPosition->saveContent('+1099.99', $codeUserBetweenFloat);
+
+
+echo '</pre>';
+*/
+
+/*
+echo '<pre>';
+
+
+$informationProperty = new InformationProperty();
+
+$informationProperty->loadByCode($code34);
+$informationProperty->setInformationDomain('USER_LIKE');
+$informationProperty->mutateEntity();
+$informationProperty->loadByCode($code35);
+$informationProperty->setInformationDomain('SYSTEM_ENUMERATION');
+$informationProperty->mutateEntity();
+$informationProperty->loadByCode($code36);
+$informationProperty->setInformationDomain('USER_ENUMERATION');
+$informationProperty->mutateEntity();
+$informationProperty->loadByCode($code37);
+$informationProperty->setInformationDomain('SYSTEM_BETWEEN_INTEGER');
+$informationProperty->mutateEntity();
+$informationProperty->loadByCode($code38);
+$informationProperty->setInformationDomain('USER_BETWEEN_INTEGER');
+$informationProperty->mutateEntity();
+$informationProperty->loadByCode($code39);
+$informationProperty->setInformationDomain('SYSTEM_BETWEEN_FLOAT');
+$informationProperty->mutateEntity();
+$informationProperty->loadByCode($code40);
+$informationProperty->setInformationDomain('USER_BETWEEN_FLOAT');
+$informationProperty->mutateEntity();
+
+$rubric = new Rubric();
+$rubric->addEntity();
+$rubric->name = 'test get rubric search ';
+$rubric->mutateEntity();
+$rubric->addProperty($kmCode);
+$rubric->addProperty($tonCode);
+$rubric->addProperty($goodsPriceCode);
+$rubric->addProperty($goodsUnitsOfMeasureCode);
+$rubric->addProperty($code34);
+$rubric->addProperty($code35);
+$rubric->addProperty($code36);
+$rubric->addProperty($code37);
+$rubric->addProperty($code38);
+$rubric->addProperty($code39);
+$rubric->addProperty($code40);
+$rubricProperties = $rubric->getProperties();
+var_dump($rubricProperties);
 
 echo " \n --==@@ RUBRIC @@==-- ";
 $kmCode = 'TRANSPORTATION_PRICE_KM';
@@ -54,7 +639,7 @@ var_dump($goodsPricing);
 
 
 echo '</pre>';
-
+*/
 
 
 /*

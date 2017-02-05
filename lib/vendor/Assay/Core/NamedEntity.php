@@ -42,8 +42,8 @@ namespace Assay\Core {
         public function loadByCode(string $code):bool
         {
 
-            $codeParameter = SqlHandler::setBindParameter(':CODE',$code,\PDO::PARAM_STR);
-            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN',self::DEFINE_AS_NOT_HIDDEN,\PDO::PARAM_INT);
+            $codeParameter = SqlHandler::setBindParameter(':CODE', $code, \PDO::PARAM_STR);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', self::DEFINE_AS_NOT_HIDDEN, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
@@ -96,7 +96,7 @@ namespace Assay\Core {
         public function loadById(string $id):bool
         {
 
-            $oneParameter = SqlHandler::setBindParameter(':ID',$id,\PDO::PARAM_INT);
+            $oneParameter = SqlHandler::setBindParameter(':ID', $id, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
@@ -108,7 +108,7 @@ namespace Assay\Core {
                 . ' FROM '
                 . $this->tablename
                 . ' WHERE '
-                . self::ID. ' = '. $oneParameter[ISqlHandler::PLACEHOLDER]
+                . self::ID . ' = ' . $oneParameter[ISqlHandler::PLACEHOLDER]
                 . ';';
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
 
@@ -125,19 +125,24 @@ namespace Assay\Core {
         public function setByNamedValue(array $namedValue):bool
         {
 
-            $result = parent::setByNamedValue( $namedValue);
+            $emptyValue = self::EMPTY_VALUE;
+            $result = parent::setByNamedValue($namedValue);
 
-            $code = Common::setIfExists(self::CODE, $namedValue, self::EMPTY_VALUE);
-            if($code!=self::EMPTY_VALUE){
+            $code = trim(Common::setIfExists(self::CODE, $namedValue, $emptyValue));
+            if ($code != $emptyValue) {
                 $this->code = $code;
             }
-            $description = Common::setIfExists(self::DESCRIPTION, $namedValue, self::EMPTY_VALUE);
-            if($description!=self::EMPTY_VALUE){
-                $this->description = $description;
+            $isNull = is_null($code);
+            if ($isNull) {
+                $this->code = $emptyValue;
             }
-            $name = Common::setIfExists(self::NAME, $namedValue, self::EMPTY_VALUE);
-            if($name!=self::EMPTY_VALUE){
+            $name = Common::setIfExists(self::NAME, $namedValue, $emptyValue);
+            if ($name != $emptyValue) {
                 $this->name = $name;
+            }
+            $description = Common::setIfExists(self::DESCRIPTION, $namedValue, $emptyValue);
+            if ($description != $emptyValue) {
+                $this->description = $description;
             }
 
             return $result;
@@ -189,11 +194,11 @@ namespace Assay\Core {
         protected function updateEntity():bool
         {
 
-            $codeParameter = SqlHandler::setBindParameter(':CODE',$this->code,\PDO::PARAM_STR);
-            $descriptionParameter = SqlHandler::setBindParameter(':DESCRIPTION',$this->description,\PDO::PARAM_STR);
-            $idParameter = SqlHandler::setBindParameter(':ID',$this->id,\PDO::PARAM_INT);
-            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN',$this->isHidden,\PDO::PARAM_INT);
-            $nameParameter = SqlHandler::setBindParameter(':NAME',$this->name,\PDO::PARAM_STR);
+            $codeParameter = SqlHandler::setBindParameter(':CODE', $this->code, \PDO::PARAM_STR);
+            $descriptionParameter = SqlHandler::setBindParameter(':DESCRIPTION', $this->description, \PDO::PARAM_STR);
+            $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', $this->isHidden, \PDO::PARAM_INT);
+            $nameParameter = SqlHandler::setBindParameter(':NAME', $this->name, \PDO::PARAM_STR);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'UPDATE '
@@ -208,7 +213,7 @@ namespace Assay\Core {
                 . ' RETURNING '
                 . self::ID
                 . ' , ' . self::IS_HIDDEN
-                . ' , ' . self::CODE
+                . ' , btrim(' . self::CODE.') AS "'.self::CODE.'"'
                 . ' , ' . self::NAME
                 . ' , ' . self::DESCRIPTION
                 . ';';
