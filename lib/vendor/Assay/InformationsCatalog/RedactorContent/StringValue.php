@@ -16,20 +16,20 @@ namespace Assay\InformationsCatalog\RedactorContent {
     /**
      * Пользовательские данные
      */
-    class AdditionalValue extends PredefinedEntity
+    class StringValue extends PredefinedEntity
     {
 
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
-        const EXTERNAL_ID = 'additional_value_id';
+        const EXTERNAL_ID = 'string_value_id';
 
         /** @var string имя таблицы БД для хранения сущности */
-        const TABLE_NAME = 'additional_value';
+        const TABLE_NAME = 'string_value';
         /** @var string имя родительсклй таблицы */
-        const PARENT_TABLE_NAME = PropertyContent::TABLE_NAME;
+        const PARENT_TABLE_NAME = AdditionalValue::TABLE_NAME;
         /** @var string колонка в родительской таблицы для ссылки из дочерней */
-        const PARENT = PropertyContent::ID;
+        const PARENT = AdditionalValue::ID;
         /** @var string колонка в дочерней таблице для ссылки на родительскую запись */
-        const CHILD = PropertyContent::EXTERNAL_ID;
+        const CHILD = AdditionalValue::EXTERNAL_ID;
 
         /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
@@ -40,17 +40,13 @@ namespace Assay\InformationsCatalog\RedactorContent {
         /** @var string колонка в дочерней таблице для связи с родительской */
         protected $childColumn = self::CHILD;
 
-        /** @var string колонка для ссылки на пользователя информационного каталога */
-        const REDACTOR = Redactor::EXTERNAL_ID;
         /** @var string значение свойства */
-        const VALUE = 'value';
+        const STRING = 'string';
 
         /** @var string ссылка на содержимое свойства */
         public $linkToParent = self::EMPTY_VALUE;
-        /** @var string редактор */
-        public $redactorId = self::EMPTY_VALUE;
         /** @var string дополнительное значение свойства */
-        public $value = self::EMPTY_VALUE;
+        public $string = self::EMPTY_VALUE;
 
         /** Добавить дочернюю сущность
          * @return bool успех выполнения
@@ -60,56 +56,15 @@ namespace Assay\InformationsCatalog\RedactorContent {
             $isSuccess = $this->insertPredefined();
             return $isSuccess;
         }
-        
-        /** вставить в таблицу запись дочерней сущности
-         * @return bool успех выполнения
-         */
-        protected function insertPredefined():bool
-        {
-            $parentParameter = SqlHandler::setBindParameter(':PARENT', $this->linkToParent, \PDO::PARAM_INT);
-            $redactorParameter = SqlHandler::setBindParameter(':REDACTOR', $this->redactorId, \PDO::PARAM_INT);
-
-            $arguments[ISqlHandler::QUERY_TEXT] =
-                'INSERT INTO  ' . $this->tablename
-                . ' ('
-                . $this->childColumn
-                . ' , ' . self::REDACTOR
-                . ')'
-                . ' VALUES  ('
-                . $parentParameter[ISqlHandler::PLACEHOLDER]
-                . ' , ' . $redactorParameter[ISqlHandler::PLACEHOLDER]
-                . ')'
-                . ' RETURNING '
-                . self::ID
-                . ' , ' . $this->childColumn
-                . ' , ' . self::REDACTOR
-                . ';';
-
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $parentParameter;
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $redactorParameter;
-
-            $parent = SqlHandler::writeOneRecord($arguments);
-
-            $isSuccess = $parent != ISqlHandler::EMPTY_ARRAY;
-            if ($isSuccess) {
-                $isSuccess = $this->setByNamedValue($parent);
-            }
-
-            return $isSuccess;
-        }
 
         public function setByNamedValue(array $namedValue):bool
         {
 
             $result = parent::setByNamedValue($namedValue);
 
-            $redactor = Common::setIfExists(self::REDACTOR, $namedValue, self::EMPTY_VALUE);
-            if ($redactor != self::EMPTY_VALUE) {
-                $this->redactorId = $redactor;
-            }
-            $value = Common::setIfExists(self::VALUE, $namedValue, self::EMPTY_VALUE);
-            if ($value != self::EMPTY_VALUE) {
-                $this->value = $value;
+            $string = Common::setIfExists(self::STRING, $namedValue, self::EMPTY_VALUE);
+            if ($string != self::EMPTY_VALUE) {
+                $this->string = $string;
             }
 
             return $result;
@@ -122,8 +77,7 @@ namespace Assay\InformationsCatalog\RedactorContent {
         {
             $result = parent::toEntity();
 
-            $result[self::REDACTOR] = $this->redactorId;
-            $result[self::VALUE] = $this->value;
+            $result[self::STRING] = $this->string;
 
             return $result;
         }
@@ -140,8 +94,7 @@ namespace Assay\InformationsCatalog\RedactorContent {
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
                 . self::ID
-                . ' , ' . self::REDACTOR
-                . ' , ' . self::VALUE
+                . ' , ' . self::STRING
                 . ' , ' . self::IS_HIDDEN
                 . ' , ' . $this->childColumn
                 . ' FROM '
@@ -168,7 +121,7 @@ namespace Assay\InformationsCatalog\RedactorContent {
         {
             $result = false;
 
-            $stored = new AdditionalValue();
+            $stored = new StringValue();
             $wasReadStored = $stored->loadById($this->id);
 
             $storedEntity = self::EMPTY_ARRAY;
@@ -195,7 +148,7 @@ namespace Assay\InformationsCatalog\RedactorContent {
 
             $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
             $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', $this->isHidden, \PDO::PARAM_INT);
-            $valueParameter = SqlHandler::setBindParameter(':VALUE', $this->value, \PDO::PARAM_STR);
+            $stringParameter = SqlHandler::setBindParameter(':STRING', $this->string, \PDO::PARAM_STR);
 
 
             $arguments[ISqlHandler::QUERY_TEXT] =
@@ -203,20 +156,19 @@ namespace Assay\InformationsCatalog\RedactorContent {
                 . $this->tablename
                 . ' SET '
                 . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
-                . ' , ' . self::VALUE . ' = ' . $valueParameter[ISqlHandler::PLACEHOLDER]
+                . ' , ' . self::STRING . ' = ' . $stringParameter[ISqlHandler::PLACEHOLDER]
                 . ' WHERE '
                 . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
                 . ' RETURNING '
                 . self::ID
                 . ' , ' . self::IS_HIDDEN
                 . ' , ' . $this->childColumn
-                . ' , ' . self::REDACTOR
-                . ' , ' . self::VALUE
+                . ' , ' . self::STRING
                 . ';';
 
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $valueParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $stringParameter;
 
             $record = SqlHandler::writeOneRecord($arguments);
 

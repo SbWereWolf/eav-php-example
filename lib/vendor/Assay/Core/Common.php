@@ -17,7 +17,7 @@ namespace Assay\Core {
 
             $value = self::EMPTY_VALUE;
             if ($maySet) {
-                $value = $array[$key];
+                $value = self::isSetEx($array[$key],self::EMPTY_VALUE);
             }
 
             return $value;

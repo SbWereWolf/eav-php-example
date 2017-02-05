@@ -7,6 +7,7 @@
  */
 namespace Assay\InformationsCatalog\RedactorContent {
 
+    use Assay\Core\Common;
     use Assay\Core\NamedEntity;
 
     /**
@@ -22,5 +23,31 @@ namespace Assay\InformationsCatalog\RedactorContent {
 
         /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
+
+        /** Обновляет (изменяет) запись в БД
+         * @return bool успех выполнения
+         */
+        public function mutateEntity():bool
+        {
+            $result = false;
+
+            $stored = new Redactor();
+            $wasReadStored = $stored->loadById($this->id);
+
+            $storedEntity = array();
+            $entity = array();
+            if ($wasReadStored) {
+                $storedEntity = $stored->toEntity();
+                $entity = $this->toEntity();
+            }
+
+            $isContain = Common::isOneArrayContainOther($entity, $storedEntity);
+
+            if (!$isContain) {
+                $result = $this->updateEntity();
+            }
+
+            return $result;
+        }
     }
 }

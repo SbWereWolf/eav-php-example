@@ -279,4 +279,27 @@ class SqlHandler implements ISqlHandler
         
         return $records;
     }
+
+    /** Сформировать условие разбивки на страницы
+     * @param int $start с какой позиции показывать
+     * @param int $paging сколько позиций показать
+     * @return string условие разбивки на страницы
+     */
+    public static function getPagingCondition(int $start, int $paging):string
+    {
+        $pagingString = '';
+
+        $queryLimit = '';
+        if ($paging > 0) {
+            $queryLimit = " LIMIT $paging ";
+        }
+        $pagingString .= $queryLimit;
+
+        $queryOffset = '';
+        if ($start > 0) {
+            $queryOffset = "  OFFSET $start ";
+        }
+        $pagingString .= $queryOffset;
+        return $pagingString;
+    }
 }
