@@ -130,7 +130,7 @@ namespace Assay\Communication\Profile {
          */
         public function getGreetingsRole(): string
         {
-            $result = Common::EMPTY_VALUE;
+            $result = $this->code;
             return $result;
         }
 

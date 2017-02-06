@@ -50,7 +50,7 @@ namespace Assay\Core {
             $this->id = Common::setIfExists(self::ID, $record, self::EMPTY_VALUE);
             $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $record, self::EMPTY_VALUE);
 
-            $result = $this->id != self::EMPTY_VALUE &&  $this->isHidden  != self::EMPTY_VALUE;
+            $result = $this->id != self::EMPTY_VALUE &&  $this->isHidden  !== self::EMPTY_VALUE;
 
             return $result;
         }

@@ -144,9 +144,10 @@ namespace Assay\Permission\Privilege {
             $result[self::KEY] = $key;
 
             $session = new Session();
-            $id = $session->addEntity();
+            $session->addEntity();
             $result[self::ID] = $session->id;
-            $result[self::GREETINGS_ROLE] = $userProfile->getGreetingsRole();
+            $greetingsRole = $userProfile->getGreetingsRole();
+            $result[self::GREETINGS_ROLE] = $greetingsRole[NamedEntity::CODE];
             $result[self::MODE] = $userInterface->getMode();
             $result[self::PAGING] = $userInterface->getPaging();
             $result[self::COMPANY_FILTER] = $userInterface->getCompanyFilter();
