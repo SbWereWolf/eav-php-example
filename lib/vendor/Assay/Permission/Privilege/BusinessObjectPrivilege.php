@@ -12,9 +12,9 @@ namespace Assay\Permission\Privilege {
     class ObjectPrivilege extends Entity
     {
         /** @var string название таблицы */
-        const TABLE_NAME = 'privilege';
+        const TABLE_NAME = 'business_object_business_process';
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
-        const EXTERNAL_ID = 'privilege_id';
+        const EXTERNAL_ID = 'business_object_business_process_id';
 
         /** @var string колонка ссылки на бизнес объект */
         const BUSINESS_OBJECT = BusinessObject::EXTERNAL_ID;

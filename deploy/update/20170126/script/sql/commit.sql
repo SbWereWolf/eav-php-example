@@ -1,5 +1,3 @@
-DROP TABLE public.account CASCADE;
-
 CREATE TABLE public.account
 (
   id SERIAL PRIMARY KEY NOT NULL,
@@ -15,16 +13,14 @@ CREATE UNIQUE INDEX ux_account_email ON public.account (email);
 CREATE INDEX ix_account_is_hidden_id ON public.account (is_hidden ASC, id ASC);
 INSERT INTO public.account (login) VALUES ('guest');
 
-DROP TABLE public.business_process CASCADE;
-
 CREATE TABLE public.business_process
 (
   id SERIAL PRIMARY KEY NOT NULL,
-  code VARCHAR(4000) NOT NULL,
+  code CHAR(100) NOT NULL,
   insert_date TIMESTAMPTZ DEFAULT NOW(),
   update_date TIMESTAMPTZ DEFAULT NOW(),
   is_hidden INTEGER DEFAULT 0,
-  discription VARCHAR(4000)
+  discription TEXT
 );
 CREATE INDEX ix_business_process_is_hidden_code ON public.business_process (is_hidden ASC, code ASC);
 CREATE UNIQUE INDEX ux_business_process_code ON public.business_process (code);
@@ -65,16 +61,14 @@ INSERT INTO business_process (code, discription) VALUES ('add_favorite','доб�
 INSERT INTO business_process (code, discription) VALUES ('add_like','добавить лайк');
 INSERT INTO business_process (code, discription) VALUES ('add_ad','добавить объявление');
 
-DROP TABLE public.business_object CASCADE;
-
 CREATE TABLE public.business_object
 (
   id SERIAL PRIMARY KEY NOT NULL,
-  code VARCHAR(4000) NOT NULL,
+  code CHAR(100) NOT NULL,
   insert_date TIMESTAMPTZ DEFAULT NOW(),
   update_date TIMESTAMPTZ DEFAULT NOW(),
   is_hidden INTEGER DEFAULT 0,
-  discription VARCHAR(4000)
+  discription TEXT
 );
 CREATE INDEX ix_business_object_is_hidden_code ON public.business_object (is_hidden ASC, code ASC);
 CREATE UNIQUE INDEX ux_business_object_code ON public.business_object (code);
@@ -89,91 +83,85 @@ INSERT INTO business_object (code, discription) VALUES ('favorite','избран
 INSERT INTO business_object (code, discription) VALUES ('like','лайки');
 INSERT INTO business_object (code, discription) VALUES ('ad','объявления');
 
-DROP TABLE public.role CASCADE;
-
-CREATE TABLE public.role
+CREATE TABLE public.business_role
 (
   id SERIAL PRIMARY KEY NOT NULL,
-  code VARCHAR(4000) NOT NULL,
+  code CHAR(100) NOT NULL,
   insert_date TIMESTAMPTZ DEFAULT NOW(),
   update_date TIMESTAMPTZ DEFAULT NOW(),
   is_hidden INTEGER DEFAULT 0,
-  discription VARCHAR(4000)
+  discription TEXT
 );
-CREATE INDEX ix_role_is_hidden_code ON public.role (is_hidden ASC, code ASC);
-CREATE UNIQUE INDEX ux_role_code ON public.role (code);
-INSERT INTO role (code,discription) VALUES ('guest','Гость');
-INSERT INTO role (code,discription) VALUES ('user','Пользователь');
-INSERT INTO role (code,discription) VALUES ('company','Компания');
-INSERT INTO role (code,discription) VALUES ('operator','Оператор');
-INSERT INTO role (code,discription) VALUES ('redactor','Редактор');
-INSERT INTO role (code,discription) VALUES ('administrator','Администратор');
+CREATE INDEX ix_business_role_is_hidden_code ON public.business_role (is_hidden ASC, code ASC);
+CREATE UNIQUE INDEX ux_business_role_code ON public.business_role (code);
+INSERT INTO business_role (code,discription) VALUES ('guest','Гость');
+INSERT INTO business_role (code,discription) VALUES ('user','Пользователь');
+INSERT INTO business_role (code,discription) VALUES ('company','Компания');
+INSERT INTO business_role (code,discription) VALUES ('operator','Оператор');
+INSERT INTO business_role (code,discription) VALUES ('redactor','Редактор');
+INSERT INTO business_role (code,discription) VALUES ('administrator','Администратор');
 
-DROP TABLE public.privilege CASCADE;
-
-CREATE TABLE public.privilege
+CREATE TABLE public.business_object_business_process
 (
   id SERIAL PRIMARY KEY NOT NULL,
   business_process_id INTEGER NOT NULL,
   business_object_id INTEGER NOT NULL,
-  CONSTRAINT "fk_privilege_business_process_id" FOREIGN KEY (business_process_id) REFERENCES public.business_process (id) ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "fk_privilege_business_object_id" FOREIGN KEY (business_object_id) REFERENCES public.business_object (id) ON UPDATE NO ACTION ON DELETE NO ACTION
+  CONSTRAINT "fk_business_object_business_process_business_process_id" FOREIGN KEY (business_process_id) REFERENCES public.business_process (id) ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT "fk_business_object_business_process_business_object_id" FOREIGN KEY (business_object_id) REFERENCES public.business_object (id) ON UPDATE NO ACTION ON DELETE NO ACTION
 );
-CREATE UNIQUE INDEX ux_privilege_business_process_id_business_object_id ON public.privilege (business_process_id,business_object_id);
-INSERT INTO privilege (business_object_id,business_process_id)
+CREATE UNIQUE INDEX ux_business_object_business_process_business_process_id_business_object_id ON public.business_object_business_process (business_process_id,business_object_id);
+INSERT INTO business_object_business_process (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
   WHERE bo.code='account' AND bp.code IN ('mode_user','mode_company','mode_operator','mode_redactor','mode_administrator','edit_permission','user_registration','user_profile_edit','user_profile_view','user_logon','user_logout','password_reset','edit_password');
-INSERT INTO privilege (business_object_id,business_process_id)
+INSERT INTO business_object_business_process (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
   WHERE bo.code='review' AND bp.code IN ('add_review');
-INSERT INTO privilege (business_object_id,business_process_id)
+INSERT INTO business_object_business_process (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
   WHERE bo.code='catalog' AND bp.code IN ('catalog_search','structure_view','structure_add','structure_edit_user_data','structure_edit_system_data','rubric_search','rubric_view','rubric_add_common','rubric_add_self','rubric_edit_user_data','rubric_edit_system_data','rubric_edit_self_data');
-INSERT INTO privilege (business_object_id,business_process_id)
+INSERT INTO business_object_business_process (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
   WHERE bo.code='formula' AND bp.code IN ('calculate_formula');
-INSERT INTO privilege (business_object_id,business_process_id)
+INSERT INTO business_object_business_process (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
   WHERE bo.code='goods' AND bp.code IN ('add_order_goods','add_order_shipping');
-INSERT INTO privilege (business_object_id,business_process_id)
+INSERT INTO business_object_business_process (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
   WHERE bo.code='comment' AND bp.code IN ('comment_view','comment_add');
-INSERT INTO privilege (business_object_id,business_process_id)
+INSERT INTO business_object_business_process (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
   WHERE bo.code='message' AND bp.code IN ('message_add','message_view');
-INSERT INTO privilege (business_object_id,business_process_id)
+INSERT INTO business_object_business_process (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
   WHERE bo.code='favorite' AND bp.code IN ('add_favorite');
-INSERT INTO privilege (business_object_id,business_process_id)
+INSERT INTO business_object_business_process (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
   WHERE bo.code='like' AND bp.code IN ('add_like');
-INSERT INTO privilege (business_object_id,business_process_id)
+INSERT INTO business_object_business_process (business_object_id,business_process_id)
   SELECT bo.id,bp.id
   FROM business_object as bo,business_process as bp
   WHERE bo.code='ad' AND bp.code IN ('add_ad');
 
-DROP TABLE public.role_detail CASCADE;
-
-CREATE TABLE public.role_detail
+CREATE TABLE public.business_role_business_privilege
 (
   id SERIAL PRIMARY KEY NOT NULL,
-  privilege_id INTEGER NOT NULL,
-  role_id INTEGER NOT NULL,
-  CONSTRAINT "fk_role_detail_privilege_id" FOREIGN KEY (privilege_id) REFERENCES public.privilege (id) ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT "fk_role_detail_role_id" FOREIGN KEY (role_id) REFERENCES public.role (id) ON UPDATE NO ACTION ON DELETE NO ACTION
+  business_object_business_process_id INTEGER NOT NULL,
+  business_role_id INTEGER NOT NULL,
+  CONSTRAINT "fk_business_role_business_privilege_business_object_business_process_id" FOREIGN KEY (business_object_business_process_id) REFERENCES public.business_object_business_process (id) ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT "fk_business_role_business_privilege_business_role_id" FOREIGN KEY (business_role_id) REFERENCES public.business_role (id) ON UPDATE NO ACTION ON DELETE NO ACTION
 );
-CREATE UNIQUE INDEX ux_role_detail_privilege_id_role_id ON public.role_detail (privilege_id,role_id);
-INSERT INTO role_detail (role_id, privilege_id)
-  SELECT r.id,p.id FROM role as r,privilege as p,business_process as bp,business_object as bo
+CREATE UNIQUE INDEX ux_business_role_business_privilege_business_object_business_process_id_business_role_id ON public.business_role_business_privilege (business_object_business_process_id,business_role_id);
+INSERT INTO business_role_business_privilege (business_role_id, business_object_business_process_id)
+  SELECT r.id,p.id FROM business_role as r,business_object_business_process as p,business_process as bp,business_object as bo
   WHERE
     bp.id = p.business_process_id AND
     bo.id = p.business_object_id AND
@@ -186,8 +174,8 @@ INSERT INTO role_detail (role_id, privilege_id)
       (bo.code = 'comment' AND bp.code in ('comment_view'))
     );
 
-INSERT INTO role_detail (role_id, privilege_id)
-  SELECT r.id,p.id FROM role as r,privilege as p,business_process as bp,business_object as bo
+INSERT INTO business_role_business_privilege (business_role_id, business_object_business_process_id)
+  SELECT r.id,p.id FROM business_role as r,business_object_business_process as p,business_process as bp,business_object as bo
   WHERE
     bp.id = p.business_process_id AND
     bo.id = p.business_object_id AND
@@ -205,8 +193,8 @@ INSERT INTO role_detail (role_id, privilege_id)
       (bo.code = 'ad' AND bp.code in ('add_ad'))
     );
 
-INSERT INTO role_detail (role_id, privilege_id)
-  SELECT r.id,p.id FROM role as r,privilege as p,business_process as bp,business_object as bo
+INSERT INTO business_role_business_privilege (business_role_id, business_object_business_process_id)
+  SELECT r.id,p.id FROM business_role as r,business_object_business_process as p,business_process as bp,business_object as bo
   WHERE
     bp.id = p.business_process_id AND
     bo.id = p.business_object_id AND
@@ -224,8 +212,8 @@ INSERT INTO role_detail (role_id, privilege_id)
       (bo.code = 'ad' AND bp.code in ('add_ad'))
     );
 
-INSERT INTO role_detail (role_id, privilege_id)
-  SELECT r.id,p.id FROM role as r,privilege as p,business_process as bp,business_object as bo
+INSERT INTO business_role_business_privilege (business_role_id, business_object_business_process_id)
+  SELECT r.id,p.id FROM business_role as r,business_object_business_process as p,business_process as bp,business_object as bo
   WHERE
     bp.id = p.business_process_id AND
     bo.id = p.business_object_id AND
@@ -240,8 +228,8 @@ INSERT INTO role_detail (role_id, privilege_id)
       (bo.code = 'like' AND bp.code in ('add_like'))
     );
 
-INSERT INTO role_detail (role_id, privilege_id)
-  SELECT r.id,p.id FROM role as r,privilege as p,business_process as bp,business_object as bo
+INSERT INTO business_role_business_privilege (business_role_id, business_object_business_process_id)
+  SELECT r.id,p.id FROM business_role as r,business_object_business_process as p,business_process as bp,business_object as bo
   WHERE
     bp.id = p.business_process_id AND
     bo.id = p.business_object_id AND
@@ -256,8 +244,8 @@ INSERT INTO role_detail (role_id, privilege_id)
       (bo.code = 'like' AND bp.code in ('add_like'))
     );
 
-INSERT INTO role_detail (role_id, privilege_id)
-  SELECT r.id,p.id FROM role as r,privilege as p,business_process as bp,business_object as bo
+INSERT INTO business_role_business_privilege (business_role_id, business_object_business_process_id)
+  SELECT r.id,p.id FROM business_role as r,business_object_business_process as p,business_process as bp,business_object as bo
   WHERE
     bp.id = p.business_process_id AND
     bo.id = p.business_object_id AND
@@ -270,20 +258,16 @@ INSERT INTO role_detail (role_id, privilege_id)
       (bo.code = 'like' AND bp.code in ('add_like'))
     );
 
-DROP TABLE public.account_role CASCADE;
-
 CREATE TABLE public.account_role
 (
   id SERIAL PRIMARY KEY NOT NULL,
-  role_id INTEGER NOT NULL,
+  business_role_id INTEGER NOT NULL,
   account_id INTEGER NOT NULL,
-  CONSTRAINT "fk_account_role_role_id" FOREIGN KEY (role_id) REFERENCES public.role (id) ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT "fk_account_role_business_role_id" FOREIGN KEY (business_role_id) REFERENCES public.business_role (id) ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT "fk_account_role_account_id" FOREIGN KEY (account_id) REFERENCES public.account (id) ON UPDATE NO ACTION ON DELETE NO ACTION
 );
-CREATE UNIQUE INDEX ux_account_role_role_id_account_id ON public.account_role (role_id,account_id);
-INSERT INTO account_role (role_id,account_id) VALUES (1,1);
-
-DROP TABLE public.session CASCADE;
+CREATE UNIQUE INDEX ux_account_role_business_role_id_account_id ON public.account_role (business_role_id,account_id);
+INSERT INTO account_role (business_role_id,account_id) VALUES (1,1);
 
 CREATE TABLE public.session
 (
@@ -303,26 +287,22 @@ ALTER TABLE public.session
   OWNER TO assay_manager;
 CREATE INDEX ix_session_is_hidden_id ON public.session (is_hidden ASC, id ASC);
 
-DROP TABLE public.profile CASCADE;
-
 CREATE TABLE public.profile
 (
   id BIGSERIAL PRIMARY KEY NOT NULL,
   is_hidden integer DEFAULT 0,
   insert_date TIMESTAMPTZ DEFAULT NOW(),
-  code character(100),
-  name character varying(500),
-  description character varying(4000),
-  city character varying(200),
-  country character varying(200),
+  code CHAR(100),
+  name VARCHAR(4000),
+  description TEXT,
+  city VARCHAR(4000),
+  country VARCHAR(4000),
   update_date TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE UNIQUE INDEX ux_account_code ON public.profile (code);
 CREATE UNIQUE INDEX ux_account_name ON public.profile (name);
 CREATE INDEX ix_profile_is_hidden_id ON public.profile (is_hidden ASC, id ASC);
 INSERT INTO public.profile (code,name,description) VALUES ('guest','Гость','Человек, который мало чего может');
-
-DROP TABLE public.account_profile CASCADE;
 
 CREATE TABLE public.account_profile
 (
