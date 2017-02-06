@@ -19,10 +19,8 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
         /** @var string значение не определено */
         const UNDEFINED = 'UNDEFINED';
-        /** @var string целочисленный тип */
-        const INTEGER = 'INTEGER';
         /** @var string числовой тип */
-        const FLOAT = 'FLOAT';
+        const DIGITAL = 'DIGITAL';
         /** @var string символьный тип */
         const STRING = 'STRING';
 

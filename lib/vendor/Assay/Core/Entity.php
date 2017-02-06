@@ -38,19 +38,15 @@ namespace Assay\Core {
                 .' , '.self::IS_HIDDEN 
                 .' ; '
                 ;
-            $sqlWriter = new SqlHandler(ISqlHandler::DATA_WRITER);
-            $response = $sqlWriter->performQuery($arguments);
 
-            $isSuccessfulRead = SqlHandler::isNoError($response);
-            $record = self::EMPTY_ARRAY;
-            if ($isSuccessfulRead) {
-                $record = SqlHandler::getFirstRecord($response);
+            $record = SqlHandler::readOneRecord($arguments);
+
+            $result = false;
+            if ($record != ISqlHandler::EMPTY_ARRAY) {
+                $result = $this->setByNamedValue($record);
             }
 
-            $this->id = Common::setIfExists(self::ID, $record, self::EMPTY_VALUE);
-            $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $record, self::EMPTY_VALUE);
-
-            $result = $this->id != self::EMPTY_VALUE &&  $this->isHidden  !== self::EMPTY_VALUE;
+            $result = $result && $this->id != self::EMPTY_VALUE &&  $this->isHidden  != self::EMPTY_VALUE;
 
             return $result;
         }

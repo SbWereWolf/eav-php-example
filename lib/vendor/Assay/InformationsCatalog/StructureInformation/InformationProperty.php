@@ -9,8 +9,6 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
     use Assay\Core\Common;
     use Assay\Core\NamedEntity;
-    use Assay\DataAccess\ISqlHandler;
-    use Assay\DataAccess\SqlHandler;
 
     /**
      * Свойство рубрики
@@ -19,6 +17,9 @@ namespace Assay\InformationsCatalog\StructureInformation {
     {
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'information_property_id';
+
+        /** @var string имя таблицы БД для хранения сущности */
+        const TABLE_NAME = 'information_property';
 
         /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
@@ -33,9 +34,9 @@ namespace Assay\InformationsCatalog\StructureInformation {
         {
 
             $isSuccessfulByCode = parent::loadByCode($code);
-            $isSuccessfulLoadDomain = $this->loadInformationDomain();
+            $this->loadInformationDomain();
 
-            $result = $isSuccessfulByCode && $isSuccessfulLoadDomain;
+            $result = $isSuccessfulByCode;
 
             return $result;
         }
@@ -47,9 +48,9 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public function loadById(string $id):bool
         {
             $isSuccessfulById = parent::loadById($id);
-            $isSuccessfulLoadDomain = $this->loadInformationDomain();
+            $this->loadInformationDomain();
 
-            $result = $isSuccessfulById && $isSuccessfulLoadDomain;
+            $result = $isSuccessfulById;
 
             return $result;
         }
@@ -60,6 +61,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
          */
         public function setByNamedValue(array $namedValue):bool
         {
+
             parent::setByNamedValue($namedValue);
 
             $informationDomain = Common::setIfExists(self::INFORMATION_DOMAIN, $namedValue, self::EMPTY_VALUE);
@@ -115,7 +117,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 $saveResult = $this->saveInformationDomain();
             }
 
-            $result = $saveResult && $updateResult;
+            $result = $saveResult || $updateResult;
             return $result;
         }
 
@@ -125,8 +127,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public function getSearchParameter():array
         {
 
-            $result = self::EMPTY_ARRAY;
-            return $result;
+
         }
 
         /** Установить информационный домен свойства рубрики
@@ -135,12 +136,15 @@ namespace Assay\InformationsCatalog\StructureInformation {
          */
         public function setInformationDomain(string $code):bool
         {
+
             $domain = new InformationDomain();
             $isSuccess = $domain->loadByCode($code);
 
             if ($isSuccess) {
                 $this->informationDomain = $domain->id;
             }
+
+            return $isSuccess;
         }
 
         /** Загрузить идентификатор информационного домена
@@ -149,27 +153,14 @@ namespace Assay\InformationsCatalog\StructureInformation {
         private function loadInformationDomain():bool
         {
 
-            $oneParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+            $linkage = new DomainInformationProperty();
 
-            $arguments[ISqlHandler::QUERY_TEXT] =
-                'SELECT '
-                . InformationDomain::EXTERNAL_ID
-                . ' FROM '
-                . InformationPropertyDomain::TABLE_NAME
-                . ' WHERE '
-                . self::EXTERNAL_ID
-                . ' = '
-                . $oneParameter[ISqlHandler::PLACEHOLDER]
-                . ';';
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
-
-            $record = SqlHandler::readOneRecord($arguments);
-
-            if ($record != self::EMPTY_ARRAY) {
-                $this->informationDomain = Common::setIfExists(InformationDomain::ID, $record, self::EMPTY_VALUE);
+            $isSuccess = $linkage->loadByRight($this->id);
+            if ($isSuccess) {
+                $this->informationDomain = $linkage->leftId;
             }
 
-            $result = $this->informationDomain != self::EMPTY_VALUE;
+            $result = $isSuccess && $this->informationDomain != self::EMPTY_VALUE;
             return $result;
         }
 
@@ -179,22 +170,58 @@ namespace Assay\InformationsCatalog\StructureInformation {
         private function saveInformationDomain():bool
         {
 
-            $linkToThis = \Assay\DataAccess\Common::setForeignKeyParameter(self::EXTERNAL_ID, $this->id);
-            $foreignKeySet[] = $linkToThis;
+            $linkage = new DomainInformationProperty();
+            $linkage->dropLinkageByRight($this->id);
 
-            $linkage = new InformationPropertyDomain();
-            $isSuccess = $linkage->dropInnerLinkage($foreignKeySet);
-
-            if ($isSuccess) {
-                $linkToDomain = \Assay\DataAccess\Common::setForeignKeyParameter(InformationDomain::EXTERNAL_ID
-                    , $this->informationDomain);
-                $foreignKeySet[] = $linkToDomain;
-
-                $isSuccess = $linkage->addLinkage($foreignKeySet);
-            }
+            $isSuccess = $linkage->addInnerLinkage($this->informationDomain, $this->id);
 
             return $isSuccess;
 
         }
+
+        /** Получить тип поиска по свойству
+         * @return SearchType тип поиска по свойству
+         */
+        public function getPropertySearchType():SearchType
+        {
+            $domain = new InformationDomain();
+
+            $isSuccess = $domain->loadById($this->informationDomain);
+
+            $searchTypeId = self::EMPTY_VALUE;
+            if ($isSuccess) {
+                $searchTypeId = $domain->searchType;
+            }
+
+            $isSuccess = $searchTypeId != self::EMPTY_VALUE;
+            $searchType = new SearchType();
+            if ($isSuccess) {
+                $searchType->loadById($searchTypeId);
+            }
+            return $searchType;
+        }
+
+        /** Получить тип поиска по свойству
+         * @return DataType тип поиска по свойству
+         */
+        public function getPropertyDataType():DataType
+        {
+            $domain = new InformationDomain();
+            $isSuccess = $domain->loadById($this->informationDomain);
+
+            $dataTypeId = self::EMPTY_VALUE;
+            if ($isSuccess && $domain->isHidden == InformationDomain::DEFINE_AS_NOT_HIDDEN) {
+                $dataTypeId = $domain->dataType;
+            }
+
+            $isSuccess = $dataTypeId != self::EMPTY_VALUE;
+            $dataType = new DataType();
+            if ($isSuccess) {
+                $dataType->loadById($dataTypeId);
+            }
+            
+            return $dataType;
+        }
+
     }
 }

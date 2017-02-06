@@ -24,10 +24,10 @@ namespace Assay\Communication\InformationsCatalog {
         /** @var string колонка ссылки на объект каталога */
         const INFORMATION_OBJECT = InformationObject::EXTERNAL_ID;
 
-        /** @var string назнвание таблицы для хранения данных сущности */
+        /** @var string название таблицы для хранения данных сущности */
         const TABLE_NAME = 'instance_object';
 
-        /** @var string назнвание таблицы для хранения данных сущности */
+        /** @var string название таблицы для хранения данных сущности */
         protected $tablename = self::TABLE_NAME;
     }
 }

@@ -14,22 +14,22 @@ namespace Assay\InformationsCatalog\DataInformation {
     use Assay\InformationsCatalog\StructureInformation\InformationProperty;
 
     /**
-     * Значения свойства позиции рубрики
+     * Строковое значение свойства позиции рубрики
      */
-    class PropertyContent extends PredefinedEntity
+    class StringContent extends PredefinedEntity
     {
 
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
-        const EXTERNAL_ID = 'property_content_id';
+        const EXTERNAL_ID = 'string_content_id';
 
         /** @var string имя таблицы БД для хранения сущности */
-        const TABLE_NAME = 'property_content';
+        const TABLE_NAME = 'string_content';
         /** @var string имя родительсклй таблицы */
-        const PARENT_TABLE_NAME = RubricPosition::TABLE_NAME;
+        const PARENT_TABLE_NAME = PropertyContent::TABLE_NAME;
         /** @var string колонка в родительской таблицы для связи с дочерней */
-        const PARENT = RubricPosition::ID;
+        const PARENT = PropertyContent::ID;
         /** @var string имя колонки для ссылки на родительскую запись */
-        const CHILD = RubricPosition::EXTERNAL_ID;
+        const CHILD = PropertyContent::EXTERNAL_ID;
 
         /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
@@ -40,54 +40,13 @@ namespace Assay\InformationsCatalog\DataInformation {
         /** @var string колонка в дочерней таблице для связи с родительской */
         protected $childColumn = self::CHILD;
 
-        /** @var string колонка для ссылки на рубрику */
-        const PROPERTY = InformationProperty::EXTERNAL_ID;
         /** @var string значение свойства */
-        const CONTENT = 'content';
+        const STRING = 'string';
 
         /** @var string ссылка на рубрику */
         public $linkToParent = self::EMPTY_VALUE;
-        /** @var string свойство */
-        public $propertyId = self::EMPTY_VALUE;
         /** @var string значение свойства */
-        public $content = self::EMPTY_VALUE;
-
-        /** вставить в таблицу запись дочерней сущности
-         * @return bool успех выполнения
-         */
-        protected function insertPredefined():bool
-        {
-            $parentParameter = SqlHandler::setBindParameter(':PARENT', $this->linkToParent, \PDO::PARAM_INT);
-            $propertyParameter = SqlHandler::setBindParameter(':PROPERTY', $this->propertyId, \PDO::PARAM_INT);
-
-            $arguments[ISqlHandler::QUERY_TEXT] =
-                'INSERT INTO  ' . $this->tablename
-                . ' ('
-                . $this->childColumn
-                . ' , ' . self::PROPERTY
-                . ')'
-                . ' VALUES  ('
-                . $parentParameter[ISqlHandler::PLACEHOLDER]
-                . ' , ' . $propertyParameter[ISqlHandler::PLACEHOLDER]
-                . ')'
-                . ' RETURNING '
-                . self::ID
-                . ' , ' . $this->childColumn
-                . ' , ' . self::PROPERTY
-                . ';';
-
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $parentParameter;
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $propertyParameter;
-
-            $parent = SqlHandler::writeOneRecord($arguments);
-
-            $isSuccess = $parent != ISqlHandler::EMPTY_ARRAY;
-            if ($isSuccess) {
-                $isSuccess = $this->setByNamedValue($parent);
-            }
-
-            return $isSuccess;
-        }
+        public $string = self::EMPTY_VALUE;
 
         /** Прочитать запись из БД
          * @param string $id идентификатор записи
@@ -101,8 +60,7 @@ namespace Assay\InformationsCatalog\DataInformation {
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
                 . self::ID
-                . ' , ' . self::PROPERTY
-                . ' , ' . self::CONTENT
+                . ' , ' . self::STRING
                 . ' , ' . self::IS_HIDDEN
                 . ' , ' . $this->childColumn
                 . ' FROM '
@@ -127,13 +85,9 @@ namespace Assay\InformationsCatalog\DataInformation {
 
             $result = parent::setByNamedValue($namedValue);
 
-            $propertyId = Common::setIfExists(self::PROPERTY, $namedValue, self::EMPTY_VALUE);
-            if ($propertyId != self::EMPTY_VALUE) {
-                $this->propertyId = $propertyId;
-            }
-            $content = Common::setIfExists(self::CONTENT, $namedValue, self::EMPTY_VALUE);
-            if ($content != self::EMPTY_VALUE) {
-                $this->content = $content;
+            $string = Common::setIfExists(self::STRING, $namedValue, self::EMPTY_VALUE);
+            if ($string != self::EMPTY_VALUE) {
+                $this->string = $string;
             }
 
             return $result;
@@ -146,8 +100,7 @@ namespace Assay\InformationsCatalog\DataInformation {
         {
             $result = parent::toEntity();
 
-            $result[self::PROPERTY] = $this->linkToParent;
-            $result[self::CONTENT] = $this->content;
+            $result[self::STRING] = $this->string;
 
             return $result;
         }
@@ -159,7 +112,7 @@ namespace Assay\InformationsCatalog\DataInformation {
         {
             $result = false;
 
-            $stored = new PropertyContent();
+            $stored = new StringContent();
             $wasReadStored = $stored->loadById($this->id);
 
             $storedEntity = self::EMPTY_ARRAY;
@@ -186,7 +139,7 @@ namespace Assay\InformationsCatalog\DataInformation {
 
             $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
             $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', $this->isHidden, \PDO::PARAM_INT);
-            $contentParameter = SqlHandler::setBindParameter(':CONTENT', $this->content, \PDO::PARAM_STR);
+            $contentParameter = SqlHandler::setBindParameter(':STRING', $this->string, \PDO::PARAM_STR);
 
 
             $arguments[ISqlHandler::QUERY_TEXT] =
@@ -194,15 +147,14 @@ namespace Assay\InformationsCatalog\DataInformation {
                 . $this->tablename
                 . ' SET '
                 . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
-                . ' , ' . self::CONTENT . ' = ' . $contentParameter[ISqlHandler::PLACEHOLDER]
+                . ' , ' . self::STRING . ' = ' . $contentParameter[ISqlHandler::PLACEHOLDER]
                 . ' WHERE '
                 . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
                 . ' RETURNING '
                 . self::ID
                 . ' , ' . self::IS_HIDDEN
                 . ' , ' . $this->childColumn
-                . ' , ' . self::PROPERTY
-                . ' , ' . self::CONTENT
+                . ' , ' . self::STRING
                 . ';';
 
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;

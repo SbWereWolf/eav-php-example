@@ -7,6 +7,7 @@
  */
 namespace Assay\InformationsCatalog\DataInformation {
 
+    use Assay\InformationsCatalog\RedactorContent\AdditionalValue;
     use Assay\InformationsCatalog\StructureInformation\DataType;
     use Assay\InformationsCatalog\StructureInformation\InformationProperty;
     use Assay\InformationsCatalog\StructureInformation\TypeEdit;
@@ -16,27 +17,73 @@ namespace Assay\InformationsCatalog\DataInformation {
      */
     interface IRubricPosition
     {
-        
+
+        const TRANSPORTATION_CODE = 'TRANSPORTATION';
+        const GOODS_PRICING_CODE = 'GOODS_PRICING';
+
         /** Получить позицию для отображения
-         * @param string $propertyName индекс для Названия свойства
-         * @param string $propertyDescription индекс для описания свойства
+         * @param string $propertyCode код свойства
+         * @param string $content индекс для значения
+         * @param string $typeEdit индекс для типа редактирования
+         * @param string $dataType индекс для типа данных
+         * @return array массив с набором свойств
+         */
+        public function getPositionContent(
+            string $propertyCode = InformationProperty::TABLE_NAME,
+            string $content = PropertyContent::CONTENT,
+            string $typeEdit = TypeEdit::EXTERNAL_ID,
+            string $dataType = DataType::EXTERNAL_ID):array;
+
+        /** Получить позицию для отображения
+         * @param string $property код свойства
          * @param string $typeEdit индекс для типа редактирования
          * @param string $dataType индекс для типа данных
          * @param string $value индекс для значения
          * @return array массив с набором свойств
          */
-        public function getPosition(\string $propertyName = InformationProperty::NAME,
-                                    \string $propertyDescription = InformationProperty::DESCRIPTION,
-                                    \string $typeEdit = TypeEdit::EXTERNAL_ID,
-                                    \string $dataType = DataType::EXTERNAL_ID,
-                                    \string $value = PropertyContent::CONTENT):array;
+        public function getPositionValue(
+            string $property = InformationProperty::CODE,
+            string $value = AdditionalValue::VALUE,
+            string $typeEdit = TypeEdit::EXTERNAL_ID,
+            string $dataType = DataType::EXTERNAL_ID
+        ):array;
 
-        /** Выполнить поиск
-         * @param array $filterProperties параметры поиска
-         * @param int $start показать позиции результата начиная с номера
-         * @param int $paging количество для отображения
-         * @return array результаты поиска
+        /** сохранить содержание свойства
+         * @param string $content содержимое свойства
+         * @param string $dataTypeCode код свойства
+         * @return bool успех выполнения
          */
-        public function search(array $filterProperties, int $start, int $paging):array;
+        public function saveContent(string $content, string $dataTypeCode):bool;
+
+        /** Сохранить дополнительное значение
+         * @param string $value дополнительное значение свойства
+         * @param string $code код свойства
+         * @param string $redactorId идентификатор редактора
+         * @return string идентификатор добавленной позиции
+         */
+        public function saveValue(string $value, string $code, string $redactorId):string;
+
+        /** Получить свойства цены доставки
+         * @param string $value индекс для дополнительных значений
+         * @param string $code индекс для кода свойства
+         * @param string $redactor индекс для идентификатора редактора
+         * @return array свойства цены
+         */
+        public function getShippingPricing(
+            string $value = AdditionalValue::VALUE,
+            string $code = InformationProperty::CODE,
+            string $redactor = AdditionalValue::REDACTOR):array;
+
+        /** Получить свойства цены товара
+         * @param string $value индекс для дополнительных значений
+         * @param string $code индекс для кода свойства
+         * @param string $redactor индекс для идентификатора редактора
+         * @return array свойства цены
+         */
+        public function getGoodsPricing(
+            string $value = AdditionalValue::VALUE,
+            string $code = InformationProperty::CODE,
+            string $redactor = AdditionalValue::REDACTOR):array;
     }
+
 }

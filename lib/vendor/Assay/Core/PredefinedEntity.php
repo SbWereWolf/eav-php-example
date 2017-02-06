@@ -12,32 +12,32 @@ namespace Assay\Core;
 use Assay\DataAccess\ISqlHandler;
 use Assay\DataAccess\SqlHandler;
 
-class ChildEntity extends PrimitiveData implements IChildEntity
+class PredefinedEntity extends PrimitiveData implements IPredefinedEntity
 {
     /** @var string колонка для внешнего ключа ссылки на эту таблицу */
-    const EXTERNAL_ID = 'child_entity_id';
+    const EXTERNAL_ID = 'predefined_entity_id';
 
     /** @var string имя таблицы БД для хранения сущности */
-    const TABLE_NAME = 'child_entity';
+    const TABLE_NAME = 'predefined_entity';
     /** @var string имя родительсклй таблицы */
-    const PARENT_TABLE_NAME = 'child_entity_parent';
-    /** @var string колонка в родительской таблицы для связи с дочерней */
-    const PARENT_ID = 'id';
+    const PARENT_TABLE_NAME = 'parent';
+    /** @var string колонка в родительской таблице для связи с дочерней */
+    const PARENT = 'id';
     /** @var string имя в дочерней таблице для связи с родительской */
-    const PARENT = 'child_entity_parent_id';
+    const CHILD = 'parent_id';
 
     /** @var string имя таблицы БД для хранения сущности */
     protected $tablename = self::TABLE_NAME;
     /** @var string имя таблицы БД для родительской сущности */
     protected $parentTablename = self::PARENT_TABLE_NAME;
     /** @var string колонка в родительской таблицы для связи с дочерней */
-    protected $parentIdColumn = self::PARENT_ID;
-    /** @var string колонка в дочерней таблице для связи с родительской */
     protected $parentColumn = self::PARENT;
+    /** @var string колонка в дочерней таблице для связи с родительской */
+    protected $childColumn = self::CHILD;
 
 
     /** @var string ссылка на рубрику */
-    public $parentId = self::EMPTY_VALUE;
+    public $linkToParent = self::EMPTY_VALUE;
 
 
     /** Прочитать запись из БД
@@ -53,7 +53,7 @@ class ChildEntity extends PrimitiveData implements IChildEntity
             'SELECT '
             . self::ID
             . ' , ' . self::IS_HIDDEN
-            . ' , ' . $this->parentColumn
+            . ' , ' . $this->childColumn
             . ' FROM '
             . $this->tablename
             . ' WHERE '
@@ -76,9 +76,12 @@ class ChildEntity extends PrimitiveData implements IChildEntity
 
         $result = parent::setByNamedValue($namedValue);
 
-        $parent = Common::setIfExists(self::PARENT, $namedValue, self::EMPTY_VALUE);
-        if ($parent != self::EMPTY_VALUE) {
-            $this->parentId = $parent;
+        $linkToParent = Common::setIfExists($this->childColumn, $namedValue, self::EMPTY_VALUE);
+        if(is_null($linkToParent) ){
+            $linkToParent = self::EMPTY_VALUE;
+        }
+        if ($linkToParent != self::EMPTY_VALUE) {
+            $this->linkToParent = $linkToParent;
         }
 
         return $result;
@@ -90,7 +93,7 @@ class ChildEntity extends PrimitiveData implements IChildEntity
     public function toEntity():array
     {
         $result = parent::toEntity();
-        $result[self::PARENT] = $this->parentId;
+        $result[self::CHILD] = $this->linkToParent;
 
         return $result;
     }
@@ -111,7 +114,7 @@ class ChildEntity extends PrimitiveData implements IChildEntity
     {
         $result = false;
 
-        $stored = new ChildEntity();
+        $stored = new PredefinedEntity();
         $wasReadStored = $stored->loadById($this->id);
 
         $storedEntity = array();
@@ -149,7 +152,7 @@ class ChildEntity extends PrimitiveData implements IChildEntity
             . ' RETURNING '
             . self::ID
             . ' , ' . self::IS_HIDDEN
-            . ' , ' . $this->parentColumn
+            . ' , ' . $this->childColumn
             . ';';
 
 
@@ -181,7 +184,7 @@ class ChildEntity extends PrimitiveData implements IChildEntity
             . ' RETURNING '
             . self::ID
             . ' , ' . self::IS_HIDDEN
-            . ' , ' . $this->parentColumn
+            . ' , ' . $this->childColumn
             . ' ; ';
 
         $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
@@ -201,30 +204,30 @@ class ChildEntity extends PrimitiveData implements IChildEntity
     /** Добавить дочернюю сущность
      * @return bool успех выполнения
      */
-    public function addChildEntity():bool
+    public function addPredefinedEntity():bool
     {
-        $isSuccess = $this->insertChild();
+        $isSuccess = $this->insertPredefined();
         return $isSuccess;
     }
 
     /** вставить в таблицу запись дочерней сущности
      * @return bool успех выполнения
      */
-    protected function insertChild():bool
+    protected function insertPredefined():bool
     {
-        $parentParameter = SqlHandler::setBindParameter(':PARENT', $this->parentId, \PDO::PARAM_INT);
+        $parentParameter = SqlHandler::setBindParameter(':PARENT', $this->linkToParent, \PDO::PARAM_INT);
 
         $arguments[ISqlHandler::QUERY_TEXT] =
             'INSERT INTO  ' . $this->tablename
             . ' ('
-            . $this->parentColumn
+            . $this->childColumn
             . ')'
             . ' VALUES  ('
             . $parentParameter[ISqlHandler::PLACEHOLDER]
             . ')'
             . ' RETURNING '
             . self::ID
-            . ' , ' . $this->parentColumn
+            . ' , ' . $this->childColumn
             . ';';
 
         $arguments[ISqlHandler::QUERY_PARAMETER][] = $parentParameter;

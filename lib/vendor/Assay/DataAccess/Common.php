@@ -185,7 +185,7 @@ class Common implements ICommon
             $single = \Assay\Core\Common::setIfExists(self::EQUAL, $pattern, self::EMPTY_ARRAY);
             $placeholder = self::EMPTY_VALUE;
             if ($single != self::EMPTY_ARRAY) {
-                $placeholder = \Assay\Core\Common::setIfExists(self::PLACEHOLDER, $single, self::EMPTY_VALUE);
+                $placeholder = \Assay\Core\Common::setIfExists(ISqlHandler::PLACEHOLDER, $single, self::EMPTY_VALUE);
             }
             if ($placeholder != self::EMPTY_VALUE) {
                 $conditionString .= ICommon::ENUMERATION_SEPARATOR . $placeholder;

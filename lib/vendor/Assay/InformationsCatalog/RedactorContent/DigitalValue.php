@@ -3,33 +3,33 @@
  * Created by PhpStorm.
  * User: Sancho
  * Date: 10.01.2017
- * Time: 18:48
+ * Time: 18:57
  */
-namespace Assay\InformationsCatalog\DataInformation {
+namespace Assay\InformationsCatalog\RedactorContent {
 
     use Assay\Core\PredefinedEntity;
     use Assay\Core\Common;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
-    use Assay\InformationsCatalog\StructureInformation\InformationProperty;
+    use Assay\InformationsCatalog\DataInformation\PropertyContent;
 
     /**
-     * Значения свойства позиции рубрики
+     * Пользовательские данные
      */
-    class PropertyContent extends PredefinedEntity
+    class DigitalValue extends PredefinedEntity
     {
 
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
-        const EXTERNAL_ID = 'property_content_id';
+        const EXTERNAL_ID = 'digital_value_id';
 
         /** @var string имя таблицы БД для хранения сущности */
-        const TABLE_NAME = 'property_content';
+        const TABLE_NAME = 'digital_value';
         /** @var string имя родительсклй таблицы */
-        const PARENT_TABLE_NAME = RubricPosition::TABLE_NAME;
-        /** @var string колонка в родительской таблицы для связи с дочерней */
-        const PARENT = RubricPosition::ID;
-        /** @var string имя колонки для ссылки на родительскую запись */
-        const CHILD = RubricPosition::EXTERNAL_ID;
+        const PARENT_TABLE_NAME = AdditionalValue::TABLE_NAME;
+        /** @var string колонка в родительской таблицы для ссылки из дочерней */
+        const PARENT = AdditionalValue::ID;
+        /** @var string колонка в дочерней таблице для ссылки на родительскую запись */
+        const CHILD = AdditionalValue::EXTERNAL_ID;
 
         /** @var string имя таблицы БД для хранения сущности */
         protected $tablename = self::TABLE_NAME;
@@ -40,53 +40,37 @@ namespace Assay\InformationsCatalog\DataInformation {
         /** @var string колонка в дочерней таблице для связи с родительской */
         protected $childColumn = self::CHILD;
 
-        /** @var string колонка для ссылки на рубрику */
-        const PROPERTY = InformationProperty::EXTERNAL_ID;
         /** @var string значение свойства */
-        const CONTENT = 'content';
+        const DIGITAL = 'digital';
 
-        /** @var string ссылка на рубрику */
+        /** @var string ссылка на содержимое свойства */
         public $linkToParent = self::EMPTY_VALUE;
-        /** @var string свойство */
-        public $propertyId = self::EMPTY_VALUE;
-        /** @var string значение свойства */
-        public $content = self::EMPTY_VALUE;
+        /** @var string дополнительное значение свойства */
+        public $digital = self::EMPTY_VALUE;
 
-        /** вставить в таблицу запись дочерней сущности
-         * @return bool успех выполнения
-         */
-        protected function insertPredefined():bool
+        public function setByNamedValue(array $namedValue):bool
         {
-            $parentParameter = SqlHandler::setBindParameter(':PARENT', $this->linkToParent, \PDO::PARAM_INT);
-            $propertyParameter = SqlHandler::setBindParameter(':PROPERTY', $this->propertyId, \PDO::PARAM_INT);
 
-            $arguments[ISqlHandler::QUERY_TEXT] =
-                'INSERT INTO  ' . $this->tablename
-                . ' ('
-                . $this->childColumn
-                . ' , ' . self::PROPERTY
-                . ')'
-                . ' VALUES  ('
-                . $parentParameter[ISqlHandler::PLACEHOLDER]
-                . ' , ' . $propertyParameter[ISqlHandler::PLACEHOLDER]
-                . ')'
-                . ' RETURNING '
-                . self::ID
-                . ' , ' . $this->childColumn
-                . ' , ' . self::PROPERTY
-                . ';';
+            $result = parent::setByNamedValue($namedValue);
 
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $parentParameter;
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $propertyParameter;
-
-            $parent = SqlHandler::writeOneRecord($arguments);
-
-            $isSuccess = $parent != ISqlHandler::EMPTY_ARRAY;
-            if ($isSuccess) {
-                $isSuccess = $this->setByNamedValue($parent);
+            $digital = Common::setIfExists(self::DIGITAL, $namedValue, self::EMPTY_VALUE);
+            if ($digital != self::EMPTY_VALUE) {
+                $this->digital = $digital;
             }
 
-            return $isSuccess;
+            return $result;
+        }
+
+        /** Формирует массив из свойств экземпляра
+         * @return array массив свойств экземпляра
+         */
+        public function toEntity():array
+        {
+            $result = parent::toEntity();
+
+            $result[self::DIGITAL] = $this->digital;
+
+            return $result;
         }
 
         /** Прочитать запись из БД
@@ -101,8 +85,7 @@ namespace Assay\InformationsCatalog\DataInformation {
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
                 . self::ID
-                . ' , ' . self::PROPERTY
-                . ' , ' . self::CONTENT
+                . ' , ' . self::DIGITAL
                 . ' , ' . self::IS_HIDDEN
                 . ' , ' . $this->childColumn
                 . ' FROM '
@@ -121,36 +104,6 @@ namespace Assay\InformationsCatalog\DataInformation {
 
             return $result;
         }
-        
-        public function setByNamedValue(array $namedValue):bool
-        {
-
-            $result = parent::setByNamedValue($namedValue);
-
-            $propertyId = Common::setIfExists(self::PROPERTY, $namedValue, self::EMPTY_VALUE);
-            if ($propertyId != self::EMPTY_VALUE) {
-                $this->propertyId = $propertyId;
-            }
-            $content = Common::setIfExists(self::CONTENT, $namedValue, self::EMPTY_VALUE);
-            if ($content != self::EMPTY_VALUE) {
-                $this->content = $content;
-            }
-
-            return $result;
-        }
-
-        /** Формирует массив из свойств экземпляра
-         * @return array массив свойств экземпляра
-         */
-        public function toEntity():array
-        {
-            $result = parent::toEntity();
-
-            $result[self::PROPERTY] = $this->linkToParent;
-            $result[self::CONTENT] = $this->content;
-
-            return $result;
-        }
 
         /** Обновляет (изменяет) запись в БД
          * @return bool успех выполнения
@@ -159,7 +112,7 @@ namespace Assay\InformationsCatalog\DataInformation {
         {
             $result = false;
 
-            $stored = new PropertyContent();
+            $stored = new DigitalValue();
             $wasReadStored = $stored->loadById($this->id);
 
             $storedEntity = self::EMPTY_ARRAY;
@@ -186,7 +139,7 @@ namespace Assay\InformationsCatalog\DataInformation {
 
             $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
             $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', $this->isHidden, \PDO::PARAM_INT);
-            $contentParameter = SqlHandler::setBindParameter(':CONTENT', $this->content, \PDO::PARAM_STR);
+            $stringParameter = SqlHandler::setBindParameter(':DIGITAL', $this->digital, \PDO::PARAM_STR);
 
 
             $arguments[ISqlHandler::QUERY_TEXT] =
@@ -194,20 +147,19 @@ namespace Assay\InformationsCatalog\DataInformation {
                 . $this->tablename
                 . ' SET '
                 . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
-                . ' , ' . self::CONTENT . ' = ' . $contentParameter[ISqlHandler::PLACEHOLDER]
+                . ' , ' . self::DIGITAL . ' = ' . $stringParameter[ISqlHandler::PLACEHOLDER]
                 . ' WHERE '
                 . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
                 . ' RETURNING '
                 . self::ID
                 . ' , ' . self::IS_HIDDEN
                 . ' , ' . $this->childColumn
-                . ' , ' . self::PROPERTY
-                . ' , ' . self::CONTENT
+                . ' , ' . self::DIGITAL
                 . ';';
 
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $contentParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $stringParameter;
 
             $record = SqlHandler::writeOneRecord($arguments);
 
@@ -217,6 +169,5 @@ namespace Assay\InformationsCatalog\DataInformation {
             }
             return $result;
         }
-
     }
 }

@@ -11,9 +11,7 @@ namespace Assay\InformationsCatalog\StructureInformation;
 
 interface IInformationProperty
 {
-    /** @var string имя таблицы БД для хранения сущности */
-    const TABLE_NAME = 'information_property';
-    
+
     /** @var string колонка для внешнего ключа ссылки на информационный домен */
     const INFORMATION_DOMAIN = InformationDomain::EXTERNAL_ID;
 
@@ -27,4 +25,15 @@ interface IInformationProperty
      * @return bool успех выполнения
      */
     public function setInformationDomain(string $code):bool;
+
+    /** Получить тип поиска по свойству
+     * @return SearchType тип поиска по свойству
+     */
+    public function getPropertySearchType():SearchType;
+
+    /** Получить тип поиска по свойству
+     * @return DataType тип поиска по свойству
+     */
+    public function getPropertyDataType():DataType;
+
 }

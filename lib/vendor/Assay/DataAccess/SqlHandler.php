@@ -151,13 +151,19 @@ class SqlHandler implements ISqlHandler
             $response,
             Common::EMPTY_VALUE);
 
-        $responseValue = array();
+        $responseValue = self::EMPTY_ARRAY;
         if ($records != Common::EMPTY_VALUE) {
             $responseIndex = 0;
             $responseValue = Common::setIfExists($responseIndex,
                 $records,
                 array());
         }
+
+        $isArray = is_array($responseValue);
+        if(!$isArray){
+            $responseValue = self::EMPTY_ARRAY;
+        }
+        
         return $responseValue;
     }
 
@@ -272,5 +278,28 @@ class SqlHandler implements ISqlHandler
         }
         
         return $records;
+    }
+
+    /** Сформировать условие разбивки на страницы
+     * @param int $start с какой позиции показывать
+     * @param int $paging сколько позиций показать
+     * @return string условие разбивки на страницы
+     */
+    public static function getPagingCondition(int $start, int $paging):string
+    {
+        $pagingString = '';
+
+        $queryLimit = '';
+        if ($paging > 0) {
+            $queryLimit = " LIMIT $paging ";
+        }
+        $pagingString .= $queryLimit;
+
+        $queryOffset = '';
+        if ($start > 0) {
+            $queryOffset = "  OFFSET $start ";
+        }
+        $pagingString .= $queryOffset;
+        return $pagingString;
     }
 }

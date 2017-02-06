@@ -19,7 +19,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         const EXTERNAL_ID = 'structure_id';
 
         /** @var string родительский элемент */
-        const PARENT = self::EXTERNAL_ID;
+        const CHILD = self::EXTERNAL_ID;
 
         /** Добавить дочерний элемент
          * @return string идентификатор добавленого элемента
@@ -35,7 +35,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         /** Получить получить идентификатор ролительского элемнта
          * @return string идентификатор
          */
-        public function getParent():string;
+        public function getLinkToParent():string;
 
         /** Проверить что является разделом
          * @return bool успех проверки
@@ -79,6 +79,6 @@ namespace Assay\InformationsCatalog\StructureInformation {
          * @param string $parentCode
          * @return bool успех выполнения
          */
-        public function setParent(string $parentCode):bool;
+        public function setLinkToParent(string $parentCode):bool;
     }
 }
