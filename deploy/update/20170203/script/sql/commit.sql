@@ -102,10 +102,12 @@ CREATE TABLE public.role
 (
   id          SERIAL PRIMARY KEY NOT NULL,
   code        VARCHAR(4000)      NOT NULL,
+  name VARCHAR(4000),
+  discription TEXT,
   insert_date TIMESTAMPTZ DEFAULT NOW(),
   update_date TIMESTAMPTZ DEFAULT NOW(),
-  is_hidden   INTEGER     DEFAULT 0,
-  discription VARCHAR(4000)
+  is_hidden   INTEGER     DEFAULT 0
+
 );
 CREATE INDEX ix_role_is_hidden_code ON public.role (is_hidden ASC, code ASC);
 CREATE UNIQUE INDEX ux_role_code ON public.role (code);
@@ -627,8 +629,72 @@ COMMENT ON COLUMN additional_value.property_content_id IS 'содержание 
 CREATE INDEX ix_additional_value_is_hidden_id ON additional_value (is_hidden, id);
 CREATE INDEX ix_additional_value_is_hidden_redactor ON additional_value (is_hidden, redactor_id);
 
-INSERT INTO public.data_type (code, name, description) VALUES ('INTEGER', 'целочисленный тип', 'целочисленный тип');
-INSERT INTO public.data_type (code, name, description) VALUES ('FLOAT', 'числовой тип', 'числовой тип');
+CREATE TABLE string_value
+(
+  additional_value_id INTEGER NOT NULL,
+  id SERIAL PRIMARY KEY NOT NULL,
+  string VARCHAR(4000),
+  is_hidden INTEGER DEFAULT 0,
+  insert_date TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  CONSTRAINT fk_string_value_additional_value_id FOREIGN KEY (additional_value_id) REFERENCES additional_value (id)
+);
+COMMENT ON COLUMN string_value.additional_value_id IS 'ссылка на запись допольнительного значения';
+COMMENT ON COLUMN string_value.id IS 'идентификатор';
+COMMENT ON COLUMN string_value.string IS 'строковое дополнительное значение';
+COMMENT ON COLUMN string_value.is_hidden IS 'флаг "является скрытым"';
+COMMENT ON COLUMN string_value.insert_date IS 'дата добавления записи';
+CREATE INDEX ix_string_value_is_hidden_id ON string_value (is_hidden, id);
+
+CREATE TABLE digital_value
+(
+  additional_value_id INTEGER NOT NULL,
+  id SERIAL PRIMARY KEY NOT NULL,
+  digital DOUBLE PRECISION,
+  is_hidden INTEGER DEFAULT 0,
+  insert_date TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  CONSTRAINT fk_digital_value_additional_value_id FOREIGN KEY (additional_value_id) REFERENCES additional_value (id)
+);
+COMMENT ON COLUMN digital_value.additional_value_id IS 'ссылка на запись допольнительного значения';
+COMMENT ON COLUMN digital_value.id IS 'идентификатор';
+COMMENT ON COLUMN digital_value.digital IS 'числовое дополнительное значение';
+COMMENT ON COLUMN digital_value.is_hidden IS 'флаг "является скрытым"';
+COMMENT ON COLUMN digital_value.insert_date IS 'дата добавления записи';
+CREATE INDEX ix_digital_value_is_hidden_id ON digital_value (is_hidden, id);
+
+CREATE TABLE string_content
+(
+  property_content_id INTEGER NOT NULL,
+  id SERIAL PRIMARY KEY NOT NULL,
+  string VARCHAR(4000),
+  is_hidden INTEGER DEFAULT 0,
+  insert_date TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  CONSTRAINT fk_string_content_property_content_id FOREIGN KEY (property_content_id) REFERENCES property_content (id)
+);
+COMMENT ON COLUMN string_content.property_content_id IS 'ссылка на запись допольнительного значения';
+COMMENT ON COLUMN string_content.id IS 'идентификатор';
+COMMENT ON COLUMN string_content.string IS 'строковое дополнительное значение';
+COMMENT ON COLUMN string_content.is_hidden IS 'флаг "является скрытым"';
+COMMENT ON COLUMN string_content.insert_date IS 'дата добавления записи';
+CREATE INDEX ix_string_content_is_hidden_id ON string_content (is_hidden, id);
+
+CREATE TABLE digital_content
+(
+  property_content_id INTEGER NOT NULL,
+  id SERIAL PRIMARY KEY NOT NULL,
+  digital DOUBLE PRECISION,
+  is_hidden INTEGER DEFAULT 0,
+  insert_date TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  CONSTRAINT fk_digital_content_property_content_id FOREIGN KEY (property_content_id) REFERENCES property_content (id)
+);
+COMMENT ON COLUMN digital_content.property_content_id IS 'ссылка на запись допольнительного значения';
+COMMENT ON COLUMN digital_content.id IS 'идентификатор';
+COMMENT ON COLUMN digital_content.digital IS 'числовое дополнительное значение';
+COMMENT ON COLUMN digital_content.is_hidden IS 'флаг "является скрытым"';
+COMMENT ON COLUMN digital_content.insert_date IS 'дата добавления записи';
+CREATE INDEX ix_digital_content_is_hidden_id ON digital_content (is_hidden, id);
+
+
+INSERT INTO public.data_type (code, name, description) VALUES ('DIGITAL', 'числовой тип', 'числовой тип');
 INSERT INTO public.data_type (code, name, description) VALUES ('STRING', 'символьный тип', 'символьный тип');
 
 INSERT INTO public.search_type (code, name, description)
@@ -691,9 +757,9 @@ INSERT INTO public.information_domain (code, name, description, type_edit_id, se
      WHERE DT.CODE = 'STRING');
 INSERT INTO public.information_domain (code, name, description, type_edit_id, search_type_id, data_type_id)
   SELECT
-    'SYSTEM_ENUMERATION',
-    'Системный перечисление',
-    'Системный перечисление',
+    'SYSTEM_STRING_ENUMERATION',
+    'Системный строковое перечисление',
+    'Системный строковое перечисление',
     (SELECT TE.id
      FROM type_edit AS TE
      WHERE TE.CODE = 'SYSTEM'),
@@ -706,9 +772,9 @@ INSERT INTO public.information_domain (code, name, description, type_edit_id, se
 
 INSERT INTO public.information_domain (code, name, description, type_edit_id, search_type_id, data_type_id)
   SELECT
-    'USER_ENUMERATION',
-    'Пользовательский перечисление',
-    'Пользовательский перечисление',
+    'USER_STRING_ENUMERATION',
+    'Пользовательский строковое перечисление',
+    'Пользовательский строковое перечисление',
     (SELECT TE.id
      FROM type_edit AS TE
      WHERE TE.CODE = 'USER'),
@@ -720,9 +786,9 @@ INSERT INTO public.information_domain (code, name, description, type_edit_id, se
      WHERE DT.CODE = 'STRING');
 INSERT INTO public.information_domain (code, name, description, type_edit_id, search_type_id, data_type_id)
   SELECT
-    'COMPANY_ENUMERATION',
-    'Компании перечисление',
-    'Компании перечисление',
+    'COMPANY_STRING_ENUMERATION',
+    'Компании строковое перечисление',
+    'Компании строковое перечисление',
     (SELECT TE.id
      FROM type_edit AS TE
      WHERE TE.CODE = 'COMPANY'),
@@ -732,9 +798,55 @@ INSERT INTO public.information_domain (code, name, description, type_edit_id, se
     (SELECT DT.id
      FROM data_type AS DT
      WHERE DT.CODE = 'STRING');
+
 INSERT INTO public.information_domain (code, name, description, type_edit_id, search_type_id, data_type_id)
   SELECT
-    'SYSTEM_BETWEEN_INTEGER',
+    'SYSTEM_DIGITAL_ENUMERATION',
+    'Системный числовое перечисление',
+    'Системный числовое перечисление',
+    (SELECT TE.id
+     FROM type_edit AS TE
+     WHERE TE.CODE = 'SYSTEM'),
+    (SELECT ST.id
+     FROM search_type AS ST
+     WHERE ST.CODE = 'ENUMERATION'),
+    (SELECT DT.id
+     FROM data_type AS DT
+     WHERE DT.CODE = 'DIGITAL');
+
+INSERT INTO public.information_domain (code, name, description, type_edit_id, search_type_id, data_type_id)
+  SELECT
+    'USER_DIGITAL_ENUMERATION',
+    'Пользовательский числовое перечисление',
+    'Пользовательский числовое перечисление',
+    (SELECT TE.id
+     FROM type_edit AS TE
+     WHERE TE.CODE = 'USER'),
+    (SELECT ST.id
+     FROM search_type AS ST
+     WHERE ST.CODE = 'ENUMERATION'),
+    (SELECT DT.id
+     FROM data_type AS DT
+     WHERE DT.CODE = 'DIGITAL');
+INSERT INTO public.information_domain (code, name, description, type_edit_id, search_type_id, data_type_id)
+  SELECT
+    'COMPANY_DIGITAL_ENUMERATION',
+    'Компании числовое перечисление',
+    'Компании числовое перечисление',
+    (SELECT TE.id
+     FROM type_edit AS TE
+     WHERE TE.CODE = 'COMPANY'),
+    (SELECT ST.id
+     FROM search_type AS ST
+     WHERE ST.CODE = 'ENUMERATION'),
+    (SELECT DT.id
+     FROM data_type AS DT
+     WHERE DT.CODE = 'DIGITAL');
+
+
+INSERT INTO public.information_domain (code, name, description, type_edit_id, search_type_id, data_type_id)
+  SELECT
+    'SYSTEM_BETWEEN_DIGITAL',
     'Системные диапазон',
     'Системные диапазон',
     (SELECT TE.id
@@ -745,10 +857,10 @@ INSERT INTO public.information_domain (code, name, description, type_edit_id, se
      WHERE ST.CODE = 'BETWEEN'),
     (SELECT DT.id
      FROM data_type AS DT
-     WHERE DT.CODE = 'INTEGER');
+     WHERE DT.CODE = 'DIGITAL');
 INSERT INTO public.information_domain (code, name, description, type_edit_id, search_type_id, data_type_id)
   SELECT
-    'USER_BETWEEN_INTEGER',
+    'USER_BETWEEN_DIGITAL',
     'Пользовательский диапазон',
     'Пользовательский диапазон',
     (SELECT TE.id
@@ -759,10 +871,10 @@ INSERT INTO public.information_domain (code, name, description, type_edit_id, se
      WHERE ST.CODE = 'BETWEEN'),
     (SELECT DT.id
      FROM data_type AS DT
-     WHERE DT.CODE = 'INTEGER');
+     WHERE DT.CODE = 'DIGITAL');
 INSERT INTO public.information_domain (code, name, description, type_edit_id, search_type_id, data_type_id)
   SELECT
-    'COMPANY_BETWEEN_INTEGER',
+    'COMPANY_BETWEEN_DIGITAL',
     'Диапазон компании',
     'Диапазон компании',
     (SELECT TE.id
@@ -773,49 +885,7 @@ INSERT INTO public.information_domain (code, name, description, type_edit_id, se
      WHERE ST.CODE = 'BETWEEN'),
     (SELECT DT.id
      FROM data_type AS DT
-     WHERE DT.CODE = 'INTEGER');
-INSERT INTO public.information_domain (code, name, description, type_edit_id, search_type_id, data_type_id)
-  SELECT
-    'SYSTEM_BETWEEN_FLOAT',
-    'Системные диапазон',
-    'Системные диапазон',
-    (SELECT TE.id
-     FROM type_edit AS TE
-     WHERE TE.CODE = 'SYSTEM'),
-    (SELECT ST.id
-     FROM search_type AS ST
-     WHERE ST.CODE = 'BETWEEN'),
-    (SELECT DT.id
-     FROM data_type AS DT
-     WHERE DT.CODE = 'FLOAT');
-INSERT INTO public.information_domain (code, name, description, type_edit_id, search_type_id, data_type_id)
-  SELECT
-    'USER_BETWEEN_FLOAT',
-    'Пользовательский диапазон',
-    'Пользовательский диапазон',
-    (SELECT TE.id
-     FROM type_edit AS TE
-     WHERE TE.CODE = 'USER'),
-    (SELECT ST.id
-     FROM search_type AS ST
-     WHERE ST.CODE = 'BETWEEN'),
-    (SELECT DT.id
-     FROM data_type AS DT
-     WHERE DT.CODE = 'FLOAT');
-INSERT INTO public.information_domain (code, name, description, type_edit_id, search_type_id, data_type_id)
-  SELECT
-    'COMPANY_BETWEEN_FLOAT',
-    'Диапазон компании',
-    'Диапазон компании',
-    (SELECT TE.id
-     FROM type_edit AS TE
-     WHERE TE.CODE = 'COMPANY'),
-    (SELECT ST.id
-     FROM search_type AS ST
-     WHERE ST.CODE = 'BETWEEN'),
-    (SELECT DT.id
-     FROM data_type AS DT
-     WHERE DT.CODE = 'FLOAT');
+     WHERE DT.CODE = 'DIGITAL');
 
 INSERT INTO public.rubric (code, name, description)
 VALUES ('TRANSPORTATION', 'цены на грузоперевозки', 'Настройки цен на грузоперевозки');
@@ -825,7 +895,7 @@ VALUES ('GOODS_PRICING', 'цены на поставку', 'Настройки �
 INSERT INTO public.information_property (name, description, code)
 VALUES ('Цена за км', 'Цена за километр', 'TRANSPORTATION_PRICE_KM');
 INSERT INTO public.information_property (name, description, code)
-VALUES ('Цена за тонну', 'Цена за тонну', 'TRANSPORTATION_PRICE_TONN');
+VALUES ('Цена за тонну', 'Цена за тонну', 'TRANSPORTATION_PRICE_TON');
 INSERT INTO public.information_property (name, description, code)
 VALUES ('Цена', 'Цена за единицу товара', 'GOODS_PRICE');
 INSERT INTO public.information_property (name, description, code)
@@ -838,15 +908,15 @@ INSERT INTO public.information_property_information_domain (information_domain_i
      WHERE code = 'TRANSPORTATION_PRICE_KM'),
     (SELECT id
      FROM information_domain
-     WHERE code = 'USER_BETWEEN_FLOAT');
+     WHERE code = 'USER_BETWEEN_DIGITAL');
 INSERT INTO public.information_property_information_domain (information_domain_id, information_property_id)
   SELECT
     (SELECT id
      FROM information_property
-     WHERE code = 'TRANSPORTATION_PRICE_TONN'),
+     WHERE code = 'TRANSPORTATION_PRICE_TON'),
     (SELECT id
      FROM information_domain
-     WHERE code = 'USER_BETWEEN_FLOAT');
+     WHERE code = 'USER_BETWEEN_DIGITAL');
 INSERT
 INTO public.information_property_information_domain (information_domain_id, information_property_id)
   SELECT
@@ -855,7 +925,7 @@ INTO public.information_property_information_domain (information_domain_id, info
      WHERE code = 'GOODS_PRICE'),
     (SELECT id
      FROM information_domain
-     WHERE code = 'USER_BETWEEN_FLOAT');
+     WHERE code = 'USER_BETWEEN_DIGITAL');
 INSERT INTO public.information_property_information_domain (information_domain_id, information_property_id)
   SELECT
     (SELECT id
@@ -863,7 +933,7 @@ INSERT INTO public.information_property_information_domain (information_domain_i
      WHERE code = 'GOODS_UNITS_OF_MEASURE'),
     (SELECT id
      FROM information_domain
-     WHERE code = 'USER_ENUMERATION');
+     WHERE code = 'USER_STRING_ENUMERATION');
 INSERT INTO public.rubric_information_property (rubric_id, information_property_id)
   SELECT
     (SELECT id
@@ -880,7 +950,7 @@ INSERT INTO public.rubric_information_property (rubric_id, information_property_
     (SELECT id
      FROM information_property
      WHERE code =
-           'TRANSPORTATION_PRICE_TONN');
+           'TRANSPORTATION_PRICE_TON');
 INSERT INTO public.rubric_information_property (rubric_id, information_property_id)
   SELECT
     (SELECT id

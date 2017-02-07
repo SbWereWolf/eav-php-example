@@ -19,7 +19,7 @@ namespace Assay\InformationsCatalog\DataInformation {
     {
 
         const TRANSPORTATION_CODE = 'TRANSPORTATION';
-        const GOODS_PRISING_CODE = 'GOODS_PRISING';
+        const GOODS_PRICING_CODE = 'GOODS_PRICING';
 
         /** Получить позицию для отображения
          * @param string $propertyCode код свойства
@@ -50,10 +50,10 @@ namespace Assay\InformationsCatalog\DataInformation {
 
         /** сохранить содержание свойства
          * @param string $content содержимое свойства
-         * @param string $code код свойства
+         * @param string $dataTypeCode код свойства
          * @return bool успех выполнения
          */
-        public function saveContent(string $content, string $code):bool;
+        public function saveContent(string $content, string $dataTypeCode):bool;
 
         /** Сохранить дополнительное значение
          * @param string $value дополнительное значение свойства

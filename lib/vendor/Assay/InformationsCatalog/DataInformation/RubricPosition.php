@@ -14,7 +14,9 @@ namespace Assay\InformationsCatalog\DataInformation {
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
     use Assay\InformationsCatalog\RedactorContent\AdditionalValue;
+    use Assay\InformationsCatalog\RedactorContent\DigitalValue;
     use Assay\InformationsCatalog\RedactorContent\Redactor;
+    use Assay\InformationsCatalog\RedactorContent\StringValue;
     use Assay\InformationsCatalog\StructureInformation\DataType;
     use Assay\InformationsCatalog\StructureInformation\DomainInformationProperty;
     use Assay\InformationsCatalog\StructureInformation\InformationDomain;
@@ -37,7 +39,7 @@ namespace Assay\InformationsCatalog\DataInformation {
         const TABLE_NAME = 'rubric_position';
         /** @var string имя родительсклй таблицы */
         const PARENT_TABLE_NAME = Rubric::TABLE_NAME;
-        /** @var string колонка в родительской таблицы для связи с дочерней */
+        /** @var string колонка в родительской таблице для связи с дочерней */
         const PARENT = Rubric::ID;
         /** @var string колонка в дочерней таблице для связи с родительской */
         const CHILD = Rubric::EXTERNAL_ID;
@@ -75,19 +77,20 @@ namespace Assay\InformationsCatalog\DataInformation {
 
             $result = parent::setByNamedValue($namedValue);
 
-            $code = Core\Common::setIfExists(self::CODE, $namedValue, self::EMPTY_VALUE);
-            if ($code != self::EMPTY_VALUE) {
+            $emptyValue = self::EMPTY_VALUE;
+
+            $code = trim(Core\Common::setIfExists(self::CODE, $namedValue, $emptyValue));
+            if ($code != $emptyValue) {
                 $this->code = $code;
             }
 
-            $description = Core\Common::setIfExists(self::DESCRIPTION, $namedValue, self::EMPTY_VALUE);
-            if ($description != self::EMPTY_VALUE) {
-                $this->description = $description;
-            }
-
-            $name = Core\Common::setIfExists(self::NAME, $namedValue, self::EMPTY_VALUE);
-            if ($name != self::EMPTY_VALUE) {
+            $name = Core\Common::setIfExists(self::NAME, $namedValue, $emptyValue);
+            if ($name != $emptyValue) {
                 $this->name = $name;
+            }
+            $description = Core\Common::setIfExists(self::DESCRIPTION, $namedValue, $emptyValue);
+            if ($description != $emptyValue) {
+                $this->description = $description;
             }
 
             return $result;
@@ -113,9 +116,10 @@ namespace Assay\InformationsCatalog\DataInformation {
          * @param string $description значение ключа для свойства описание
          * @return array массив с именем и описанием
          */
-        public function getElementDescription(string $code = INamedEntity::CODE,
-                                              string $name = INamedEntity::NAME,
-                                              string $description = INamedEntity::DESCRIPTION):array
+        public function getElementDescription(
+            string $code = INamedEntity::CODE,
+            string $name = INamedEntity::NAME,
+            string $description = INamedEntity::DESCRIPTION):array
         {
             $result[$code] = $this->code;
             $result[$name] = $this->name;
@@ -143,10 +147,10 @@ namespace Assay\InformationsCatalog\DataInformation {
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' SELECT '
-                . ' TE.' . TypeEdit::ID . ' AS ' . $typeEdit
-                . ' , DT.' . DataType::ID . ' AS ' . $dataType
-                . ' , C.' . PropertyContent::CONTENT . ' AS ' . $content
-                . ' , P.' . InformationProperty::CODE .' AS '. $propertyCode
+                . ' TE.' . TypeEdit::ID . ' AS "' . $typeEdit . '"'
+                . ' , DT.' . DataType::ID . ' AS "' . $dataType . '"'
+                . ' , C.' . PropertyContent::CONTENT . ' AS "' . $content . '"'
+                . ' , btrim(P.' . InformationProperty::CODE . ') AS "' . $propertyCode . '"'
 
                 . ' FROM '
                 . $this->tablename . ' AS RP '
@@ -209,7 +213,7 @@ namespace Assay\InformationsCatalog\DataInformation {
                 ' SELECT '
                 . ' TE.' . TypeEdit::ID . ' AS ' . $typeEdit
                 . ' , DT.' . DataType::ID . ' AS ' . $dataType
-                . ' , P.' . InformationProperty::CODE . ' AS ' . $property
+                . ' , btrim(P.' . InformationProperty::CODE . ') AS ' . $property
                 . ' , V.' . AdditionalValue::VALUE . ' AS ' . $value
 
                 . ' FROM '
@@ -266,7 +270,7 @@ namespace Assay\InformationsCatalog\DataInformation {
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
                 . self::ID
-                . ' , ' . self::CODE
+                . ' , btrim(' . self::CODE.') AS "'.self::CODE.'"'
                 . ' , ' . self::NAME
                 . ' , ' . self::DESCRIPTION
                 . ' , ' . self::IS_HIDDEN
@@ -301,7 +305,7 @@ namespace Assay\InformationsCatalog\DataInformation {
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
                 . self::ID
-                . ' , ' . self::CODE
+                . ' , btrim(' . self::CODE.') AS "'.self::CODE.'"'
                 . ' , ' . self::NAME
                 . ' , ' . self::DESCRIPTION
                 . ' , ' . self::IS_HIDDEN
@@ -341,6 +345,7 @@ namespace Assay\InformationsCatalog\DataInformation {
                 $entity = $this->toEntity();
             }
 
+            
             $isContain = Core\Common::isOneArrayContainOther($entity, $storedEntity);
 
             $result = false;
@@ -376,7 +381,7 @@ namespace Assay\InformationsCatalog\DataInformation {
                 . ' RETURNING '
                 . self::ID
                 . ' , ' . self::IS_HIDDEN
-                . ' , ' . self::CODE
+                . ' , btrim(' . self::CODE.') AS "'.self::CODE.'"'
                 . ' , ' . self::NAME
                 . ' , ' . self::DESCRIPTION
                 . ' , ' . $this->childColumn
@@ -394,6 +399,7 @@ namespace Assay\InformationsCatalog\DataInformation {
             if ($record != ISqlHandler::EMPTY_ARRAY) {
                 $result = $this->setByNamedValue($record);
             }
+
             return $result;
         }
 
@@ -482,7 +488,7 @@ namespace Assay\InformationsCatalog\DataInformation {
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
-                . ' C.' . PropertyContent::ID . ' AS ' . $resultColumnName
+                . ' C.' . PropertyContent::ID . ' AS "' . $resultColumnName.'"'
                 . ' FROM '
                 . self::TABLE_NAME . ' AS R '
                 . ' JOIN ' . self::CONTENT_TABLE_NAME . ' AS C '
@@ -510,19 +516,38 @@ namespace Assay\InformationsCatalog\DataInformation {
             return $result;
         }
 
-        /** сохранить содержание свойства
+
+        /** Сохранить содержание свойства
          * @param string $content содержимое свойства
-         * @param string $code код свойства
+         * @param string $dataTypeCode код свойства
          * @return bool успех выполнения
          */
-        public function saveContent(string $content, string $code):bool
+        public function saveContent(string $content, string $dataTypeCode):bool
         {
-            $propertyContentId = $this->getPositionContentId($code);
+            $propertyContentId = $this->getPositionContentId($dataTypeCode);
 
-            $isSuccess = false;
+            $isSuccess = $propertyContentId != self::EMPTY_VALUE;
             $propertyContent = new PropertyContent();
-            if ($propertyContentId != self::EMPTY_VALUE) {
+            if ($isSuccess) {
                 $isSuccess = $propertyContent->loadById($propertyContentId);
+            }
+
+            if($isSuccess){
+                $propertyId = $propertyContent->propertyId;
+                $dataTypeCode = $this->getPropertyDataType($propertyId);
+            }
+
+            $isSuccess = $dataTypeCode != self::EMPTY_VALUE;
+            if ($isSuccess) {
+
+                switch ($dataTypeCode) {
+                    case DataType::DIGITAL:
+                        $isSuccess = $this->saveDigitalContent($content, $propertyContentId);
+                        break;
+                    case DataType::STRING:
+                        $isSuccess = $this->saveStringContent($content, $propertyContentId);
+                        break;
+                }
             }
 
             if ($isSuccess) {
@@ -640,26 +665,18 @@ namespace Assay\InformationsCatalog\DataInformation {
         public function saveValue(string $value, string $code, string $redactorId):string
         {
 
-            $mayDefine = $this->mayDefineValue($code);
-
-            $valueId = self::EMPTY_VALUE;
-            if ($mayDefine) {
-                $valueId = $this->getPositionValueId($code, $redactorId);
-            }
-
-            $isSuccess = $valueId != self::EMPTY_VALUE;
-
-            $positionValue = new AdditionalValue();
-
-            $letAddValue = (!$isSuccess) && $mayDefine;
-            if ($letAddValue) {
-                $valueId = $this->addPositionValue($code, $redactorId, $positionValue);
-            }
+            $valueId = $this->getValueId($code, $redactorId);
 
             $isSuccess = $valueId != self::EMPTY_VALUE;
             if ($isSuccess) {
+                $isSuccess = $this->savePositionValue($value, $valueId);
+            }
+
+            $positionValue = new AdditionalValue();
+            if ($isSuccess) {
                 $isSuccess = $positionValue->loadById($valueId);
             }
+
             if ($isSuccess) {
                 $positionValue->value = $value;
                 $isSuccess = $positionValue->mutateEntity();
@@ -750,7 +767,7 @@ namespace Assay\InformationsCatalog\DataInformation {
         {
             $settingsRubric = new Rubric();
 
-            $isSuccess = $settingsRubric->loadByCode(self::GOODS_PRISING_CODE);
+            $isSuccess = $settingsRubric->loadByCode(self::GOODS_PRICING_CODE);
 
             $codeIndex = InformationProperty::TABLE_NAME;
             $transportationCodeCollection = SqlHandler::EMPTY_ARRAY;
@@ -806,8 +823,8 @@ namespace Assay\InformationsCatalog\DataInformation {
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' SELECT '
-                . ' V.' . AdditionalValue::VALUE . " AS $valueOutput "
-                . ' , P.' . InformationProperty::CODE . " AS $codeOutput "
+                . ' SV.' . StringValue::STRING . "::text AS $valueOutput "
+                . ' , btrim(P.' . InformationProperty::CODE . ") AS $codeOutput "
                 . ' , V.' . AdditionalValue::REDACTOR . " AS $redactorOutput "
                 . ' FROM '
                 . $this->tablename . ' AS RP '
@@ -819,6 +836,9 @@ namespace Assay\InformationsCatalog\DataInformation {
                 . ' JOIN ' . AdditionalValue::TABLE_NAME . ' AS V '
                 . ' ON V.' . AdditionalValue::CHILD . ' = C.' . AdditionalValue::PARENT
 
+                . ' JOIN ' . StringValue::TABLE_NAME . ' AS SV '
+                . ' ON SV.' . StringValue::CHILD . ' = V.' . StringValue::PARENT
+
                 . ' JOIN ' . Redactor::TABLE_NAME . ' AS R '
                 . ' ON R.' . Redactor::ID . ' = V.' . AdditionalValue::REDACTOR
 
@@ -827,6 +847,33 @@ namespace Assay\InformationsCatalog\DataInformation {
                 . ' AND P.' . InformationProperty::CODE . ' IN (' . $inComponent . ') '
                 . ' AND P.' . InformationProperty::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
                 . ' AND R.' . Redactor::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                .' UNION '
+                .' SELECT '
+                . ' ((DV.' . DigitalValue::DIGITAL. "::numeric)::text) AS $valueOutput "
+                . ' , btrim(P.' . InformationProperty::CODE . ") AS $codeOutput "
+                . ' , V.' . AdditionalValue::REDACTOR . " AS $redactorOutput "
+                . ' FROM '
+                . $this->tablename . ' AS RP '
+                . ' JOIN ' . self::CONTENT_TABLE_NAME . ' AS C '
+                . ' ON RP.' . self::ID . ' = C.' . self::CONTENT_LINK
+                . ' JOIN ' . InformationProperty::TABLE_NAME . ' AS P '
+                . ' ON P.' . InformationProperty::ID . ' = C.' . PropertyContent::PROPERTY
+
+                . ' JOIN ' . AdditionalValue::TABLE_NAME . ' AS V '
+                . ' ON V.' . AdditionalValue::CHILD . ' = C.' . AdditionalValue::PARENT
+
+                . ' JOIN ' . DigitalValue::TABLE_NAME . ' AS DV '
+                . ' ON DV.' . DigitalValue::CHILD . ' = V.' . DigitalValue::PARENT
+
+                . ' JOIN ' . Redactor::TABLE_NAME . ' AS R '
+                . ' ON R.' . Redactor::ID . ' = V.' . AdditionalValue::REDACTOR
+
+                . ' WHERE '
+                . ' RP.' . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND P.' . InformationProperty::CODE . ' IN (' . $inComponent . ') '
+                . ' AND P.' . InformationProperty::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND R.' . Redactor::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                ." ORDER BY $redactorOutput , $codeOutput "
                 . ';';
 
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
@@ -834,6 +881,176 @@ namespace Assay\InformationsCatalog\DataInformation {
 
             $record = SqlHandler::readAllRecords($arguments);
             return $record;
+        }
+
+        /**
+         * @param string $content
+         * @param $propertyContentId
+         * @return bool
+         */
+        private function saveDigitalContent(string $content, string $propertyContentId):bool
+        {
+            $digitalContent = new DigitalContent();
+            $digitalContent->linkToParent = $propertyContentId;
+            $isSuccess = $digitalContent->addPredefinedEntity();
+
+            if ($isSuccess) {
+                $digitalContent->digital = floatval($content);
+                $isSuccess = $digitalContent->mutateEntity();
+            }
+
+            return $isSuccess;
+        }
+
+        /**
+         * @param string $content
+         * @param $propertyContentId
+         * @return bool
+         */
+        private function saveStringContent(string $content, $propertyContentId)
+        {
+            $stringContent = new StringContent();
+            $stringContent->linkToParent = $propertyContentId;
+            $isSuccess = $stringContent->addPredefinedEntity();
+
+            if ($isSuccess) {
+                $stringContent->string = strval($content);
+                $isSuccess = $stringContent->mutateEntity();
+            }
+            return $isSuccess;
+        }
+
+        /**
+         * @param string $value
+         * @param $valueId
+         * @return bool
+         */
+        private function saveDigitalValue(string $value, string $valueId)
+        {
+            $digitalValue = new DigitalValue();
+            $digitalValue->linkToParent = $valueId;
+            $isSuccess = $digitalValue->addPredefinedEntity();
+
+            if ($isSuccess) {
+                $digitalValue->digital = floatval($value);
+                $isSuccess = $digitalValue->mutateEntity();
+                return $isSuccess;
+            }
+            return $isSuccess;
+        }
+
+        /**
+         * @param string $value
+         * @param $valueId
+         * @return bool
+         */
+        private function saveStringValue(string $value, string $valueId)
+        {
+            $stringValue = new StringValue();
+            $stringValue->linkToParent = $valueId;
+            $isSuccess = $stringValue->addPredefinedEntity();
+
+            if ($isSuccess) {
+                $stringValue->string = strval($value);
+                $isSuccess = $stringValue->mutateEntity();
+                return $isSuccess;
+            }
+            return $isSuccess;
+        }
+
+        /**
+         * @param string $code
+         * @param string $redactorId
+         * @return string
+         */
+        private function getValueId(string $code, string $redactorId):string
+        {
+            $mayDefine = $this->mayDefineValue($code);
+
+            $valueId = self::EMPTY_VALUE;
+            if ($mayDefine) {
+                $valueId = $this->getPositionValueId($code, $redactorId);
+            }
+
+            $isSuccess = $valueId != self::EMPTY_VALUE;
+
+            $positionValue = new AdditionalValue();
+
+            $letAddValue = (!$isSuccess) && $mayDefine;
+            if ($letAddValue) {
+                $valueId = $this->addPositionValue($code, $redactorId, $positionValue);
+            }
+            return $valueId;
+        }
+
+        /**
+         * @param string $value
+         * @param string $valueId
+         * @return bool
+         * @internal param string $contentId
+         */
+        private function savePositionValue(string $value, string $valueId)
+        {
+
+            $positionValue = new AdditionalValue();
+            $isSuccess = $valueId != self::EMPTY_VALUE;
+            if ($isSuccess) {
+                $isSuccess = $positionValue->loadById($valueId);
+            }
+
+            $content = new PropertyContent();
+            if($isSuccess){
+                $contentId = $positionValue->linkToParent;
+                $isSuccess = $content->loadById($contentId);
+            }
+
+            $property = new InformationProperty();
+            if ($isSuccess) {
+                $propertyId = $content->propertyId;
+                $isSuccess = $property->loadById($propertyId);
+            }
+
+            $dataType = self::EMPTY_OBJECT;
+            if ($isSuccess && $property->isHidden == InformationProperty::DEFINE_AS_NOT_HIDDEN) {
+                $dataType = $property->getPropertyDataType();
+            }
+
+            $isSuccess = $dataType != self::EMPTY_OBJECT && $dataType->id != DataType::EMPTY_VALUE;
+            if ($isSuccess) {
+
+                switch ($dataType->code) {
+                    case DataType::DIGITAL:
+                        $isSuccess = $this->saveDigitalValue($value, $valueId);
+                        break;
+                    case DataType::STRING:
+                        $isSuccess = $this->saveStringValue($value, $valueId);
+                        break;
+                }
+            }
+            return $isSuccess;
+        }
+
+        /**
+         * @param string $propertyId
+         * @return string
+         */
+        private function getPropertyDataType(string $propertyId):string
+        {
+            $property = new InformationProperty();
+            $isSuccess = $property->loadById($propertyId);
+
+            $dataType = self::EMPTY_OBJECT;
+            if ($isSuccess && $property->isHidden == InformationProperty::DEFINE_AS_NOT_HIDDEN) {
+                $dataType = $property->getPropertyDataType();
+            }
+
+            $dataTypeCode = self::EMPTY_VALUE;
+            $isSuccess = $dataType != self::EMPTY_OBJECT && $dataType->id != DataType::EMPTY_VALUE;
+            if($isSuccess){
+                $dataTypeCode = $dataType->code;
+            }
+
+            return $dataTypeCode;
         }
     }
 }

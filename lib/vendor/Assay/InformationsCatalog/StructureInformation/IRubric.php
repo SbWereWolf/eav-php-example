@@ -14,12 +14,13 @@ namespace Assay\InformationsCatalog\StructureInformation {
      */
     interface IRubric
     {
-        
+
         /** Получить описания позиций рубрики
          * @param string $codeKey индекс для элементов массива
          * @return array позиции
          */
         public function getMap(string $codeKey = RubricPosition::CODE):array;
+
         /** Получить параметры поиска по рубрике
          * @return array параметры поиска
          */
@@ -27,15 +28,16 @@ namespace Assay\InformationsCatalog\StructureInformation {
 
         /** Получить свойства рубрики
          * @param string $property индекс для кода рубрики
+         * @param string $dataType индекс для кода типа данных
          * @param string $typeEdit индекс для кода типа редактирования
          * @param string $searchType индекс для кода типа поиска
-         * @param string $dataType индекс для кода типа данных
          * @return array свойства рубрики
          */
-        public function getProperties(string $property = InformationProperty::TABLE_NAME,
-                                      string $typeEdit= TypeEdit::TABLE_NAME,
-                                      string $searchType= SearchType::TABLE_NAME,
-                                      string $dataType= DataType::TABLE_NAME):array;
+        public function getProperties(
+            string $property = InformationProperty::TABLE_NAME,
+            string $dataType = DataType::TABLE_NAME,
+            string $typeEdit = TypeEdit::TABLE_NAME,
+            string $searchType = SearchType::TABLE_NAME):array;
 
         /** Добавить позицию
          * @return string идентификатор добавленной позиции
@@ -49,7 +51,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         public function addProperty(string $code):bool;
 
         /** Скрыть свойство
-         * @param string $code код свойства 
+         * @param string $code код свойства
          * @return bool успех выполнения
          */
         public function dropProperty(string $code):bool;
