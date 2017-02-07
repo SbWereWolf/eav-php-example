@@ -18,31 +18,34 @@ namespace Assay\Permission\Privilege {
     {
         /** @var string название таблицы */
         const TABLE_NAME = 'account_role';
+        /** @var string колонка для внешнего ключа ссылки на эту таблицу */
+        const EXTERNAL_ID = 'account_role_id';
 
-        /** @var string ссылка на учётную запись */
-        public $userId;
-        public $userRole;
+        /** @var string колонка для внешнего ключа ссылки на бизнесс роль */
+        const LEFT = BusinessRole::EXTERNAL_ID;
+        /** @var string колонка для внешнего ключа ссылки на аккаунт */
+        const RIGHT = Account::EXTERNAL_ID;
+
+        /** @var string имя таблицы для хранения сущности */
+        protected $tablename = self::TABLE_NAME;
+        /** @var string имя левой таблицы */
+        protected $leftColumn = self::LEFT;
+        /** @var string имя правой таблицы */
+        protected $rightColumn = self::RIGHT;
+
+        public $leftId = self::EMPTY_VALUE;
+        public $rightId = self::EMPTY_VALUE;
 
         public function __construct(string $userId)
         {
-            $this->userId = $userId;
-            $this->tablename = self::TABLE_NAME;
+            $this->rightColumn = $userId;
         }
 
         public function grantRole(string $role):bool
         {
             $result = false;
 
-            /*
-            $user_id[ISqlHandler::PLACEHOLDER] = ':USER_ID';
-            $user_id[ISqlHandler::VALUE] = $this->userId;
-            $user_id[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-            $role_field[ISqlHandler::PLACEHOLDER] = ':USER_ROLE_ID';
-            $role_field[ISqlHandler::VALUE] = $role;
-            $role_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-            */
-
-            $accountIdField = SqlHandler::setBindParameter(':ACCOUNT_ID',$this->userId,\PDO::PARAM_STR);
+            $accountIdField = SqlHandler::setBindParameter(':ACCOUNT_ID',$this->rightColumn,\PDO::PARAM_STR);
             $roleField = SqlHandler::setBindParameter(':ACCOUNT_ROLE_ID',$role,\PDO::PARAM_STR);
 
             $arguments[ISqlHandler::QUERY_TEXT] = '
@@ -68,12 +71,6 @@ namespace Assay\Permission\Privilege {
 
             $result = $record != ISqlHandler::EMPTY_ARRAY;
 
-            /*
-            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-            $response = $sqlWriter->performQuery($arguments);
-            $result = SqlHandler::isNoError($response);
-            */
-
             return $result;
         }
 
@@ -81,16 +78,7 @@ namespace Assay\Permission\Privilege {
         {
             $result = false;
 
-            /*
-            $user_id[ISqlHandler::PLACEHOLDER] = ':ACCOUNT_ID';
-            $user_id[ISqlHandler::VALUE] = $this->userId;
-            $user_id[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-            $role_field[ISqlHandler::PLACEHOLDER] = ':ACCOUNT_ROLE_ID';
-            $role_field[ISqlHandler::VALUE] = $role;
-            $role_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-            */
-
-            $accountIdField = SqlHandler::setBindParameter(':ACCOUNT_ID',$this->userId,\PDO::PARAM_STR);
+            $accountIdField = SqlHandler::setBindParameter(':ACCOUNT_ID',$this->rightColumn,\PDO::PARAM_STR);
             $roleField = SqlHandler::setBindParameter(':ACCOUNT_ROLE_ID',$role,\PDO::PARAM_STR);
 
             $arguments[ISqlHandler::QUERY_TEXT] = '
@@ -118,35 +106,16 @@ namespace Assay\Permission\Privilege {
 
             $result = $record != ISqlHandler::EMPTY_ARRAY;
 
-            /*
-            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-            $response = $sqlWriter->performQuery($arguments);
-            $result = SqlHandler::isNoError($response);
-            */
             return $result;
         }
 
         public function userAuthorization(string $process, string $object, string $sid):bool
         {
             $result = false;
-            /*
-            $process_field[ISqlHandler::PLACEHOLDER] = ':PROCESS';
-            $process_field[ISqlHandler::VALUE] = $process;
-            $process_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-            $object_field[ISqlHandler::PLACEHOLDER] = ':OBJECT';
-            $object_field[ISqlHandler::VALUE] = $object;
-            $object_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-            $sid_field[ISqlHandler::PLACEHOLDER] = ':ACCOUNT_ID';
-            $sid_field[ISqlHandler::VALUE] = $this->userId;
-            $sid_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-            $is_hidden_field[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden_field[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-            */
 
             $processField = SqlHandler::setBindParameter(':PROCESS',$process,\PDO::PARAM_STR);
             $objectField = SqlHandler::setBindParameter(':OBJECT',$object,\PDO::PARAM_STR);
-            $sidField = SqlHandler::setBindParameter(':SESSION_ID',$this->userId,\PDO::PARAM_STR);
+            $sidField = SqlHandler::setBindParameter(':SESSION_ID',$this->rightColumn,\PDO::PARAM_STR);
             $isHiddenField = SqlHandler::setBindParameter(':IS_HIDDEN',self::DEFAULT_IS_HIDDEN,\PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] = "
@@ -161,9 +130,9 @@ namespace Assay\Permission\Privilege {
                 JOIN 
                     ".BusinessRole::TABLE_NAME." R ON R.".self::ID." = UR.".BusinessRole::EXTERNAL_ID."
                 JOIN 
-                    ".RoleDetail::TABLE_NAME." RD ON RD.".BusinessRole::EXTERNAL_ID." = R.".self::ID." 
+                    ".BusinessRolePrivilege::TABLE_NAME." RD ON RD.".BusinessRole::EXTERNAL_ID." = R.".self::ID." 
                 JOIN 
-                    ".ObjectPrivilege::TABLE_NAME." P ON P.".self::ID." = RD.".ObjectPrivilege::EXTERNAL_ID."
+                    ".BusinessObjectPrivilege::TABLE_NAME." P ON P.".self::ID." = RD.".BusinessObjectPrivilege::EXTERNAL_ID."
                 JOIN 
                     ".BusinessProcess::TABLE_NAME." BP ON BP.".self::ID." = P.".BusinessProcess::EXTERNAL_ID."
                 JOIN 
@@ -186,12 +155,6 @@ namespace Assay\Permission\Privilege {
                 $isHiddenField
             ];
             $record = SqlHandler::readOneRecord($arguments);
-
-            /*
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments);
-            $isSuccessfulRead = SqlHandler::isNoError($response);
-            */
 
             $result = $record != Common::EMPTY_ARRAY;
 

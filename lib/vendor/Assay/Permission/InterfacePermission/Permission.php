@@ -15,8 +15,8 @@ namespace Assay\Permission\InterfacePermission {
     use Assay\Permission\Privilege\BusinessObject;
     use Assay\Permission\Privilege\BusinessProcess;
     use Assay\Permission\Privilege\BusinessRole;
-    use Assay\Permission\Privilege\ObjectPrivilege;
-    use Assay\Permission\Privilege\RoleDetail;
+    use Assay\Permission\Privilege\BusinessObjectPrivilege;
+    use Assay\Permission\Privilege\BusinessRolePrivilege;
     use Assay\Permission\Privilege\Session;
     use Assay\Permission\Privilege\Account;
     use Assay\Permission\Privilege\AccountRole;
@@ -53,9 +53,9 @@ namespace Assay\Permission\InterfacePermission {
                 JOIN 
                     ".BusinessRole::TABLE_NAME." R ON R.".self::ID." = UR.".BusinessRole::EXTERNAL_ID."
                 JOIN 
-                    ".RoleDetail::TABLE_NAME." RD ON RD.".BusinessRole::EXTERNAL_ID." = R.".self::ID." 
+                    ".BusinessRolePrivilege::TABLE_NAME." RD ON RD.".BusinessRole::EXTERNAL_ID." = R.".self::ID." 
                 JOIN 
-                    ".ObjectPrivilege::TABLE_NAME." P ON P.".self::ID." = RD.".ObjectPrivilege::EXTERNAL_ID."
+                    ".BusinessObjectPrivilege::TABLE_NAME." P ON P.".self::ID." = RD.".BusinessObjectPrivilege::EXTERNAL_ID."
                 JOIN 
                     ".BusinessProcess::TABLE_NAME." BP ON BP.".self::ID." = P.".BusinessProcess::EXTERNAL_ID."
                 JOIN 

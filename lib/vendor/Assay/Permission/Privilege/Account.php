@@ -14,10 +14,13 @@ namespace Assay\Permission\Privilege {
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
 
-    class Account extends Entity implements IAccount, IAuthenticateAccount
+    class Account extends Entity implements IAccount, IAuthenticateAccount, ICommon
     {
         /** @var string название таблицы */
         const TABLE_NAME = 'account';
+        /** @var string колонка для внешнего ключа ссылки на эту таблицу */
+        const EXTERNAL_ID = 'account_id';
+
         /** @var string константа "значение не определено" */
         const EMPTY_VALUE = Common::EMPTY_VALUE;
         /** @var string имя учётной записи */
@@ -28,7 +31,7 @@ namespace Assay\Permission\Privilege {
         public $activityDate;
         /** @var string электронная почта */
         public $email;
-        public $tablename = self::TABLE_NAME;
+        protected $tablename = self::TABLE_NAME;
 
         public function registration(string $login, string $password, string $passwordConfirmation, string $email):bool
         {
@@ -91,23 +94,6 @@ namespace Assay\Permission\Privilege {
         private function updateEntity():bool
         {
             $result = false;
-            /*
-            $id[ISqlHandler::PLACEHOLDER] = ':ID';
-            $id[ISqlHandler::VALUE] = $this->id;
-            $id[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-            $login[ISqlHandler::PLACEHOLDER] = ':LOGIN';
-            $login[ISqlHandler::VALUE] = $this->login;
-            $login[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-            $pass_hash[ISqlHandler::PLACEHOLDER] = ':PASSWORD_HASH';
-            $pass_hash[ISqlHandler::VALUE] = $this->passwordHash;
-            $pass_hash[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-            $email[ISqlHandler::PLACEHOLDER] = ':EMAIL';
-            $email[ISqlHandler::VALUE] = $this->email;
-            $email[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-            $is_hidden[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-            */
 
             $idField = SqlHandler::setBindParameter(':ID',$this->id,\PDO::PARAM_INT);
             $loginField = SqlHandler::setBindParameter(':LOGIN',$this->login,\PDO::PARAM_STR);
@@ -122,7 +108,7 @@ namespace Assay\Permission\Privilege {
                     '.self::LOGIN.' = '.$loginField[ISqlHandler::PLACEHOLDER].', 
                     '.self::PASSWORD_HASH.' = '.$passHashField[ISqlHandler::PLACEHOLDER].', 
                     '.self::EMAIL.' = '.$emailField[ISqlHandler::PLACEHOLDER].',
-                    '.\Assay\Permission\Privilege\Common::ACTIVITY_DATE.' = now()
+                    '.self::ACTIVITY_DATE.' = now()
                 WHERE 
                     '.self::IS_HIDDEN.'='.$isHiddenField[ISqlHandler::PLACEHOLDER].' AND 
                     '.self::ID.' = '.$idField[ISqlHandler::PLACEHOLDER].'
@@ -136,12 +122,6 @@ namespace Assay\Permission\Privilege {
                 $emailField,
                 $isHiddenField
             ];
-            /*
-            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-            $response = $sqlWriter->performQuery($arguments);
-
-            $isSuccessfulRequest = SqlHandler::isNoError($response);
-            */
 
             $record = SqlHandler::writeOneRecord($arguments);
 
@@ -159,14 +139,6 @@ namespace Assay\Permission\Privilege {
         public function readEntity(string $id):bool
         {
             $result = false;
-            /*
-            $id_field[ISqlHandler::PLACEHOLDER] = ':ID';
-            $id_field[ISqlHandler::VALUE] = $id;
-            $id_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-            $is_hidden[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-            */
             $idField = SqlHandler::setBindParameter(':EMAIL',$id,\PDO::PARAM_INT);
             $isHiddenField = SqlHandler::setBindParameter(':IS_HIDDEN',self::DEFAULT_IS_HIDDEN,\PDO::PARAM_INT);
 
@@ -183,13 +155,7 @@ namespace Assay\Permission\Privilege {
                 $isHiddenField,
                 $idField
             ];
-            /*
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments); //print_r($response); exit;
-            $isSuccessfulRead = SqlHandler::isNoError($response);
 
-            $record = array();
-            */
             $record = SqlHandler::readOneRecord($arguments);
 
             if ($record != Common::EMPTY_ARRAY) {
@@ -209,7 +175,7 @@ namespace Assay\Permission\Privilege {
             $entity[self::IS_HIDDEN] = $this->isHidden;
             $entity[self::LOGIN] = $this->login;
             $entity[self::PASSWORD_HASH] = $this->passwordHash;
-            $entity[\Assay\Permission\Privilege\Common::ACTIVITY_DATE] = $this->activityDate;
+            $entity[self::ACTIVITY_DATE] = $this->activityDate;
             $entity[self::EMAIL] = $this->email;
             return $entity;
         }
@@ -258,7 +224,7 @@ namespace Assay\Permission\Privilege {
             $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $namedValue, self::EMPTY_VALUE);
             $this->login = Common::setIfExists(self::LOGIN, $namedValue, self::EMPTY_VALUE);
             $this->passwordHash = Common::setIfExists(self::PASSWORD_HASH, $namedValue, self::EMPTY_VALUE);
-            $this->activityDate = Common::setIfExists(\Assay\Permission\Privilege\Common::ACTIVITY_DATE, $namedValue, self::EMPTY_VALUE);
+            $this->activityDate = Common::setIfExists(self::ACTIVITY_DATE, $namedValue, self::EMPTY_VALUE);
             $this->email = Common::setIfExists(self::EMAIL, $namedValue, self::EMPTY_VALUE);
             return $result;
         }

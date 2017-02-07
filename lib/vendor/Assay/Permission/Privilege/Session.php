@@ -18,13 +18,11 @@ namespace Assay\Permission\Privilege {
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
 
-    class Session extends Entity implements ISession
+    class Session extends Entity implements ISession,ICommon
     {
 
         /** @var string название таблицы */
         const TABLE_NAME = 'session';
-        /** @var string колонка дата обновления */
-        const UPDATE_DATE = 'update_date';
 
         public $key = Common::EMPTY_VALUE;
         public $companyFilter = Common::EMPTY_VALUE;
@@ -76,21 +74,6 @@ namespace Assay\Permission\Privilege {
                 $userField = SqlHandler::setBindParameter(':USER_ID',$entity[self::USER_ID],\PDO::PARAM_STR);
                 $isHiddenField = SqlHandler::setBindParameter(':IS_HIDDEN',$entity[self::IS_HIDDEN],\PDO::PARAM_INT);
 
-                /*
-                $id[ISqlHandler::PLACEHOLDER] = ':ID';
-                $id[ISqlHandler::VALUE] = $entity[self::ID];
-                $id[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-                $key_field[ISqlHandler::PLACEHOLDER] = ':KEY';
-                $key_field[ISqlHandler::VALUE] = $entity[self::KEY];
-                $key_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-                $user_id[ISqlHandler::PLACEHOLDER] = ':USER_ID';
-                $user_id[ISqlHandler::VALUE] = $entity[self::USER_ID];
-                $user_id[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-                $is_hidden[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
-                $is_hidden[ISqlHandler::VALUE] = $entity[self::IS_HIDDEN];
-                $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-                */
-
                 $arguments[ISqlHandler::QUERY_TEXT] = "
                     UPDATE 
                         ".$this->tablename." 
@@ -114,14 +97,6 @@ namespace Assay\Permission\Privilege {
                 ];
                 $record = SqlHandler::writeOneRecord($arguments);
 
-
-                /*
-                $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-                $response = $sqlWriter->performQuery($arguments);
-
-
-                $result = SqlHandler::isNoError($response);
-                */
                 if ($record != ISqlHandler::EMPTY_ARRAY) {
                     $result = $this->setByNamedValue($record);
                 }
@@ -200,14 +175,6 @@ namespace Assay\Permission\Privilege {
         public function readEntity(string $id):bool
         {
             $result = false;
-                /*
-                $id_field[ISqlHandler::PLACEHOLDER] = ':ID';
-                $id_field[ISqlHandler::VALUE] = $id;
-                $id_field[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-                $is_hidden[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
-                $is_hidden[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
-                $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-                */
 
             $idField = SqlHandler::setBindParameter(':ID',$id,\PDO::PARAM_STR);
             $isHiddenField = SqlHandler::setBindParameter(':IS_HIDDEN',self::DEFAULT_IS_HIDDEN,\PDO::PARAM_INT);
@@ -231,14 +198,6 @@ namespace Assay\Permission\Privilege {
             ];
             $record = SqlHandler::readOneRecord($arguments);
 
-            /*
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments);
-            $isSuccessfulRead = SqlHandler::isNoError($response);
-
-            $record = array();
-            */
-
             if ($record != ISqlHandler::EMPTY_ARRAY) {
                 $result = $this->setByNamedValue($record);
             }
@@ -249,15 +208,6 @@ namespace Assay\Permission\Privilege {
         public function loadByKey():array
         {
             $result = array();
-
-            /*
-            $key[ISqlHandler::PLACEHOLDER] = ':KEY';
-            $key[ISqlHandler::VALUE] = $this->key;
-            $key[ISqlHandler::DATA_TYPE] = \PDO::PARAM_STR;
-            $is_hidden[ISqlHandler::PLACEHOLDER] = ':IS_HIDDEN';
-            $is_hidden[ISqlHandler::VALUE] = self::DEFAULT_IS_HIDDEN;
-            $is_hidden[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
-            */
 
             $keyField = SqlHandler::setBindParameter(':KEY',$this->key,\PDO::PARAM_STR);
             $isHiddenField = SqlHandler::setBindParameter(':IS_HIDDEN',self::DEFAULT_IS_HIDDEN,\PDO::PARAM_INT);
@@ -277,12 +227,6 @@ namespace Assay\Permission\Privilege {
                 $keyField
             ];
             $record = SqlHandler::readOneRecord($arguments);
-
-            /*
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments);
-            $isSuccessfulRead = SqlHandler::isNoError($response);
-            */
 
             $result = $record;
 

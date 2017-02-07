@@ -9,10 +9,6 @@
 namespace Assay\Permission\InterfacePermission {
     interface IPermission
     {
-        const OBJECT = 'object';
-        const ACTION = 'action';
-        const SESSION_ID = 'session_id';
-        const IS_ALLOW = 'is_allow';
 
         public function checkPrivilege(array $args):array;
 

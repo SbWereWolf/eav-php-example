@@ -7,9 +7,9 @@
  */
 namespace Assay\Permission\Privilege {
 
-    use Assay\Core\NamedEntity;
+    use Assay\Core\InnerLinkageEntity;
 
-    class RoleDetail extends NamedEntity
+    class BusinessRolePrivilege extends InnerLinkageEntity
     {
         /** @var string название таблицы */
         const TABLE_NAME = 'role_detail';
@@ -17,13 +17,20 @@ namespace Assay\Permission\Privilege {
         const EXTERNAL_ID = 'role_detail_id';
 
         /** @var string колонка ссылки на объект привелегий  */
-        const PRIVILEGE = ObjectPrivilege::EXTERNAL_ID;
+        const LEFT = BusinessObjectPrivilege::EXTERNAL_ID;
         /** @var string колонка ссылки на бизнес роль */
-        const ROLE = BusinessRole::EXTERNAL_ID;
+        const RIGHT = BusinessRole::EXTERNAL_ID;
+
+        /** @var string имя таблицы для хранения сущности */
+        protected $tablename = self::TABLE_NAME;
+        /** @var string имя левой таблицы */
+        protected $leftColumn = self::LEFT;
+        /** @var string имя правой таблицы */
+        protected $rightColumn = self::RIGHT;
 
         /** @var string привелегия */
-        public $privilege;
+        public $leftId = self::EMPTY_VALUE;
         /** @var string роль */
-        public $role;
+        public $rightId = self::EMPTY_VALUE;
     }
 }

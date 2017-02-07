@@ -7,9 +7,9 @@
  */
 namespace Assay\Permission\Privilege {
 
-    use Assay\Core\Entity;
+    use Assay\Core\InnerLinkageEntity;
 
-    class ObjectPrivilege extends Entity
+    class BusinessObjectPrivilege extends InnerLinkageEntity
     {
         /** @var string название таблицы */
         const TABLE_NAME = 'business_object_business_process';
@@ -17,13 +17,20 @@ namespace Assay\Permission\Privilege {
         const EXTERNAL_ID = 'business_object_business_process_id';
 
         /** @var string колонка ссылки на бизнес объект */
-        const BUSINESS_OBJECT = BusinessObject::EXTERNAL_ID;
+        const LEFT = BusinessObject::EXTERNAL_ID;
         /** @var string колонка ссылки на бизнес процесс */
-        const BUSINESS_PROCESS = BusinessProcess::EXTERNAL_ID;
+        const RIGHT = BusinessProcess::EXTERNAL_ID;
+
+        /** @var string имя таблицы для хранения сущности */
+        protected $tablename = self::TABLE_NAME;
+        /** @var string имя левой таблицы */
+        protected $leftColumn = self::LEFT;
+        /** @var string имя правой таблицы */
+        protected $rightColumn = self::RIGHT;
 
         /** @var string бизнес процесс */
-        public $businessProcess;
+        public $leftId = self::EMPTY_VALUE;
         /** @var string бизнес объект */
-        public $businessObject;
+        public $rightId = self::EMPTY_VALUE;
     }
 }
