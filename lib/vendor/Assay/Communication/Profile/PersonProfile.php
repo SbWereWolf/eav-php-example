@@ -22,7 +22,7 @@ namespace Assay\Communication\Profile {
         const WORD_DIVIDER = '_';
 
         /** @var string имя таблицы */
-        const TABLE_NAME = 'profile';
+        const TABLE_NAME = 'person_profile';
 
         /** @var string колонка идентификатора */
         const ID = 'id';
@@ -65,42 +65,88 @@ namespace Assay\Communication\Profile {
         public function __construct($id)
         {
             $this->id = $id;
-           // $this->getMode();
-           // $this->getCurrentUserProfileData();
+            // $this->getMode();
+            // $this->getCurrentUserProfileData();
             $this->loadById($this->id);
-           // $this->getUserEmail();
-         //   $this->getProfileCompany();
+            // $this->getUserEmail();
+            //   $this->getProfileCompany();
         }
 
-/*
-        //проверяем, гостевой профиль у пользователя или нет
-        public function checkIsUserGuest():bool
+        /*
+                //проверяем, гостевой профиль у пользователя или нет
+                public function checkIsUserGuest():bool
+                {
+                    $isGuest = false;
+                    if($this->code == 'guest') $isGuest = true;
+                    return $isGuest;
+                }
+        */
+
+        public function getForGreetings(): string
         {
-            $isGuest = false;
-            if($this->code == 'guest') $isGuest = true;
-            return $isGuest;
-        }
-*/
-
-        public function getForGreetings():string
-        {
+            return $this->{self::NAME};
 
         }
 
-        public function enableCommenting():bool
-        {
-        }
-
-        public function purgeGroup():bool
+        public function enableCommenting(): bool
         {
         }
 
-        public function setGroup():bool
+        public function purgeGroup(): bool
         {
+            $result = false;
+            $oneParameter[ISqlHandler::PLACEHOLDER] = ':ID';
+            $oneParameter[ISqlHandler::VALUE] = $this->id;
+            $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $arguments[ISqlHandler::QUERY_TEXT] = '
+                DELETE FROM ' . PersonProfile::TABLE_NAME . '_' . SocialGroup::TABLE_NAME
+                . ' WHERE ' . PersonProfile::EXTERNAL_ID . ' = ' . $oneParameter[ISqlHandler::PLACEHOLDER];
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+            $response = $sqlReader->performQuery($arguments); //print_r($response);
+
+            if ($isSuccessfulRead = SqlHandler::isNoError($response)) {
+                // $record = SqlHandler::getFirstRecord($response);
+                // if(count($record) > 0) $result = true;
+                $result = true;
+            }
+
+            return $result;
+        }
+
+        public function setGroup($groupId): bool
+        {
+            $result = false;
+            $oneParameter[ISqlHandler::PLACEHOLDER] = ':ID';
+            $oneParameter[ISqlHandler::VALUE] = $this->id;
+            $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $twoParameter[ISqlHandler::PLACEHOLDER] = ':ID';
+            $twoParameter[ISqlHandler::VALUE] = $groupId;
+            $twoParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
+
+            $arguments[ISqlHandler::QUERY_TEXT] = '
+               INSERT INTO ' . PersonProfile::TABLE_NAME . '_' . SocialGroup::TABLE_NAME
+                . '(' . PersonProfile::EXTERNAL_ID . ', ' . SocialGroup::EXTERNAL_ID . ')'
+                . ' VALUES (' . $oneParameter[ISqlHandler::PLACEHOLDER] . ',' . $oneParameter[ISqlHandler::PLACEHOLDER] . ')';
+            $arguments[ISqlHandler::QUERY_PARAMETER] = [$oneParameter, $twoParameter];
+
+            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
+            $response = $sqlReader->performQuery($arguments); print_r($response);
+
+            if ($isSuccessfulRead = SqlHandler::isNoError($response)) {
+                // $record = SqlHandler::getFirstRecord($response);
+                // if(count($record) > 0) $result = true;
+                $result = true;
+            }
+
+            return $result;
         }
 
         //создаем профиль пользователя
-        public function addProfile($accountId):bool
+        public function addProfile($accountId): bool
         {
 
             $result = false;
@@ -120,16 +166,16 @@ namespace Assay\Communication\Profile {
                 }                // print_r($key);
             }
             if ($this->addEntity()) {
-            //обновляем профиль, записываем как минимум дату создания
-            $this->date = date('Y-m-d H:i:s');
-            $result = $this->mutateEntity();
+                //обновляем профиль, записываем как минимум дату создания
+                $this->date = date('Y-m-d H:i:s');
+                $result = $this->mutateEntity();
 
-            //затем записываем связь в таблицу связи аккаунт-профиль
+                //затем записываем связь в таблицу связи аккаунт-профиль
                 //видимо, это тоже должно делаться как-то хитровыебано
 
-            //  if($this->mutateEntity() && $this->loadById($this->id))
-            //      $result = true;
-            //           print_r($result);
+                //  if($this->mutateEntity() && $this->loadById($this->id))
+                //      $result = true;
+                //           print_r($result);
             }
             return $result;
 
@@ -142,14 +188,13 @@ namespace Assay\Communication\Profile {
          * @return bool успешность изменения
          */
 
-        public function addEntity():bool
+        public function addEntity(): bool
         {
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' INSERT INTO ' . $this->tablename
                 . ' DEFAULT VALUES RETURNING '
                 . self::ID
-                .' ; '
-            ;
+                . ' ; ';
             $sqlWriter = new SqlHandler(ISqlHandler::DATA_WRITER);
             $response = $sqlWriter->performQuery($arguments);
 
@@ -159,15 +204,15 @@ namespace Assay\Communication\Profile {
                 $record = SqlHandler::getFirstRecord($response);
             }
 
-            $this->id = Common::setIfExists(self::ID, $record, self::EMPTY_VALUE);
-//            $this->isHidden = Common::setIfExists(self::IS_HIDDEN, $record, self::EMPTY_VALUE);
+            $this->id = Core\Common::setIfExists(self::ID, $record, self::EMPTY_VALUE);
+//            $this->isHidden = Core\Common::setIfExists(self::IS_HIDDEN, $record, self::EMPTY_VALUE);
 
             $result = $this->id != self::EMPTY_VALUE;
 
             return $result;
         }
 
-        public function loadById(string $id):bool
+        public function loadById(string $id): bool
         {
             $oneParameter[ISqlHandler::PLACEHOLDER] = ':ID';
             $oneParameter[ISqlHandler::VALUE] = intval($id);
@@ -181,7 +226,7 @@ namespace Assay\Communication\Profile {
                 . ' FROM '
                 . $this->tablename
                 . ' WHERE '
-                . self::ID. ' = '. $oneParameter[ISqlHandler::PLACEHOLDER]
+                . self::ID . ' = ' . $oneParameter[ISqlHandler::PLACEHOLDER]
                 . '
 ;
 ';
@@ -206,14 +251,13 @@ namespace Assay\Communication\Profile {
             return $result;
         }
 
-        public function setByNamedValue(array $namedValue):bool
+        public function setByNamedValue(array $namedValue): bool
         {
             $params = Common::getFieldsList(__CLASS__);
 
-            foreach($params as $key => $value)
-            {
+            foreach ($params as $key => $value) {
                 $keyCamel = Common::camelCase($key, [], self::WORD_DIVIDER);
-                $k = __CLASS__.'::'.$value;
+                $k = __CLASS__ . '::' . $value;
                 $v = constant($k);
                 $this->{$keyCamel} = Core\Common::setIfExists($v, $namedValue, self::EMPTY_VALUE);
 
@@ -225,7 +269,7 @@ namespace Assay\Communication\Profile {
         /** Обновляет (изменяет) запись в БД
          * @return bool успешность изменения
          */
-        public function mutateEntity():bool
+        public function mutateEntity(): bool
         {
             $result = false;
 
@@ -248,17 +292,16 @@ namespace Assay\Communication\Profile {
             return $result;
         }
 
-        public function toEntity():array
+        public function toEntity(): array
         {
             $result = array();
             $params = Common::getFieldsList(__CLASS__);
 
-            foreach($params as $key => $value)
-            {
+            foreach ($params as $key => $value) {
                 $keyCamel = Common::camelCase($key, [], self::WORD_DIVIDER);
-                $k = __CLASS__.'::'.$value;
+                $k = __CLASS__ . '::' . $value;
                 $v = constant($k);
-                // $this->{$key} = Common::setIfExists($v, $namedValue, self::EMPTY_VALUE);
+                // $this->{$key} = Core\Common::setIfExists($v, $namedValue, self::EMPTY_VALUE);
                 $result[$v] = $this->{$keyCamel};
 
             }
@@ -266,38 +309,37 @@ namespace Assay\Communication\Profile {
             return $result;
         }
 
-        protected function updateEntity():bool
+        protected function updateEntity(): bool
         {
 
             $sqlText = '';
             $params = Common::getFieldsList(__CLASS__);
             //    $end_element = array_pop($params); //потому что после последнего элемента нам не надо ставить запятую
 
-            foreach($params as $key => $value)
-            {
+            foreach ($params as $key => $value) {
                 $propertyName = Common::camelCase($key, [], self::WORD_DIVIDER);
-                if($key == 'is_hidden') continue;
+                if ($key == 'is_hidden') continue;
 
                 $$key[ISqlHandler::PLACEHOLDER] = ':' . $value;
                 $$key[ISqlHandler::VALUE] = $this->{$propertyName};
                 $$key[ISqlHandler::DATA_TYPE] = constant('\PDO::' . $this->fieldTypes[$key]);//$this->{$propertyName};
 
-                if($key != 'id')
+                if ($key != 'id')
                     $sqlText .= constant('self::' . $value) . " = " . $$key[ISqlHandler::PLACEHOLDER] . ", ";
                 // }
 
                 $arguments[ISqlHandler::QUERY_PARAMETER][] = $$key;
             }
             //убираем запятую после последнего элемента
-            $sqlText = mb_substr(rtrim($sqlText), 0, -1).' ';
+            $sqlText = mb_substr(rtrim($sqlText), 0, -1) . ' ';
 
             $arguments[ISqlHandler::QUERY_TEXT] = '
                UPDATE 
-                    '.$this->tablename.'
+                    ' . $this->tablename . '
                 SET 
-                    '.$sqlText.'
+                    ' . $sqlText . '
                  WHERE
-                    '.self::ID.' = '.$id[ISqlHandler::PLACEHOLDER];
+                    ' . self::ID . ' = ' . $id[ISqlHandler::PLACEHOLDER];
 
             $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
             $response = $sqlWriter->performQuery($arguments); //print_r($response);
@@ -307,7 +349,7 @@ namespace Assay\Communication\Profile {
         }
 
 
-        public function getAd():bool
+        public function getAd(): bool
         {
             return false;
         }

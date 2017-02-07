@@ -9,7 +9,7 @@ namespace Assay\Communication\Profile {
     interface IPersonProfile
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'person_profile_id';
+        const EXTERNAL_ID = 'person_profile_id';//'person_profile_id';
 
         public function getForGreetings():string;
 
@@ -17,6 +17,6 @@ namespace Assay\Communication\Profile {
 
         public function purgeGroup():bool;
 
-        public function setGroup():bool;
+        public function setGroup($groupId):bool;
     }
 }

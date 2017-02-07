@@ -11,7 +11,7 @@ namespace Assay\Communication\Profile {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */
        // const EXTERNAL_ID = 'message_id';
 
-        const CONTENT = 'content';
+        const CONTENT = 'message_text';
 
         public function getCorrespondent():bool;
 

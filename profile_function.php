@@ -44,6 +44,7 @@ use Assay\Core;
 use Assay\BusinessLogic\Communication;
 use Assay\Communication\Profile\Company;
 use Assay\Communication\Profile\Message;
+use Assay\Communication\Profile\SocialGroup;
 /*
 function getProfileData()
 {
@@ -788,6 +789,21 @@ else{
         </table>
     </form>
 <?php } ?>
+
+
+<?php if(isset($_GET["setgroup"])){
+    $socialGroupId = 1;
+   // if($profile->setGroup($socialGroupId)) echo ('social group ok');
+
+   // $socialGroup = new SocialGroup();
+   // print_r($socialGroup->isMember($profile->id, $socialGroupId));
+
+    if($profile->purgeGroup()) echo ('social group purge ok');
+
+    ?>
+
+<?php } ?>
+
 
 </body>
 </html>
