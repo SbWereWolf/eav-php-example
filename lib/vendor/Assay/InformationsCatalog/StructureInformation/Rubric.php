@@ -681,7 +681,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
                 $arguments[ISqlHandler::QUERY_PARAMETER][] = $likeParameter;
 
                 $condition = ' P.' . InformationProperty::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER]
-                    . ' AND SC.' . StringContent::STRING . ' LIKE \'%\'||' . $likeParameter[ISqlHandler::PLACEHOLDER] . '||\'%\' ';
+                    . ' AND SC.' . StringContent::STRING . ' ILIKE \'%\'||' . $likeParameter[ISqlHandler::PLACEHOLDER] . '||\'%\' ';
             }
 
             return $condition;

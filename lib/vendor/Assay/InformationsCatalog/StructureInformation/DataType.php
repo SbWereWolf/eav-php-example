@@ -23,6 +23,8 @@ namespace Assay\InformationsCatalog\StructureInformation {
         const DIGITAL = 'DIGITAL';
         /** @var string символьный тип */
         const STRING = 'STRING';
+        /** @var string тип для даты и времени */
+        const DATETIME = 'DATETIME';
 
         /** @var string имя таблицы */
         protected $tablename = self::TABLE_NAME;
