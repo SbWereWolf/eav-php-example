@@ -468,10 +468,10 @@ ORDER BY path
 
                 $queryWithString =
                     ' AND ( SO.'
-                    . self::NAME . ' LIKE ' . DataAccess\ICommon::WILDCARD_SYMBOL . '\'%\'||'
+                    . self::NAME . ' ILIKE ' . DataAccess\ICommon::WILDCARD_SYMBOL . '\'%\'||'
                     . $searchStringParameter[ISqlHandler::PLACEHOLDER]
                     . '||\'%\''
-                    . ' OR SO.' . self::DESCRIPTION . ' LIKE '
+                    . ' OR SO.' . self::DESCRIPTION . ' ILIKE '
                     . '\'%\'||' . $searchStringParameter[ISqlHandler::PLACEHOLDER] . '||\'%\' )';
 
                 $arguments[ISqlHandler::QUERY_PARAMETER][] = $searchStringParameter;
