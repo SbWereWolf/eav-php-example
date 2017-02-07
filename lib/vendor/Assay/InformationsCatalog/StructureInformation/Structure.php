@@ -8,193 +8,105 @@
 namespace Assay\InformationsCatalog\StructureInformation {
 
     use Assay\Core;
-    use Assay\Core\ICommon;
+    use Assay\DataAccess;
     use Assay\DataAccess\ISqlHandler;
     use Assay\DataAccess\SqlHandler;
 
     /**
      * Древовидная структура
      */
-    class Structure implements IStructure,
-        \Assay\Core\IHide,
-        \Assay\Core\INamedEntity,
-        Core\IMutableEntity,
-        Core\IReadableEntity
+    class Structure extends Core\NamedEntity implements IStructure
+
     {
         /** @var string константа для не пустого значения */
-        const EMPTY_VALUE = ICommon::EMPTY_VALUE;
-        /** @var string колонка идентификатора */
-        const ID = 'id';
+        const EMPTY_VALUE = Core\ICommon::EMPTY_VALUE;
 
-        /** @var string идентификатор записи таблицы */
-        public $id = self::EMPTY_VALUE;
-        /** @var string признак "является скрытым" */
-        public $isHidden = Core\IHide::DEFAULT_IS_HIDDEN;
-        /** @var string дата добавления записи */
-        public $insertDate = self::EMPTY_VALUE;
+        /** @var string имя таблицы */
+        const TABLE_NAME = 'structure';
+
         /** @var string родительский элемент */
-        public $parent = self::EMPTY_VALUE;
-        /** @var string код записи */
-        public $code = self::EMPTY_VALUE;
-        /** @var string наименование */
-        public $name = self::EMPTY_VALUE;
-        /** @var string описание */
-        public $description = self::EMPTY_VALUE;
+        public $linkToParent = self::EMPTY_VALUE;
+
+        /** @var string имя таблицы */
+        protected $tablename = self::TABLE_NAME;
 
         /** Прочитать запись из БД
          * @param string $id идентификатор записи
-         * @return bool значения колонок
+         * @return bool успех выполнения
          */
-        public function readEntity(string $id):bool
+        public function loadById(string $id):bool
         {
-            $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $oneParameter[ISqlHandler::QUERY_VALUE] = intval($id);
-            $oneParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $oneParameter = SqlHandler::setBindParameter(':ID', $id, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
-                'SELECT '
+                ' SELECT '
                 . self::ID
-                . ' , '
-                . self::PARENT
-                . ' , '
-                . self::CODE
-                . ' , '
-                . self::NAME
-                . ' , '
-                . self::DESCRIPTION
-                . ' , '
-                . self::IS_HIDDEN
-                . ' , '
-                . self::INSERT_DATE
+                . ' , ' . self::CHILD
+                . ' , btrim(' . self::CODE . ') AS "' . self::CODE . '"'
+                . ' , ' . self::NAME
+                . ' , ' . self::DESCRIPTION
+                . ' , ' . self::IS_HIDDEN
                 . ' FROM '
-                . self::TABLE_NAME
+                . $this->tablename
                 . ' WHERE '
-                . self::ID
-                . ' = '
-                . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                . self::ID . ' = ' . $oneParameter[ISqlHandler::PLACEHOLDER]
                 . '
 ;
 ';
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
 
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-
-            $response = $sqlReader->performQuery($arguments);
-
-            $isSuccessfulRead = SqlHandler::isNoError($response);
-
-            $record = array();
-            if ($isSuccessfulRead) {
-                $record = SqlHandler::getFirstRecord($response);
-                $this->setByNamedValue($record);
-            }
+            $record = SqlHandler::readOneRecord($arguments);
 
             $result = false;
-            if( $record != array() ){
-                $result = true;
+            if ($record != ISqlHandler::EMPTY_ARRAY) {
+                $result = $this->setByNamedValue($record);
             }
 
             return $result;
         }
 
-        /** Прочитать данные экземпляра из БД
-         * @return bool колонки
-         */
-        public function getStored():bool
-        {
-            $result = $this->readEntity($this->id);
-            return $result;
-        }
-
-        /** Установить свойства экземпляра в соответствии с массивом
+        /** Установить свойства экземпляра в соответствии со значениями
          * @param array $namedValue массив значений
+         * @return bool успех выполнения
          */
-        public function setByNamedValue(array $namedValue)
+        public function setByNamedValue(array $namedValue):bool
         {
-            $this->code = Core\Common::setIfExists(self::CODE, $namedValue, Core\Common::EMPTY_VALUE);
-            $this->description = Core\Common::setIfExists(self::DESCRIPTION, $namedValue, Core\Common::EMPTY_VALUE);
-            $this->id = Core\Common::setIfExists(self::ID, $namedValue, Core\Common::EMPTY_VALUE);
-            $this->insertDate = Core\Common::setIfExists(self::INSERT_DATE, $namedValue, Core\Common::EMPTY_VALUE);
-            $this->isHidden = Core\Common::setIfExists(self::IS_HIDDEN, $namedValue, Core\Common::EMPTY_VALUE);
-            $this->name = Core\Common::setIfExists(self::NAME, $namedValue, Core\Common::EMPTY_VALUE);
-            $this->parent = Core\Common::setIfExists(self::PARENT, $namedValue, Core\Common::EMPTY_VALUE);
+
+            $result = parent::setByNamedValue($namedValue);
+            $linkToParent = Core\Common::setIfExists(self::CHILD, $namedValue, self::EMPTY_VALUE);
+            if ($linkToParent != self::EMPTY_VALUE) {
+                $this->linkToParent = $linkToParent;
+            }
+
+            return $result;
         }
 
         /** Добавить запись в БД на основе экземпляра
-         * @param array $namedValue значения колонок
+         * @param string $parentCode
          * @return bool успех выполнения
          */
-        public function addReadable(array $namedValue):bool
+        public function setLinkToParent(string $parentCode):bool
         {
-            $linkToParent = Core\Common::setIfExists(
-                self::TABLE_NAME,
-                $namedValue,
-                Core\Common::EMPTY_VALUE);
-            $parent = Core\Common::EMPTY_VALUE;
-            if ($linkToParent != Core\Common::EMPTY_VALUE) {
-                $parent = Core\Common::setIfExists(
-                    self::PARENT,
-                    $linkToParent,
-                    Core\Common::EMPTY_VALUE);
+            $stored = new Structure();
+            $isSuccess = $stored->loadByCode($parentCode);
+
+            $result = false;
+            if ($isSuccess) {
+                $this->linkToParent = $stored->id;
+                $result = true;
             }
-            if ($parent != Core\Common::EMPTY_VALUE) {
-                $parent = intval($parent);
-            }
-            if ($parent == 0) {
-                $parent = null;
-            }
-
-            $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':PARENT';
-            $oneParameter[ISqlHandler::QUERY_VALUE] = $parent;
-            $oneParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
-
-            $arguments[ISqlHandler::QUERY_TEXT] =
-                'INSERT INTO '
-                . self::TABLE_NAME
-                . ' (' . self::PARENT . ')'
-                . ' VALUES('
-                . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . ')
-                RETURNING ' . Structure::ID
-                . ' , '
-                . self::IS_HIDDEN
-                . ' , '
-                . self::INSERT_DATE
-                . ' , '
-                . self::PARENT
-                . ' , '
-                . self::CODE
-                . ' , '
-                . self::NAME
-                . ' , '
-                . self::DESCRIPTION
-
-                . '
-;
-';
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
-
-            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-            $response = $sqlWriter->performQuery($arguments);
-
-            $isSuccessfulRequest = SqlHandler::isNoError($response);
-            if ($isSuccessfulRequest) {
-                $record = SqlHandler::getFirstRecord($response);
-                $this->setByNamedValue($record);
-            }
-
-            return $isSuccessfulRequest;
+            return $result;
         }
 
         /** Обновляет (изменяет) запись в БД
-         * @return bool успешность изменения
+         * @return bool успех выполнения
          */
         public function mutateEntity():bool
         {
             $result = false;
 
             $stored = new Structure();
-            $wasReadStored = $stored->readEntity($this->id);
+            $wasReadStored = $stored->loadById($this->id);
 
             $storedEntity = array();
             $entity = array();
@@ -204,6 +116,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
             }
 
             $isContain = Core\Common::isOneArrayContainOther($entity, $storedEntity);
+
             if (!$isContain) {
                 $result = $this->updateEntity();
             }
@@ -211,75 +124,52 @@ namespace Assay\InformationsCatalog\StructureInformation {
             return $result;
         }
 
-        private function updateEntity():bool
+        /** Обновить данные в БД
+         * @return bool успех выполнения
+         */
+        protected function updateEntity():bool
         {
-
-            $codeParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':CODE';
-            $codeParameter[ISqlHandler::QUERY_VALUE] = $this->code;
-            $codeParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-
-            $descriptionParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':DESCRIPTION';
-            $descriptionParameter[ISqlHandler::QUERY_VALUE] = $this->description;
-            $descriptionParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-
-            $idParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $idParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
-            $idParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
-
-            $isHiddenParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':IS_HIDDEN';
-            $isHiddenParameter[ISqlHandler::QUERY_VALUE] = intval($this->isHidden);
-            $isHiddenParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
-
-            $nameParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':NAME';
-            $nameParameter[ISqlHandler::QUERY_VALUE] = $this->name;
-            $nameParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
-
-            $parentParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':PARENT';
-            $parentParameter[ISqlHandler::QUERY_VALUE] = intval($this->parent);
-            $parentParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $codeParameter = SqlHandler::setBindParameter(':CODE', $this->code, \PDO::PARAM_STR);
+            $descriptionParameter = SqlHandler::setBindParameter(':DESCRIPTION', $this->description, \PDO::PARAM_STR);
+            $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', $this->isHidden, \PDO::PARAM_INT);
+            $nameParameter = SqlHandler::setBindParameter(':NAME', $this->name, \PDO::PARAM_STR);
+            $linkToParentParameter = SqlHandler::setBindParameter(':LINK_TO_PARENT', $this->linkToParent, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'UPDATE '
                 . self::TABLE_NAME
                 . ' SET '
-                . self::CODE
-                . ' = '
-                . $codeParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . ' , '
-                . self::IS_HIDDEN
-                . ' = '
-                . $isHiddenParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . ' , '
-                . self::PARENT
-                . ' = '
-                . $parentParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . ' , '
-                . self::NAME
-                . ' = '
-                . $nameParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . ' , '
-                . self::DESCRIPTION
-                . ' = '
-                . $descriptionParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                . self::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER]
+                . ' , ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
+                . ' , ' . self::CHILD . ' = ' . $linkToParentParameter[ISqlHandler::PLACEHOLDER]
+                . ' , ' . self::NAME . ' = ' . $nameParameter[ISqlHandler::PLACEHOLDER]
+                . ' , ' . self::DESCRIPTION . ' = ' . $descriptionParameter[ISqlHandler::PLACEHOLDER]
                 . ' WHERE '
-                . self::ID
-                . ' = '
-                . $idParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . '
-;
-';
+                . self::ID . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' RETURNING '
+                . ' btrim(' . self::CODE . ') AS "' . self::CODE . '"'
+                . ' , ' . self::IS_HIDDEN
+                . ' , ' . self::CHILD
+                . ' , ' . self::NAME
+                . ' , ' . self::DESCRIPTION
+                . ' , ' . self::ID
+                . ';';
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $descriptionParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $nameParameter;
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $parentParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $linkToParentParameter;
 
-            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-            $response = $sqlWriter->performQuery($arguments);
+            $record = SqlHandler::writeOneRecord($arguments);
 
-            $isSuccessfulRequest = SqlHandler::isNoError($response);
-            return $isSuccessfulRequest;
+            $result = false;
+            if ($record != ISqlHandler::EMPTY_ARRAY) {
+                $result = $this->setByNamedValue($record);;
+            }
+
+            return $result;
         }
 
         /** Формирует массив из свойств экземпляра
@@ -287,107 +177,49 @@ namespace Assay\InformationsCatalog\StructureInformation {
          */
         public function toEntity():array
         {
-            $result = array();
 
-            $result [self::CODE] = $this->code;
-            $result [self::DESCRIPTION] = $this->description;
-            $result [self::ID] = $this->id;
-            $result [self::INSERT_DATE] = $this->insertDate;
-            $result [self::IS_HIDDEN] = $this->isHidden;
-            $result [self::NAME] = $this->name;
-            $result [self::PARENT] = $this->parent;
+            $result = parent::toEntity();
+            $result [self::CHILD] = $this->linkToParent;
 
             return $result;
         }
 
-        /** Чтение записи из БД по коду
+        /** Чтение данных из БД по коду
          * @param string $code код записи
-         * @return bool значения записи
+         * @return bool успех выполнения
          */
         public function loadByCode(string $code):bool
         {
-            $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':CODE';
-            $oneParameter[ISqlHandler::QUERY_VALUE] = strval($code);
-            $oneParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $codeParameter = SqlHandler::setBindParameter(':CODE', $code, \PDO::PARAM_STR);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN',
+                self::DEFINE_AS_NOT_HIDDEN,
+                \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 'SELECT '
                 . self::ID
-                . ' , '
-                . self::PARENT
-                . ' , '
-                . self::CODE
-                . ' , '
-                . self::NAME
-                . ' , '
-                . self::DESCRIPTION
-                . ' , '
-                . self::IS_HIDDEN
-                . ' , '
-                . self::INSERT_DATE
+                . ' , ' . self::CHILD
+                . ' , btrim(' . self::CODE . ') AS "' . self::CODE . '"'
+                . ' , ' . self::NAME
+                . ' , ' . self::DESCRIPTION
+                . ' , ' . self::IS_HIDDEN
                 . ' FROM '
                 . self::TABLE_NAME
                 . ' WHERE '
-                . self::CODE
-                . ' = '
-                . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . '
-;
-';
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
-
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-
-            $response = $sqlReader->performQuery($arguments);
-
-            $isSuccessfulRead = SqlHandler::isNoError($response);
-
-            if ($isSuccessfulRead) {
-                $record = SqlHandler::getFirstRecord($response);
-                $this->setByNamedValue($record);
-            }
-
-            return $isSuccessfulRead;
-        }
-
-        /** Получить имя и описание записи
-         * @param string $code значение ключа для свойства код
-         * @param string $name значение ключа для свойства имя
-         * @param string $description значение ключа для свойства описание
-         * @return array массив с именем и описанием
-         */
-        public function getElementDescription(string $code = Core\INamedEntity::CODE,
-                                              string $name = Core\INamedEntity::NAME,
-                                              string $description = Core\INamedEntity::DESCRIPTION):array
-        {
-            $result[$code] = $this->code;
-            $result[$name] = $this->name;
-            $result[$description] = $this->description;
-            return $result;
-        }
-
-        /** Скрыть сущность
-         * @return bool успех операции
-         */
-        public function hideEntity():bool
-        {
-            $arguments[ISqlHandler::QUERY_TEXT] =
-                'UPDATE '
-                . self::TABLE_NAME
-                . ' SET ' . Core\IHide::IS_HIDDEN . ' ='
-                . Core\IHide::DEFINE_AS_HIDDEN
-                . ' WHERE '
-                . self::ID . ' = '
-                . $this->id
+                . self::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
                 . ';';
 
-            $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
-            $response = $sqlWriter->performQuery($arguments);
-            $result = SqlHandler::isNoError($response);
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
 
-            if ($result) {
-                $this->isHidden = true;
+            $record = SqlHandler::readOneRecord($arguments);
+
+            $result = false;
+            if ($record != ISqlHandler::EMPTY_ARRAY) {
+                $result = $this->setByNamedValue($record);
             }
+
             return $result;
         }
 
@@ -396,12 +228,14 @@ namespace Assay\InformationsCatalog\StructureInformation {
          */
         public function addChild():string
         {
-            $result = self::EMPTY_VALUE;
 
             $child = new Structure();
+            $child->addEntity();
 
-            $parentStructure[IStructure::TABLE_NAME][IStructure::PARENT] = $this->id;
-            $isSuccess = $child->addReadable($parentStructure);
+            $child->linkToParent = $this->id;
+            $isSuccess = $child->mutateEntity();
+
+            $result = self::EMPTY_VALUE;
             if ($isSuccess) {
                 $result = $child->id;
             }
@@ -414,70 +248,60 @@ namespace Assay\InformationsCatalog\StructureInformation {
          */
         public function getChildrenNames(string $nameKey = Core\INamedEntity::NAME):array
         {
-            $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $oneParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
-            $oneParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', self::DEFINE_AS_NOT_HIDDEN, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' SELECT 
-                '.self::NAME.' AS '
-                . $nameKey
+                ' . self::NAME . ' AS ' . $nameKey
                 . ' FROM '
                 . self::TABLE_NAME
                 . ' WHERE '
-                . self::PARENT . ' = '
-                . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                . self::CHILD . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
                 . ';';
 
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
 
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments);
-            $resultCountChildren = SqlHandler::isNoError($response);
+            $result = SqlHandler::readAllRecords($arguments);
 
-            $result = array();
-            if ($resultCountChildren) {
-                $result = SqlHandler::getAllRecords($response);
-            }
             return $result;
         }
 
+        /** Получить коды дочерних элементов
+         * @param string $codeKey значение для индекса элемента с кодом
+         * @return array массив кодов
+         */
         public function getChildrenCodes(string $codeKey = Core\INamedEntity::CODE):array
         {
-            $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $oneParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
-            $oneParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', self::DEFINE_AS_NOT_HIDDEN, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
-                ' SELECT 
-                '.self::CODE.' AS '
-                . $codeKey
+                ' SELECT'
+                . ' btrim(' . self::CODE . ') AS "' . $codeKey . '"'
                 . ' FROM '
-                . self::TABLE_NAME
+                . $this->tablename
                 . ' WHERE '
-                . self::PARENT . ' = '
-                . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                . ';';
+                . self::CHILD . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] .
+                ';';
 
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
 
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments);
-            $resultCountChildren = SqlHandler::isNoError($response);
+            $result = SqlHandler::readAllRecords($arguments);
 
-            $result = array();
-            if ($resultCountChildren) {
-                $result = SqlHandler::getAllRecords($response);
-            }
             return $result;
         }
 
         /** Получить идентификатор ролительского элемнта
          * @return string идентификатор
          */
-        public function getParent():string
+        public function getLinkToParent():string
         {
-            $result = $this->parent;
+            $result = strval($this->linkToParent);
             return $result;
         }
 
@@ -510,10 +334,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
          */
         public function getPath():array
         {
-
-            $idParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $idParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
-            $idParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
 
             $queryText =
                 '
@@ -521,114 +342,95 @@ WITH RECURSIVE children ( id, structure_id, code, name,level ) AS
 (
   SELECT
     SC.' . self::ID . ',
-    SC.' . self::PARENT . ',
-    SC.' . self::CODE . ',
+    SC.' . self::CHILD . ',
+    btrim(SC.' . self::CODE . ') AS "' . self::CODE . '",
     SC.' . self::NAME . ',
     0
   FROM ' . self::TABLE_NAME . ' SC
-  WHERE SC.id = ' . $idParameter[ISqlHandler::QUERY_PLACEHOLDER] . '
+  WHERE SC.id = ' . $idParameter[ISqlHandler::PLACEHOLDER] . '
   UNION
   SELECT
     SN.' . self::ID . ',
-    SN.' . self::PARENT . ',
-    SN.' . self::CODE . ',
+    SN.' . self::CHILD . ',
+    btrim(SN.' . self::CODE . ') AS "' . self::CODE . '",
     SN.' . self::NAME . ',
     level + 1
   FROM ' . self::TABLE_NAME . ' SN
     INNER JOIN children C
-      ON (C.' . self::PARENT . ' = SN.' . self::ID . ')
+      ON (C.' . self::CHILD . ' = SN.' . self::ID . ')
 )
 SELECT '
-    . self::CODE
-    . ', '
-    . self::NAME
-    . '
+                . 'btrim(' . self::CODE . ') AS "' . self::CODE . '"'
+                . ' , ' . self::NAME
+                . '
 FROM children
 ORDER BY level DESC
 ;
 ';
-
             $arguments[ISqlHandler::QUERY_TEXT] = $queryText;
-
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
 
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-
-            $response = $sqlReader->performQuery($arguments);
-
-            $isSuccessfulRead = SqlHandler::isNoError($response);
-
-            $records = array();
-            if ($isSuccessfulRead) {
-                $records = SqlHandler::getAllRecords($response);
-                $this->setByNamedValue($records);
-            }
+            $records = SqlHandler::readAllRecords($arguments);
 
             return $records;
         }
 
-        /**
-         * @param string $code
-         * @return array
+        /** Получить элменты карты структуры
+         * @param string $code код корневого элмента
+         * @return array массив с элементами карты
          */
         public static function getMap(string $code = ' '):array
         {
-            $codeParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':CODE';
-            $codeParameter[ISqlHandler::QUERY_VALUE] = $code;
-            $codeParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $codeParameter = SqlHandler::setBindParameter(':CODE', $code, \PDO::PARAM_STR);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', self::DEFINE_AS_NOT_HIDDEN, \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
-'
+                '
 WITH RECURSIVE nodes ( id, structure_id, code, name, path, level ) AS
 (
   SELECT
     SC.' . self::ID . ',
-    SC.' . self::PARENT . ',
-    SC.' . self::CODE . ',
+    SC.' . self::CHILD . ',
+    btrim(SC.' . self::CODE  .') AS "'.self::CODE.'",
     SC.' . self::NAME . ',
-    CAST ( SC.' . self::CODE . ' AS text ),
+    CAST ( btrim(SC.' . self::CODE . ') AS text ) AS "'.self::CODE.'",
     0
   FROM ' . self::TABLE_NAME . ' SC
-  WHERE SC.' . self::CODE . ' = '.$codeParameter[ISqlHandler::QUERY_PLACEHOLDER].' 
+  WHERE SC.' . self::CODE . ' = ' . $codeParameter[ISqlHandler::PLACEHOLDER] . ' 
     OR (
-        '.$codeParameter[ISqlHandler::QUERY_PLACEHOLDER].' = \' \' 
-        AND SC.' . self::PARENT . ' IS NULL
+        ' . $codeParameter[ISqlHandler::PLACEHOLDER] . ' = \' \' 
+        AND SC.' . self::CHILD . ' IS NULL
     )
   UNION
   SELECT
     SN.' . self::ID . ',
-    SN.' . self::PARENT . ',
-    SN.' . self::CODE . ',
+    SN.' . self::CHILD . ',
+    btrim( SN.' . self::CODE  .') AS "'.self::CODE.'",
     SN.' . self::NAME . ',
-    CAST ( N.path || \'-\'|| SN.' . self::CODE . '  AS text ),
+    CAST ( N.path || \'-\'|| btrim(SN.' . self::CODE . ')  AS text ) AS "'.self::CODE.'",
     level + 1
   FROM ' . self::TABLE_NAME . ' SN
     INNER JOIN nodes N
-      ON (N.id = SN.' . self::PARENT . ')
+      ON (N.id = SN.' . self::CHILD . ')
+  WHERE SN.'
+                . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] . '
 )
 SELECT
-  ' . self::CODE . ',
+  btrim(' . self::CODE  .') AS "'.self::CODE.'",
   ' . self::NAME . ',
   path,
   level
 FROM nodes
 ORDER BY path
 ;
-'
-            ;
+';
 
             $arguments[ISqlHandler::QUERY_PARAMETER][] = $codeParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
 
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments);
-            
-            $resultCountChildren = SqlHandler::isNoError($response);
+            $record = SqlHandler::readAllRecords($arguments);
 
-            $record =array();
-            if ($resultCountChildren) {
-                $record = SqlHandler::getAllRecords($response);
-            }
-            return $record ;
+            return $record;
         }
 
         /** Выполнить поиск
@@ -638,55 +440,46 @@ ORDER BY path
          * @param int $paging количество для отображения
          * @return array результаты поиска
          */
-        public static  function search(string $searchString = ICommon::EMPTY_VALUE,
-                               string $structureCode = ICommon::EMPTY_VALUE,
-                               int $start = 0,
-                               int $paging = 0):array
+        public static function search(string $searchString = Core\ICommon::EMPTY_VALUE,
+                                      string $structureCode = Core\ICommon::EMPTY_VALUE,
+                                      int $start = 0,
+                                      int $paging = 0):array
         {
-            $searchStringParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':SEARCH_STRING';
-            $searchStringParameter[ISqlHandler::QUERY_VALUE] = $searchString;
-            $searchStringParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
 
-            $structureCodeParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':CODE';
-            $structureCodeParameter[ISqlHandler::QUERY_VALUE] = $structureCode;
-            $structureCodeParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_STR;
+            $searchStringParameter = SqlHandler::setBindParameter(':SEARCH_STRING', $searchString, \PDO::PARAM_STR);
+            $structureCodeParameter = SqlHandler::setBindParameter(':CODE', $structureCode, \PDO::PARAM_STR);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN', self::DEFINE_AS_NOT_HIDDEN, \PDO::PARAM_INT);
 
             $queryText =
                 'SELECT '
-                . self::CODE
-                . ' , '
-                . self::NAME
-                . ' , '
-                . self::DESCRIPTION
+                . ' btrim(' . self::CODE .') AS "'.self::CODE.'"'
+                . ' , ' . self::NAME
+                . ' , ' . self::DESCRIPTION
                 . ' FROM '
-                . self::TABLE_NAME
-                . ' AS SO '
+                . self::TABLE_NAME . ' AS SO '
                 . ' WHERE SO.'
                 . self::IS_HIDDEN
-                . ' = 0';
+                . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER];
+
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
 
             $queryWithString = '';
-            if ($searchStringParameter[ISqlHandler::QUERY_VALUE] != ICommon::EMPTY_VALUE) {
+            if ($searchStringParameter[ISqlHandler::VALUE] != DataAccess\ICommon::EMPTY_VALUE) {
 
                 $queryWithString =
                     ' AND ( SO.'
-                    . self::NAME
-                    . ' LIKE '
-                    . '\'%\'||'
-                    . $searchStringParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                    . self::NAME . ' LIKE ' . DataAccess\ICommon::WILDCARD_SYMBOL . '\'%\'||'
+                    . $searchStringParameter[ISqlHandler::PLACEHOLDER]
                     . '||\'%\''
-                    . ' OR SO.'
-                    . self::DESCRIPTION
-                    . ' LIKE '
-                    . '\'%\'||'
-                    . $searchStringParameter[ISqlHandler::QUERY_PLACEHOLDER]
-                    . '||\'%\' )';
+                    . ' OR SO.' . self::DESCRIPTION . ' LIKE '
+                    . '\'%\'||' . $searchStringParameter[ISqlHandler::PLACEHOLDER] . '||\'%\' )';
+
                 $arguments[ISqlHandler::QUERY_PARAMETER][] = $searchStringParameter;
             }
             $queryText .= $queryWithString;
 
             $queryWithCode = '';
-            if ($structureCodeParameter[ISqlHandler::QUERY_VALUE] != ICommon::EMPTY_VALUE) {
+            if ($structureCodeParameter[ISqlHandler::VALUE] != DataAccess\ICommon::EMPTY_VALUE) {
 
                 $queryWithCode =
 
@@ -700,20 +493,22 @@ AND EXISTS
         (
           SELECT
             SC.' . self::ID . ',
-            SC.' . self::PARENT . ',
-            SC.' . self::CODE . ',
+            SC.' . self::CHILD . ',
+            btrim( SC.' . self::CODE  .') AS "'.self::CODE.'",
             0
           FROM ' . self::TABLE_NAME . ' SC
           WHERE SC.' . self::ID . ' = SO.' . self::ID . '
           UNION
           SELECT
             SN.' . self::ID . ',
-            SN.' . self::PARENT . ',
-            SN.' . self::CODE . ',
+            SN.' . self::CHILD . ',
+            btrim(SN.' . self::CODE  .') AS "'.self::CODE.'",
             level + 1
           FROM ' . self::TABLE_NAME . ' SN
             INNER JOIN children C
-              ON (C.' . self::PARENT . ' = SN.' . self::ID . ')
+              ON (C.' . self::CHILD . ' = SN.' . self::ID . ')
+          WHERE
+            SN.' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER] . '
         )
         SELECT code
         FROM children
@@ -721,74 +516,52 @@ AND EXISTS
         LIMIT 1
       ) AS R
     WHERE R.code = '
-                    . $structureCodeParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                    . $structureCodeParameter[ISqlHandler::PLACEHOLDER]
                     . ')';
 
                 $arguments[ISqlHandler::QUERY_PARAMETER][] = $structureCodeParameter;
             }
             $queryText .= $queryWithCode;
 
-            $queryLimit = '';
-            if ($paging > 0) {
-                $queryLimit = " LIMIT $paging ";
-            }
-            $queryText .= $queryLimit;
-
-            $queryOffset = '';
-            if ($start > 0) {
-                $queryOffset = "  OFFSET $start ";
-            }
-            $queryText .= $queryOffset;
+            $pagingString = SqlHandler::getPagingCondition($start, $paging);
+            $queryText .= $pagingString;
 
             $arguments[ISqlHandler::QUERY_TEXT] = $queryText;
 
-
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-
-            $response = $sqlReader->performQuery($arguments);
-
-            $isSuccessfulRead = SqlHandler::isNoError($response);
-
-            $record = array();
-            if ($isSuccessfulRead) {
-                $record = SqlHandler::getAllRecords($response);
-            }
+            $record = SqlHandler::readAllRecords($arguments);
 
             return $record;
         }
 
-        /**
-         * @return int
+        /** Сосчитать дочерние элементы
+         * @return int количество дочерних элементов
          */
         private function calculateChildren():int
         {
             $resultColumnName = 'result';
 
-            $oneParameter[ISqlHandler::QUERY_PLACEHOLDER] = ':ID';
-            $oneParameter[ISqlHandler::QUERY_VALUE] = intval($this->id);
-            $oneParameter[ISqlHandler::QUERY_DATA_TYPE] = \PDO::PARAM_INT;
+            $idParameter = SqlHandler::setBindParameter(':ID', $this->id, \PDO::PARAM_INT);
+            $isHiddenParameter = SqlHandler::setBindParameter(':IS_HIDDEN'
+                , self::DEFINE_AS_NOT_HIDDEN
+                , \PDO::PARAM_INT);
 
             $arguments[ISqlHandler::QUERY_TEXT] =
                 ' SELECT 
-                COUNT(*) AS '
-                . $resultColumnName
+                COUNT(*) AS ' . $resultColumnName
                 . ' FROM '
                 . self::TABLE_NAME
                 . ' WHERE '
-                . self::PARENT . ' = '
-                . $oneParameter[ISqlHandler::QUERY_PLACEHOLDER]
+                . self::CHILD . ' = ' . $idParameter[ISqlHandler::PLACEHOLDER]
+                . ' AND ' . self::IS_HIDDEN . ' = ' . $isHiddenParameter[ISqlHandler::PLACEHOLDER]
                 . ';';
 
-            $arguments[ISqlHandler::QUERY_PARAMETER][] = $oneParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $isHiddenParameter;
+            $arguments[ISqlHandler::QUERY_PARAMETER][] = $idParameter;
 
-            $sqlReader = new SqlHandler(SqlHandler::DATA_READER);
-            $response = $sqlReader->performQuery($arguments);
-
-            $resultCountChildren = SqlHandler::isNoError($response);
+            $record = SqlHandler::readOneRecord($arguments);
 
             $result = Core\Common::NO_INDEX;
-            if ($resultCountChildren) {
-                $record = SqlHandler::getFirstRecord($response);
+            if ($record != DataAccess\ICommon::EMPTY_ARRAY) {
                 $result = Core\Common::setIfExists($resultColumnName,
                     $record,
                     Core\Common::NO_INDEX);

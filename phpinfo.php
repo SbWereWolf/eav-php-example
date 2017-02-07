@@ -1,2 +1,2 @@
 <?php
-print phpinfo();
+print (int)false;

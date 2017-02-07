@@ -14,13 +14,19 @@ namespace Assay\InformationsCatalog\StructureInformation {
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'search_type_id';
 
+        /** @var string имя таблицы */
+        const TABLE_NAME = 'search_type';
+
         /** @var string значение не определено */
-        const UNDEFINED = '0';
+        const UNDEFINED = 'UNDEFINED';
         /** @var string поиск подобия */
-        const LIKE = '1';
+        const LIKE = 'LIKE';
         /** @var string поиск в диапазоне */
-        const BETWEEN = '2';
+        const BETWEEN = 'BETWEEN';
         /** @var string поиск перечисления */
-        const ENUMERATION = '3';
+        const ENUMERATION = 'ENUMERATION';
+
+        /** @var string имя таблицы */
+        protected $tablename = self::TABLE_NAME;
     }
 }

@@ -11,12 +11,9 @@ namespace Assay\Core {
      */
     interface IEntity
     {
-        /** @var string колонка для айди */
-        const ID = 'id';
-
         /** Добавить запись сущности в БД
-         * @return string идентификатор добавленой записи
+         * @return bool успех выполнения
          */
-        public function addEntity():string;
+        public function addEntity():bool;
     }
 }

@@ -15,13 +15,11 @@ namespace Assay\InformationsCatalog\StructureInformation {
      */
     interface IStructure
     {
-        /** @var string имя таблицы */
-        const TABLE_NAME = 'structure';
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
         const EXTERNAL_ID = 'structure_id';
 
         /** @var string родительский элемент */
-        const PARENT = self::EXTERNAL_ID;
+        const CHILD = self::EXTERNAL_ID;
 
         /** Добавить дочерний элемент
          * @return string идентификатор добавленого элемента
@@ -37,7 +35,7 @@ namespace Assay\InformationsCatalog\StructureInformation {
         /** Получить получить идентификатор ролительского элемнта
          * @return string идентификатор
          */
-        public function getParent():string;
+        public function getLinkToParent():string;
 
         /** Проверить что является разделом
          * @return bool успех проверки
@@ -66,12 +64,21 @@ namespace Assay\InformationsCatalog\StructureInformation {
          * @param int $paging количество для отображения
          * @return array результаты поиска
          */
-        public static function search(string $searchString= ICommon::EMPTY_VALUE, string $structureCode = ICommon::EMPTY_VALUE, int $start, int $paging):array;
+        public static function search(string $searchString= ICommon::EMPTY_VALUE
+            , string $structureCode = ICommon::EMPTY_VALUE
+            , int $start
+            , int $paging):array;
 
         /** Получить коды элементов для которых этот родительский
          * @param string $codeKey наименование индекса для кода дочернего элемента структуры
          * @return array
          */
         public function getChildrenCodes(string $codeKey = INamedEntity::CODE):array;
+
+        /** Добавить запись в БД на основе экземпляра
+         * @param string $parentCode
+         * @return bool успех выполнения
+         */
+        public function setLinkToParent(string $parentCode):bool;
     }
 }

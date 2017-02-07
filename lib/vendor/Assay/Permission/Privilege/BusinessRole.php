@@ -9,11 +9,11 @@ namespace Assay\Permission\Privilege {
 
     use Assay\Core\NamedEntity;
 
-    class BusinessRole extends NamedEntity
+    class BusinessRole extends NamedEntity implements ICommon
     {
         /** @var string название таблицы */
-        const TABLE_NAME = 'role';
+        const TABLE_NAME = 'business_role';
         /** @var string колонка для внешнего ключа ссылки на эту таблицу */
-        const EXTERNAL_ID = 'role_id';
+        const EXTERNAL_ID = 'business_role_id';
     }
 }

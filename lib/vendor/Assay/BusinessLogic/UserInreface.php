@@ -8,18 +8,50 @@
 namespace Assay\BusinessLogic {
 
     use Assay\Core\Common;
+    use Assay\Permission\InterfacePermission\Permission;
 
     class UserInreface implements IUserInreface
     {
-        public function getPagging(): string
+        private $permission;
+
+        function __construct()
         {
-            $result = Common::EMPTY_VALUE;
+            $this->permission = new Permission();
+        }
+
+        public function getPaging(): string
+        {
+            $result = $this->permission->getPaging();
+            return $result;
+        }
+
+        public function getGreetingsRole(): string
+        {
+            $result = $this->permission->getGreetingsRole();
+            return $result;
+        }
+
+        public function getMode(): string
+        {
+            $result = $this->permission->getMode();
+            return $result;
+        }
+
+        public function getProfileId(): string
+        {
+            $result = $this->permission->getProfileId();
+            return $result;
+        }
+
+        public function getUserId(): string
+        {
+            $result = $this->permission->getUserId();
             return $result;
         }
 
         public function getCompanyFilter(): string
         {
-            $result = Common::EMPTY_VALUE;
+            $result = $this->permission->getCompanyFilter();
             return $result;
         }
     }

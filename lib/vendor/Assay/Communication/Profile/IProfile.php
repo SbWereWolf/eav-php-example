@@ -11,8 +11,11 @@ namespace Assay\Communication\Profile {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */
         const GREETINGS_ROLE = 'greetings_role';
 
+        const EXTERNAL_ID = 'profile_id';
+
         public function getCommentEnableArea():bool;
 
         public function getGreetingsRole():string;
+
     }
 }

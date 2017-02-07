@@ -13,8 +13,19 @@ namespace Assay\BusinessLogic {
         const PAGING = 'pagging';
         /** @var string фильтр по компании */
         const COMPANY_FILTER = 'company_filter';
+        /** @var string режим */
+        const MODE = 'mode';
 
-        public function getPagging():string;
+        public function getPaging():string;
+
+        public function getGreetingsRole(): string;
+
+        public function getMode(): string;
+
+        public function getProfileId(): string;
+
+        public function getUserId(): string;
+
         public function getCompanyFilter():string;
     }
 }

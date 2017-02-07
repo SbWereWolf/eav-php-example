@@ -16,14 +16,20 @@ namespace Assay\InformationsCatalog\DataInformation {
      */
     class CompanyAddress extends Rubric
     {
+        /** @var string имя таблицы для хранения сущности */
+        const TABLE_NAME = 'company_address';
+
+        /** @var string колонка для внешнего ключа ссылки на эту таблицу */
+        const EXTERNAL_ID = 'company_address_id';
+
         /** @var string ссылка на позицию компании */
-        const COMPANY = InformationInstance::EXTERNAL_ID;
+        const COMPANY = RubricPosition::EXTERNAL_ID;
         /** @var string ссылка на тип адреса */
-        const TYPE = CompanyAddress::EXTERNAL_ID;
+        const TYPE = AddressType::EXTERNAL_ID;
         
         /** @var string компания */
-        public $company = ICommon::EMPTY_VALUE;
+        public $company = self::EMPTY_VALUE;
         /** @var string тип */
-        public $type = AddressType::UNDEFINED;
+        public $type = self::EMPTY_VALUE;
     }
 }

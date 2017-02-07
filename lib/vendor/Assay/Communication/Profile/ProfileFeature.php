@@ -7,14 +7,14 @@
  */
 namespace Assay\Communication\Profile {
 
-    use Assay\Core\ReadableEntity;
+    use Assay\Core\InnerLinkageEntity;
 
-    class ProfileFeature extends ReadableEntity
+    class ProfileFeature extends InnerLinkageEntity
     {
         /** @var string колонка ссылки на профиль пользователя */
         const PROFILE = IPersonProfile::EXTERNAL_ID;
 
-        /** @var string профилоь пользователя */
+        /** @var string профиль пользователя */
         public $profile;
     }
 }
