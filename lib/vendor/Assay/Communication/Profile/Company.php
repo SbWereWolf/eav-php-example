@@ -40,6 +40,7 @@ namespace Assay\Communication\Profile {
         const WORKTIME = 'worktime';
 
         const INN = 'inn';
+        const DEFAULT_IS_HIDDEN = 0;
     //    const REGISTRATION_DATE = 'registration_date';
      //   const TAX_REGISTRATION_DATE = 'tax_registration_date';
      //   const CONFIRM_REGISTRATION_DATE = 'confirm_registration_date';
@@ -47,7 +48,7 @@ namespace Assay\Communication\Profile {
         /** @var string идентификатор записи таблицы */
         public $id = self::EMPTY_VALUE;
         /** @var string признак "является скрытым" */
-        public $isHidden = Core\IPrimitiveData::DEFAULT_IS_HIDDEN;
+        public $isHidden = self::DEFAULT_IS_HIDDEN;
         /** @var string родительский элемент */
       //  public $parent = self::EMPTY_VALUE;
         /** @var string наименование */

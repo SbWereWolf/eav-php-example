@@ -9,11 +9,11 @@ namespace Assay\Communication\Profile {
     interface ISocialGroup
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'social_group_id';
+        const EXTERNAL_ID = 'social_group_id';//'social_group_id';
 
         /** @var string колонка ссылки на социальный объект */
-        const OBJECT = SocialObject::EXTERNAL_ID;
+       // const OBJECT = SocialObject::EXTERNAL_ID;
 
-        public function isMember():bool;
+        public function isMember($profileId, $socialGroupId):bool;
     }
 }

@@ -40,9 +40,11 @@ include "autoloader.php";
 //include('index.php');
 //use Assay\Permission\Privilege;
 use Assay\Core;
-use Assay\Communication\Profile\Profile;
+//use Assay\Communication\Profile\PersonProfile;
+use Assay\BusinessLogic\Communication;
 use Assay\Communication\Profile\Company;
-use Assay\Communication\Profile\Messages;
+use Assay\Communication\Profile\Message;
+use Assay\Communication\Profile\SocialGroup;
 /*
 function getProfileData()
 {
@@ -73,9 +75,10 @@ function setProfileData()
 */
 
 if(isset($_POST["myprofile"])){
-    $profile = new Profile(1);
+    $profile = new Communication();
+  //  $profile = new PersonProfile(1);
     $values = $_POST;
-    $profile->setCurrentUserProfileData($values);
+    $profile->setCurrentUserProfileData($values, 1);
    // header("Location:/profile_function.php?myprofile=1");
 }
 
@@ -194,7 +197,7 @@ function addMessage()
 
 
 if(isset($_POST["addmessage"])){
-    $message = new Messages(1);
+    $message = new Message(1);
     $values = $_POST;
     $message->addMessage($values);
     // header("Location:/profile_function.php?myprofile=1");
@@ -426,13 +429,16 @@ if ($result[Assay\DataAccess\SqlReader::ERROR_INFO][0] == '00000') {
 //$isAllow = authorizationProcess($session,'','');
 
 $disabled = '';
-$profile = new Profile(1);
+//$profile = new PersonProfile(1);
+$communication = new Communication();
+$profile = $communication->getCurrentUserProfileData(1);
 //$profile->id = 1; //предположим, что мы залогинились и получили наш айдишник
 //$profile->getCurrentUserProfileData();
 //$profile->getUserEmail();
 //$profile->getProfileCompany();
 //$profile->getMode();
-$ownProfile = $profile->isOwnProfile();
+$ownProfile = $communication->isOwnProfile(1);
+$email = $communication->getUserEmail(1);
 if(!$ownProfile) $disabled = 'disabled';
 ?>
 
@@ -478,7 +484,7 @@ if(!$ownProfile) $disabled = 'disabled';
             Дата регистрации:
         </td>
         <td>
-            <?php echo($profile->insertDate); ?>
+            <?php echo($profile->registrationDate); ?>
         </td>
     </tr>
     <tr>
@@ -494,7 +500,7 @@ if(!$ownProfile) $disabled = 'disabled';
             Электронная почта:
         </td>
         <td>
-            <?php echo($profile->email); ?>
+            <?php echo($email); ?>
         </td>
     </tr>
     <tr>
@@ -526,8 +532,8 @@ if(!$ownProfile) $disabled = 'disabled';
             Компания:
         </td>
 <?php
-if($profile->getProfileCompany()){ ?>
-        <td><a href="profile_function.php?company=<?php echo($profile->company['id']);?>"><?php echo($profile->company['name']);?></a></td>
+if($company = $communication->getProfileCompany(1)){ ?>
+        <td><a href="profile_function.php?company=<?php echo($company['id']);?>"><?php echo($company['name']);?></a></td>
         <?php if($ownProfile){ ?>
             <td><input type="button" name="delete_company" value="Очистить"/></td>
         <?php } ?>
@@ -548,7 +554,7 @@ else{
             Объявление:
         </td>
         <?php
-        if($profile->getProfileAdvert()){ ?>
+        if($profile->getAd()){ ?>
             <td><a href="profile_function.php?advert=<?php echo($profile->advert['id']);?>"><?php echo($profile->advert['name']);?></a></td>
         <?php if($ownProfile){ ?>
             <td><input type="button" name="delete_company" value="Очистить"/></td>
@@ -569,11 +575,11 @@ else{
 
 
 <?php if(isset($_GET["messages"])){
-    $messages = new Messages(1);
+    $messages = new Message(1);
     ?>
     <?php if($_GET["messages"] == 'all'){
         //выводим список сообщений
-        $messages->getMessagesList();
+        $messages->getCorrespondent();
     ?>
 
         <table>
@@ -599,11 +605,13 @@ else{
 
 <?php if(intval($_GET["messages"]) >0){
     //выводим список сообщений конкретного автора
-    $messages->getMessagesSelectAuthor($_GET["messages"]);
+    $messages->getByCorrespondent($_GET["messages"]);
     ?>
     <form name="message_data" method="post">
         <input type="hidden" name ="author" value="<?php echo($messages->profileId); ?>" />
         <input type="hidden" name ="receiver" value="<?php echo($messages->authorId); ?>" />
+        <input type="hidden" name ="author_is_company" value="<?php echo($messages->authorIsCompany); ?>" />
+        <input type="hidden" name ="receiver_is_company" value="<?php echo($messages->receiverIsCompany); ?>" />
         <input type="hidden" name ="addmessage" value="1" />
         <table>
             <tr>
@@ -700,7 +708,7 @@ else{
                     Поставщик:
                 </td>
                 <td>
-                    <input type="checkbox" name="is_supplier" value="<?php echo($company->isSupplier); ?>" <?php echo($disabled); ?>"/>
+                    <input type="checkbox" name="is_supplier" value="1" <?php echo($disabled); ?>"/>
                 </td>
             </tr>
             <tr>
@@ -708,7 +716,7 @@ else{
                     Транспортная компания:
                 </td>
                 <td>
-                    <input type="checkbox" name="is_transport" value="<?php echo($company->isTransport); ?>" <?php echo($disabled); ?>"/>
+                    <input type="checkbox" name="is_transport" value="1" <?php echo($disabled); ?>"/>
                 </td>
             </tr>
             <tr>
@@ -781,6 +789,21 @@ else{
         </table>
     </form>
 <?php } ?>
+
+
+<?php if(isset($_GET["setgroup"])){
+    $socialGroupId = 1;
+   // if($profile->setGroup($socialGroupId)) echo ('social group ok');
+
+   // $socialGroup = new SocialGroup();
+   // print_r($socialGroup->isMember($profile->id, $socialGroupId));
+
+    if($profile->purgeGroup()) echo ('social group purge ok');
+
+    ?>
+
+<?php } ?>
+
 
 </body>
 </html>

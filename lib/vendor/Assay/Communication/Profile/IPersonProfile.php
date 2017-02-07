@@ -9,19 +9,14 @@ namespace Assay\Communication\Profile {
     interface IPersonProfile
     {
         /** @var string колонка внешнего ключа для ссылки на эту таблицу */
-        const EXTERNAL_ID = 'person_profile_id';
-
-        /** @var string колонка ссылки на социальный объект */
-        const OBJECT = SocialObject::EXTERNAL_ID;
+        const EXTERNAL_ID = 'person_profile_id';//'person_profile_id';
 
         public function getForGreetings():string;
 
         public function enableCommenting():bool;
 
-        public function testPrivilege():bool;
-
         public function purgeGroup():bool;
 
-        public function setGroup():bool;
+        public function setGroup($groupId):bool;
     }
 }
