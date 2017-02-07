@@ -97,7 +97,7 @@ namespace Assay\Communication\Profile {
             $oneParameter[ISqlHandler::DATA_TYPE] = \PDO::PARAM_INT;
 
 
-            $arguments[ISqlHandler::QUERY_TEXT] = 'SELECT DISTINCT ON (M.' . self::AUTHOR . ') M.' . self::AUTHOR . ', M.' . self::DATE . ', M.' . self::MESSAGE_TEXT
+            $arguments[ISqlHandler::QUERY_TEXT] = 'SELECT DISTINCT ON (M.' . self::AUTHOR . ') M.' . self::AUTHOR . ', M.' . self::DATE . ', M.' . self::CONTENT
                 . ', (SELECT name FROM ' . PersonProfile::TABLE_NAME . ' WHERE ' . PersonProfile::ID . ' = M.' . self::AUTHOR . ') as author_name'
                 . '  FROM ' . self::TABLE_NAME . ' as M '
                 . ' WHERE 
@@ -366,7 +366,7 @@ namespace Assay\Communication\Profile {
 
             $sqlWriter = new SqlHandler(SqlHandler::DATA_WRITER);
             $response = $sqlWriter->performQuery($arguments);
-            print_r($response);
+           // print_r($response);
 
             $isSuccessfulRequest = SqlHandler::isNoError($response);
             return $isSuccessfulRequest;
